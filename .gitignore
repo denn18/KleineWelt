@@ -1,0 +1,21 @@
+# Node / React / Next.js / Sharetribe
+node_modules/
+.next/
+.turbo/
+dist/
+build/
+logs/
+*.log
+
+# Env-Dateien
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# macOS / VSCode / Temp
+.DS_Store
+.vscode/
+*.tmp
+*.swp
