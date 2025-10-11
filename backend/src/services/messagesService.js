@@ -1,22 +1,15 @@
-import crypto from 'node:crypto';
+import Message from '../models/Message.js';
 
-const conversations = new Map();
-
-export function listMessages(conversationId) {
-  return conversations.get(conversationId) ?? [];
+export async function listMessages(conversationId) {
+  return Message.find({ conversationId }).sort({ createdAt: 1 });
 }
 
-export function sendMessage({ conversationId, senderId, body }) {
-  const message = {
-    id: crypto.randomUUID(),
+export async function sendMessage({ conversationId, senderId, body }) {
+  const message = await Message.create({
     conversationId,
     senderId,
     body,
-    createdAt: new Date().toISOString(),
-  };
+  });
 
-  const messages = conversations.get(conversationId) ?? [];
-  messages.push(message);
-  conversations.set(conversationId, messages);
   return message;
 }

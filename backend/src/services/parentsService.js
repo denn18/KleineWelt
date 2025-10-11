@@ -1,14 +1,11 @@
-import crypto from 'node:crypto';
+import Parent from '../models/Parent.js';
 
-const parents = [];
-
-export function listParents() {
-  return parents;
+export async function listParents() {
+  return Parent.find().sort({ createdAt: -1 });
 }
 
-export function createParent(data) {
-  const parent = {
-    id: crypto.randomUUID(),
+export async function createParent(data) {
+  const parent = await Parent.create({
     name: data.name,
     email: data.email,
     phone: data.phone,
@@ -17,13 +14,11 @@ export function createParent(data) {
     numberOfChildren: data.numberOfChildren,
     childrenAges: data.childrenAges,
     notes: data.notes,
-    createdAt: new Date().toISOString(),
-  };
+  });
 
-  parents.push(parent);
   return parent;
 }
 
-export function findParentById(id) {
-  return parents.find((parent) => parent.id === id);
+export async function findParentById(id) {
+  return Parent.findById(id);
 }
