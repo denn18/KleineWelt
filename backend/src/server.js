@@ -1,3 +1,4 @@
+import './config/load-env.js';
 import http from 'http';
 import app from './app.js';
 import { connectDatabase } from './config/database.js';
