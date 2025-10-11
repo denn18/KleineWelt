@@ -11,11 +11,21 @@ export async function connectDatabase() {
     return;
   }
 
+  const connectionOptions = {
+    serverSelectionTimeoutMS: 5000,
+  };
+
+  if (process.env.MONGODB_DB_NAME) {
+    connectionOptions.dbName = process.env.MONGODB_DB_NAME;
+  }
+
   try {
-    await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 5000,
-    });
-    console.log('Connected to MongoDB');
+    await mongoose.connect(mongoUri, connectionOptions);
+    if (connectionOptions.dbName) {
+      console.log(`Connected to MongoDB (database: ${connectionOptions.dbName})`);
+    } else {
+      console.log('Connected to MongoDB');
+    }
   } catch (error) {
     console.warn('MongoDB connection failed. The API will continue without database access.');
     console.warn(error.message);
