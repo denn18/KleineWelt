@@ -16,7 +16,7 @@ export async function postMatch(req, res) {
     res.status(201).json(match);
   } catch (error) {
     console.error('Failed to record match', error);
-    const status = error.name === 'ValidationError' ? 400 : 500;
+    const status = error.status || 500;
     res.status(status).json({ message: 'Konnte Treffer nicht speichern.' });
   }
 }
