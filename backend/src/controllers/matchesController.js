@@ -1,17 +1,32 @@
-import { listCaregivers } from '../services/caregiversService.js';
 import { findMatchesByPostalCode, listMatches, recordMatch } from '../services/matchingService.js';
 
-export function getMatches(req, res) {
-  const caregivers = listCaregivers({ postalCode: req.query.postalCode });
-  const result = findMatchesByPostalCode(req.query.postalCode, caregivers);
-  res.json(result);
+export async function getMatches(req, res) {
+  try {
+    const caregivers = await findMatchesByPostalCode(req.query.postalCode);
+    res.json(caregivers);
+  } catch (error) {
+    console.error('Failed to load matches', error);
+    res.status(500).json({ message: 'Konnte Treffer nicht laden.' });
+  }
 }
 
-export function postMatch(req, res) {
-  const match = recordMatch(req.body);
-  res.status(201).json(match);
+export async function postMatch(req, res) {
+  try {
+    const match = await recordMatch(req.body);
+    res.status(201).json(match);
+  } catch (error) {
+    console.error('Failed to record match', error);
+    const status = error.name === 'ValidationError' ? 400 : 500;
+    res.status(status).json({ message: 'Konnte Treffer nicht speichern.' });
+  }
 }
 
-export function getMatchHistory(req, res) {
-  res.json(listMatches());
+export async function getMatchHistory(_req, res) {
+  try {
+    const matches = await listMatches();
+    res.json(matches);
+  } catch (error) {
+    console.error('Failed to load match history', error);
+    res.status(500).json({ message: 'Konnte Trefferhistorie nicht laden.' });
+  }
 }
