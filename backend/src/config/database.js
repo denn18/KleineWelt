@@ -3,7 +3,8 @@ import mongoose from 'mongoose';
 const DEFAULT_URI = 'mongodb://localhost:27017/kleinewelt';
 
 export async function connectDatabase() {
-  const mongoUri = process.env.MONGODB_URI || DEFAULT_URI;
+  const configuredUri = process.env.MONGODB_URI || DEFAULT_URI;
+  const mongoUri = sanitizeMongoUri(configuredUri);
 
   if (!mongoUri) {
     console.warn('No MongoDB URI configured. Skipping database connection.');
@@ -30,4 +31,19 @@ export async function connectDatabase() {
     console.warn('MongoDB connection failed. The API will continue without database access.');
     console.warn(error.message);
   }
+}
+
+function sanitizeMongoUri(uri) {
+  if (!uri) {
+    return uri;
+  }
+
+  const trimmed = uri.trim();
+  const withoutInlineComment = trimmed.replace(/\s+\/\/.*$/, '');
+
+  if (trimmed !== withoutInlineComment) {
+    console.warn('MONGODB_URI contains a trailing comment. The comment portion has been ignored.');
+  }
+
+  return withoutInlineComment;
 }
