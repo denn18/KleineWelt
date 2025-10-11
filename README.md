@@ -14,7 +14,7 @@ Dieses Repository enthält den Grundstein für die Plattform "Kleine Welt" mit g
 ## Backend
 
 - Node.js + Express mit modularer Struktur (Controller, Services, Routes).
-- MongoDB-Anbindung vorbereitet (`src/config/database.js`). Die tatsächliche Verbindung kann über die Umgebungsvariable `MONGODB_URI` hergestellt werden (siehe `backend/.env.example`).
+- MongoDB-Anbindung vorbereitet (`src/config/database.js`). Die tatsächliche Verbindung kann später ergänzt werden.
 - In-Memory-Speicher ersetzt die Datenbank, bis die Persistenz fertiggestellt ist.
 - REST-Endpunkte für Tagespflegepersonen, Eltern, Matches und Nachrichten.
 - Skripte

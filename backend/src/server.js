@@ -1,3 +1,4 @@
+import './config/load-env.js';
 import http from 'http';
 import dotenv from 'dotenv';
 import app from './app.js';
