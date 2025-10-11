@@ -3,12 +3,11 @@ import mongoose from 'mongoose';
 const DEFAULT_URI = 'mongodb://localhost:27017/kleinewelt';
 
 export async function connectDatabase() {
-  const configuredUri = process.env.MONGODB_URI || DEFAULT_URI;
-  const mongoUri = sanitizeMongoUri(configuredUri);
+  const mongoUri = buildMongoUri();
 
   if (!mongoUri) {
-    console.warn('No MongoDB URI configured. Skipping database connection.');
-    console.warn('Set MONGODB_URI in backend/.env or export it in your shell to enable database access.');
+    console.warn('No MongoDB configuration found. Skipping database connection.');
+    console.warn('Provide MONGODB_URI or the new granular variables in backend/.env to enable MongoDB.');
     return;
   }
 
@@ -22,15 +21,57 @@ export async function connectDatabase() {
 
   try {
     await mongoose.connect(mongoUri, connectionOptions);
-    if (connectionOptions.dbName) {
-      console.log(`Connected to MongoDB (database: ${connectionOptions.dbName})`);
-    } else {
-      console.log('Connected to MongoDB');
-    }
+    const targetDb = connectionOptions.dbName || extractDbNameFromUri(mongoUri) || 'default';
+    console.log(`Connected to MongoDB (database: ${targetDb})`);
   } catch (error) {
     console.warn('MongoDB connection failed. The API will continue without database access.');
     console.warn(error.message);
   }
+}
+
+function buildMongoUri() {
+  const configuredUri = sanitizeMongoUri(process.env.MONGODB_URI);
+  if (configuredUri) {
+    return configuredUri;
+  }
+
+  const host = process.env.MONGODB_HOST;
+  if (!host) {
+    return DEFAULT_URI;
+  }
+
+  const protocol = process.env.MONGODB_PROTOCOL || 'mongodb+srv';
+  const username = process.env.MONGODB_USERNAME;
+  const password = process.env.MONGODB_PASSWORD;
+  const authSource = process.env.MONGODB_AUTH_SOURCE;
+  const port = process.env.MONGODB_PORT;
+  const databaseName = process.env.MONGODB_DB_NAME;
+  const extraOptions = sanitizeQueryString(process.env.MONGODB_OPTIONS);
+
+  let credentials = '';
+  if (username && password) {
+    const encodedUser = encodeURIComponent(username);
+    const encodedPassword = encodeURIComponent(password);
+    credentials = `${encodedUser}:${encodedPassword}@`;
+  } else if (username || password) {
+    console.warn('Both MONGODB_USERNAME and MONGODB_PASSWORD must be provided to use credentials.');
+  }
+
+  const isSrvProtocol = protocol.endsWith('+srv');
+  const portSegment = !isSrvProtocol && port ? `:${port}` : '';
+  const dbSegment = databaseName ? `/${databaseName}` : '';
+
+  const queryParameters = [];
+  if (authSource) {
+    queryParameters.push(`authSource=${encodeURIComponent(authSource)}`);
+  }
+  if (extraOptions) {
+    queryParameters.push(extraOptions);
+  }
+
+  const querySegment = queryParameters.length > 0 ? `?${queryParameters.join('&')}` : '';
+
+  return `${protocol}://${credentials}${host}${portSegment}${dbSegment}${querySegment}`;
 }
 
 function sanitizeMongoUri(uri) {
@@ -46,4 +87,23 @@ function sanitizeMongoUri(uri) {
   }
 
   return withoutInlineComment;
+}
+
+function sanitizeQueryString(value) {
+  if (!value) {
+    return '';
+  }
+
+  return value
+    .trim()
+    .replace(/^\?/, '')
+    .replace(/\s+\/\/.*$/, '');
+}
+
+function extractDbNameFromUri(uri) {
+  const matches = uri.match(/^mongodb(?:\+srv)?:\/\/[^/]+\/([A-Za-z0-9._-]+)/i);
+  if (matches && matches[1]) {
+    return matches[1];
+  }
+  return null;
 }
