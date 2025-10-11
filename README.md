@@ -29,7 +29,7 @@ Dieses Repository enthält den Grundstein für die Plattform "Kleine Welt" mit g
 - Leaflet-Karte (OpenStreetMap Tiles) als Live-Vorschau der Tagespflegepersonen.
 - Axios zur Kommunikation mit dem Backend; Endpunkte sind bereits verdrahtet.
 - Skripte
-  - `npm install`: Abhängigkeiten installieren (muss vor dem ersten Start ausgeführt werden). Schlägt `npm run dev` mit der Meldung `sh: vite: command not found` fehl, fehlen die devDependencies – dann zunächst `npm install` im Ordner `frontend` ausführen.
+  - `npm install`: Abhängigkeiten installieren (muss vor dem ersten Start ausgeführt werden). Falls ein System standardmäßig im Produktionsmodus installiert (z. B. durch gesetztes `NODE_ENV=production`) stellt die Datei `frontend/.npmrc` sicher, dass auch die für den Entwicklungsserver notwendigen devDependencies wie `vite` installiert werden. Erscheint trotzdem `sh: vite: command not found`, erneut `npm install` im Ordner `frontend` ausführen.
   - `npm run dev`: Entwicklungsserver (http://localhost:5173)
   - `npm run build`: Produktionsbuild
   - `npm run preview`: Vorschau des Builds
