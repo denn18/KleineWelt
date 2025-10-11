@@ -7,6 +7,7 @@ export async function connectDatabase() {
 
   if (!mongoUri) {
     console.warn('No MongoDB URI configured. Skipping database connection.');
+    console.warn('Set MONGODB_URI in backend/.env or export it in your shell to enable database access.');
     return;
   }
 
