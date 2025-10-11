@@ -16,7 +16,7 @@ export async function postParent(req, res) {
     res.status(201).json(parent);
   } catch (error) {
     console.error('Failed to create parent', error);
-    const status = error.name === 'ValidationError' ? 400 : 500;
+    const status = error.status || 500;
     res.status(status).json({ message: 'Konnte Elternprofil nicht speichern.' });
   }
 }

@@ -16,7 +16,7 @@ export async function postCaregiver(req, res) {
     res.status(201).json(caregiver);
   } catch (error) {
     console.error('Failed to create caregiver', error);
-    const status = error.name === 'ValidationError' ? 400 : 500;
+    const status = error.status || 500;
     res.status(status).json({ message: 'Konnte Profil nicht speichern.' });
   }
 }

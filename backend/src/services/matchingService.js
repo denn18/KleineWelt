@@ -1,5 +1,13 @@
-import Caregiver from '../models/Caregiver.js';
-import Match from '../models/Match.js';
+import {
+  caregiversCollection,
+  serializeCaregiver,
+} from '../models/Caregiver.js';
+import {
+  buildMatchDocument,
+  matchesCollection,
+  serializeMatch,
+  touchUpdatedAt,
+} from '../models/Match.js';
 
 export async function findMatchesByPostalCode(postalCode) {
   const query = {};
@@ -7,19 +15,56 @@ export async function findMatchesByPostalCode(postalCode) {
     query.postalCode = postalCode;
   }
 
-  return Caregiver.find(query).sort({ hasAvailability: -1, createdAt: -1 });
+  const cursor = caregiversCollection()
+    .find(query)
+    .sort({ hasAvailability: -1, createdAt: -1 });
+  const documents = await cursor.toArray();
+
+  return documents.map(serializeCaregiver);
 }
 
 export async function recordMatch({ parentId, caregiverId }) {
-  const match = await Match.findOneAndUpdate(
-    { parentId, caregiverId },
-    { parentId, caregiverId },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+  if (!parentId || !caregiverId) {
+    const error = new Error('Both parentId and caregiverId are required to record a match.');
+    error.status = 400;
+    throw error;
+  }
 
-  return match;
+  const filter = { parentId, caregiverId };
+  const update = {
+    $setOnInsert: buildMatchDocument({ parentId, caregiverId }),
+    $set: touchUpdatedAt({}),
+  };
+
+  const options = { upsert: true, returnDocument: 'after' };
+  const result = await matchesCollection().findOneAndUpdate(filter, update, options);
+
+  if (result.value) {
+    return serializeMatch(result.value);
+  }
+
+  const upsertedId = result.lastErrorObject?.upsertedId;
+  if (upsertedId) {
+    const insertedDocument = await matchesCollection().findOne({ _id: upsertedId });
+    if (insertedDocument) {
+      return serializeMatch(insertedDocument);
+    }
+
+    return serializeMatch({
+      _id: upsertedId,
+      parentId,
+      caregiverId,
+      createdAt: update.$setOnInsert.createdAt,
+      updatedAt: update.$set.updatedAt,
+    });
+  }
+
+  return null;
 }
 
 export async function listMatches() {
-  return Match.find().sort({ createdAt: -1 });
+  const cursor = matchesCollection().find().sort({ createdAt: -1 });
+  const documents = await cursor.toArray();
+
+  return documents.map(serializeMatch);
 }

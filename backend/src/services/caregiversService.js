@@ -1,4 +1,9 @@
-import Caregiver from '../models/Caregiver.js';
+import {
+  buildCaregiverDocument,
+  caregiversCollection,
+  serializeCaregiver,
+  toObjectId,
+} from '../models/Caregiver.js';
 
 export async function listCaregivers(filters = {}) {
   const query = {};
@@ -6,26 +11,34 @@ export async function listCaregivers(filters = {}) {
     query.postalCode = filters.postalCode;
   }
 
-  return Caregiver.find(query).sort({ createdAt: -1 });
+  const cursor = caregiversCollection().find(query).sort({ createdAt: -1 });
+  const documents = await cursor.toArray();
+
+  return documents.map(serializeCaregiver);
 }
 
 export async function createCaregiver(data) {
-  const caregiver = await Caregiver.create({
-    name: data.name,
-    email: data.email,
-    phone: data.phone,
-    address: data.address,
-    postalCode: data.postalCode,
-    daycareName: data.daycareName,
-    availableSpots: data.availableSpots,
-    hasAvailability: data.hasAvailability,
-    bio: data.bio,
-    location: data.location,
-  });
+  const requiredFields = ['name', 'email', 'phone', 'address', 'postalCode'];
+  const missingFields = requiredFields.filter((field) => !data?.[field]);
 
-  return caregiver;
+  if (missingFields.length > 0) {
+    const error = new Error(`Missing required fields: ${missingFields.join(', ')}`);
+    error.status = 400;
+    throw error;
+  }
+
+  const document = buildCaregiverDocument(data);
+  const result = await caregiversCollection().insertOne(document);
+
+  return serializeCaregiver({ _id: result.insertedId, ...document });
 }
 
 export async function findCaregiverById(id) {
-  return Caregiver.findById(id);
+  const objectId = toObjectId(id);
+  if (!objectId) {
+    return null;
+  }
+
+  const document = await caregiversCollection().findOne({ _id: objectId });
+  return serializeCaregiver(document);
 }
