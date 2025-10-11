@@ -20,7 +20,7 @@ export async function postMessage(req, res) {
     res.status(201).json(message);
   } catch (error) {
     console.error('Failed to send message', error);
-    const status = error.name === 'ValidationError' ? 400 : 500;
+    const status = error.status || 500;
     res.status(status).json({ message: 'Konnte Nachricht nicht senden.' });
   }
 }

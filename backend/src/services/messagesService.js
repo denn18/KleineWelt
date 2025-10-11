@@ -1,15 +1,27 @@
-import Message from '../models/Message.js';
+import {
+  buildMessageDocument,
+  messagesCollection,
+  serializeMessage,
+} from '../models/Message.js';
 
 export async function listMessages(conversationId) {
-  return Message.find({ conversationId }).sort({ createdAt: 1 });
+  const cursor = messagesCollection()
+    .find({ conversationId })
+    .sort({ createdAt: 1 });
+  const documents = await cursor.toArray();
+
+  return documents.map(serializeMessage);
 }
 
 export async function sendMessage({ conversationId, senderId, body }) {
-  const message = await Message.create({
-    conversationId,
-    senderId,
-    body,
-  });
+  if (!conversationId || !senderId || !body) {
+    const error = new Error('Missing required message fields.');
+    error.status = 400;
+    throw error;
+  }
 
-  return message;
+  const document = buildMessageDocument({ conversationId, senderId, body });
+  const result = await messagesCollection().insertOne(document);
+
+  return serializeMessage({ _id: result.insertedId, ...document });
 }

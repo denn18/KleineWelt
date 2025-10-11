@@ -1,32 +1,78 @@
-import mongoose from 'mongoose';
+import { MongoClient } from 'mongodb';
 
 const DEFAULT_URI = 'mongodb://localhost:27017/kleinewelt';
 
-export async function connectDatabase() {
-  const mongoUri = buildMongoUri();
+let mongoClient;
+let database;
 
-  if (!mongoUri) {
+export async function connectDatabase() {
+  const configuredUri = buildMongoUri();
+
+  if (!configuredUri) {
     console.warn('No MongoDB configuration found. Skipping database connection.');
     console.warn('Provide MONGODB_URI or the new granular variables in backend/.env to enable MongoDB.');
     return;
   }
 
-  const connectionOptions = {
+  const connectionAttempts = [configuredUri];
+  if (!connectionAttempts.includes(DEFAULT_URI)) {
+    connectionAttempts.push(DEFAULT_URI);
+  }
+
+  const clientOptions = {
     serverSelectionTimeoutMS: 5000,
   };
 
-  if (process.env.MONGODB_DB_NAME) {
-    connectionOptions.dbName = process.env.MONGODB_DB_NAME;
+  const dbNameFromConfig = process.env.MONGODB_DB_NAME || extractDbNameFromUri(configuredUri);
+
+  if (mongoClient) {
+    await closeDatabase();
   }
 
-  try {
-    await mongoose.connect(mongoUri, connectionOptions);
-    const targetDb = connectionOptions.dbName || extractDbNameFromUri(mongoUri) || 'default';
-    console.log(`Connected to MongoDB (database: ${targetDb})`);
-  } catch (error) {
-    console.warn('MongoDB connection failed. The API will continue without database access.');
-    console.warn(error.message);
+  let lastError;
+
+  for (const uri of connectionAttempts) {
+    try {
+      const client = new MongoClient(uri, clientOptions);
+      await client.connect();
+
+      mongoClient = client;
+      const databaseName = dbNameFromConfig || extractDbNameFromUri(uri);
+      database = databaseName ? mongoClient.db(databaseName) : mongoClient.db();
+
+      const targetDb = database.databaseName;
+      const label = uri === configuredUri ? 'configured' : 'local fallback';
+      console.log(`Connected to MongoDB using ${label} URI (database: ${targetDb})`);
+      return;
+    } catch (error) {
+      lastError = error;
+      await closeDatabase();
+      console.warn(`MongoDB connection attempt failed for URI: ${uri}`);
+      console.warn(error.message);
+    }
   }
+
+  console.warn('All MongoDB connection attempts failed. The API will continue without database access.');
+  if (lastError) {
+    console.warn(lastError.message);
+  }
+}
+
+export function getDatabase() {
+  if (!database) {
+    throw new Error('Database connection has not been established.');
+  }
+
+  return database;
+}
+
+export async function closeDatabase() {
+  if (mongoClient) {
+    await mongoClient.close();
+  }
+
+  mongoClient = undefined;
+  database = undefined;
 }
 
 function buildMongoUri() {
@@ -105,5 +151,5 @@ function extractDbNameFromUri(uri) {
   if (matches && matches[1]) {
     return matches[1];
   }
-  return null;
+  return undefined;
 }

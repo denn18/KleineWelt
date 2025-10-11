@@ -1,39 +1,57 @@
-import mongoose from 'mongoose';
+import { ObjectId } from 'mongodb';
+import { getDatabase } from '../config/database.js';
 
-const CaregiverSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true },
-    email: { type: String, required: true },
-    phone: { type: String, required: true },
-    address: { type: String, required: true },
-    postalCode: { type: String, required: true, index: true },
-    daycareName: { type: String },
-    availableSpots: { type: Number, default: 0 },
-    hasAvailability: { type: Boolean, default: false },
-    bio: { type: String },
-    location: { type: mongoose.Schema.Types.Mixed },
-  },
-  { timestamps: true }
-);
+const COLLECTION_NAME = 'caregivers';
 
-function transformDocument(_doc, ret) {
-  ret.id = ret._id.toString();
-  delete ret._id;
-  return ret;
+export function caregiversCollection() {
+  return getDatabase().collection(COLLECTION_NAME);
 }
 
-CaregiverSchema.set('toJSON', {
-  virtuals: true,
-  versionKey: false,
-  transform: transformDocument,
-});
+export function serializeCaregiver(document) {
+  if (!document) {
+    return null;
+  }
 
-CaregiverSchema.set('toObject', {
-  virtuals: true,
-  versionKey: false,
-  transform: transformDocument,
-});
+  const { _id, ...rest } = document;
+  return {
+    id: _id.toString(),
+    ...rest,
+  };
+}
 
-const Caregiver = mongoose.model('Caregiver', CaregiverSchema);
+export function toObjectId(id) {
+  if (!id) {
+    return null;
+  }
 
-export default Caregiver;
+  try {
+    return new ObjectId(id);
+  } catch (_error) {
+    return null;
+  }
+}
+
+export function buildCaregiverDocument(data) {
+  const now = new Date();
+
+  return {
+    name: data.name?.trim(),
+    email: data.email?.trim(),
+    phone: data.phone?.trim(),
+    address: data.address?.trim(),
+    postalCode: data.postalCode?.trim(),
+    daycareName: data.daycareName?.trim() || null,
+    availableSpots:
+      typeof data.availableSpots === 'number'
+        ? data.availableSpots
+        : Number.parseInt(data.availableSpots ?? '0', 10) || 0,
+    hasAvailability:
+      typeof data.hasAvailability === 'string'
+        ? data.hasAvailability.toLowerCase() === 'true'
+        : Boolean(data.hasAvailability),
+    bio: data.bio?.trim() || null,
+    location: data.location ?? null,
+    createdAt: now,
+    updatedAt: now,
+  };
+}

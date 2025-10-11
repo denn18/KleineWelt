@@ -1,32 +1,44 @@
-import mongoose from 'mongoose';
+import { ObjectId } from 'mongodb';
+import { getDatabase } from '../config/database.js';
 
-const MessageSchema = new mongoose.Schema(
-  {
-    conversationId: { type: String, required: true, index: true },
-    senderId: { type: String, required: true },
-    body: { type: String, required: true },
-  },
-  { timestamps: true }
-);
+const COLLECTION_NAME = 'messages';
 
-function transformDocument(_doc, ret) {
-  ret.id = ret._id.toString();
-  delete ret._id;
-  return ret;
+export function messagesCollection() {
+  return getDatabase().collection(COLLECTION_NAME);
 }
 
-MessageSchema.set('toJSON', {
-  virtuals: true,
-  versionKey: false,
-  transform: transformDocument,
-});
+export function serializeMessage(document) {
+  if (!document) {
+    return null;
+  }
 
-MessageSchema.set('toObject', {
-  virtuals: true,
-  versionKey: false,
-  transform: transformDocument,
-});
+  const { _id, ...rest } = document;
+  return {
+    id: _id.toString(),
+    ...rest,
+  };
+}
 
-const Message = mongoose.model('Message', MessageSchema);
+export function toObjectId(id) {
+  if (!id) {
+    return null;
+  }
 
-export default Message;
+  try {
+    return new ObjectId(id);
+  } catch (_error) {
+    return null;
+  }
+}
+
+export function buildMessageDocument({ conversationId, senderId, body }) {
+  const now = new Date();
+
+  return {
+    conversationId,
+    senderId,
+    body,
+    createdAt: now,
+    updatedAt: now,
+  };
+}

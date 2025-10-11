@@ -1,31 +1,47 @@
-import mongoose from 'mongoose';
+import { ObjectId } from 'mongodb';
+import { getDatabase } from '../config/database.js';
 
-const MatchSchema = new mongoose.Schema(
-  {
-    parentId: { type: String, required: true, index: true },
-    caregiverId: { type: String, required: true, index: true },
-  },
-  { timestamps: true }
-);
+const COLLECTION_NAME = 'matches';
 
-function transformDocument(_doc, ret) {
-  ret.id = ret._id.toString();
-  delete ret._id;
-  return ret;
+export function matchesCollection() {
+  return getDatabase().collection(COLLECTION_NAME);
 }
 
-MatchSchema.set('toJSON', {
-  virtuals: true,
-  versionKey: false,
-  transform: transformDocument,
-});
+export function serializeMatch(document) {
+  if (!document) {
+    return null;
+  }
 
-MatchSchema.set('toObject', {
-  virtuals: true,
-  versionKey: false,
-  transform: transformDocument,
-});
+  const { _id, ...rest } = document;
+  return {
+    id: _id.toString(),
+    ...rest,
+  };
+}
 
-const Match = mongoose.model('Match', MatchSchema);
+export function toObjectId(id) {
+  if (!id) {
+    return null;
+  }
 
-export default Match;
+  try {
+    return new ObjectId(id);
+  } catch (_error) {
+    return null;
+  }
+}
+
+export function buildMatchDocument({ parentId, caregiverId }) {
+  const now = new Date();
+
+  return {
+    parentId,
+    caregiverId,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export function touchUpdatedAt(document) {
+  return { ...document, updatedAt: new Date() };
+}
