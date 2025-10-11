@@ -1,18 +1,16 @@
-import crypto from 'node:crypto';
+import Caregiver from '../models/Caregiver.js';
 
-const caregivers = [];
-
-export function listCaregivers(filters = {}) {
-  const { postalCode } = filters;
-  if (!postalCode) {
-    return caregivers;
+export async function listCaregivers(filters = {}) {
+  const query = {};
+  if (filters.postalCode) {
+    query.postalCode = filters.postalCode;
   }
-  return caregivers.filter((caregiver) => caregiver.postalCode === postalCode);
+
+  return Caregiver.find(query).sort({ createdAt: -1 });
 }
 
-export function createCaregiver(data) {
-  const caregiver = {
-    id: crypto.randomUUID(),
+export async function createCaregiver(data) {
+  const caregiver = await Caregiver.create({
     name: data.name,
     email: data.email,
     phone: data.phone,
@@ -23,13 +21,11 @@ export function createCaregiver(data) {
     hasAvailability: data.hasAvailability,
     bio: data.bio,
     location: data.location,
-    createdAt: new Date().toISOString(),
-  };
+  });
 
-  caregivers.push(caregiver);
   return caregiver;
 }
 
-export function findCaregiverById(id) {
-  return caregivers.find((caregiver) => caregiver.id === id);
+export async function findCaregiverById(id) {
+  return Caregiver.findById(id);
 }
