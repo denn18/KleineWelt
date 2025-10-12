@@ -1,15 +1,35 @@
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Bars3Icon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
-
-const links = [
-  { to: '/', label: 'Startseite' },
-  { to: '/anmelden', label: 'Anmelden' },
-  { to: '/familienzentrum', label: 'Familienzentrum' }
-];
+import { useMemo, useState } from 'react';
+import { useAuth } from '../context/AuthContext.jsx';
 
 function NavigationBar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const links = useMemo(() => {
+    const items = [
+      { to: '/', label: 'Startseite' },
+      { to: '/familienzentrum', label: 'Tagespflege finden' },
+    ];
+
+    if (user) {
+      items.push({ to: '/nachrichten', label: 'Nachrichten' });
+      items.push({ to: '/profil', label: 'Profil' });
+    } else {
+      items.push({ to: '/anmelden', label: 'Registrieren' });
+      items.push({ to: '/login', label: 'Login' });
+    }
+
+    return items;
+  }, [user]);
+
+  function handleLogout() {
+    logout();
+    setMobileOpen(false);
+    navigate('/');
+  }
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-brand-100 bg-white/80 backdrop-blur">
@@ -31,6 +51,15 @@ function NavigationBar() {
               {link.label}
             </NavLink>
           ))}
+          {user ? (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+            >
+              Logout
+            </button>
+          ) : null}
         </nav>
         <button
           type="button"
@@ -57,6 +86,15 @@ function NavigationBar() {
                 {link.label}
               </NavLink>
             ))}
+            {user ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+              >
+                Logout
+              </button>
+            ) : null}
           </nav>
         </div>
       ) : null}

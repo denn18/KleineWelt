@@ -1,5 +1,6 @@
 import {
   buildCaregiverDocument,
+  buildCaregiverUpdate,
   caregiversCollection,
   serializeCaregiver,
   toObjectId,
@@ -18,12 +19,31 @@ export async function listCaregivers(filters = {}) {
 }
 
 export async function createCaregiver(data) {
-  const requiredFields = ['name', 'email', 'phone', 'address', 'postalCode'];
+  const requiredFields = [
+    'email',
+    'phone',
+    'address',
+    'postalCode',
+    'username',
+    'password',
+    'profileImageUrl',
+    'conceptUrl',
+  ];
   const missingFields = requiredFields.filter((field) => !data?.[field]);
 
   if (missingFields.length > 0) {
     const error = new Error(`Missing required fields: ${missingFields.join(', ')}`);
     error.status = 400;
+    throw error;
+  }
+
+  const existing = await caregiversCollection().findOne({
+    $or: [{ email: data.email }, { username: data.username }],
+  });
+
+  if (existing) {
+    const error = new Error('Für diese Zugangsdaten existiert bereits eine Tagespflegeperson.');
+    error.status = 409;
     throw error;
   }
 
@@ -41,4 +61,19 @@ export async function findCaregiverById(id) {
 
   const document = await caregiversCollection().findOne({ _id: objectId });
   return serializeCaregiver(document);
+}
+
+export async function updateCaregiver(id, data) {
+  const objectId = toObjectId(id);
+  if (!objectId) {
+    return null;
+  }
+
+  const update = buildCaregiverUpdate(data);
+  if (Object.keys(update).length <= 1) {
+    return findCaregiverById(id);
+  }
+
+  await caregiversCollection().updateOne({ _id: objectId }, { $set: update });
+  return findCaregiverById(id);
 }
