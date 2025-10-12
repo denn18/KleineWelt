@@ -20,3 +20,7 @@ logs/
 *.tmp
 *.swp
 .DS_Store
+
+.DS_Store
+quick-db-*.mjs
+backend/quick-db-check.mjs
