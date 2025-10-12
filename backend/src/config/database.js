@@ -1,7 +1,5 @@
 import { MongoClient } from 'mongodb';
 
-const DEFAULT_URI = 'mongodb://localhost:27017/kleinewelt';
-
 let mongoClient;
 let database;
 
@@ -63,7 +61,7 @@ function buildMongoUri() {
 
   const host = process.env.MONGODB_HOST;
   if (!host) {
-    return DEFAULT_URI;
+    return undefined;
   }
 
   const protocol = process.env.MONGODB_PROTOCOL || 'mongodb+srv';
