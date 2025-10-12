@@ -14,7 +14,12 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+<<<<<<< Updated upstream
     "mongodb": "^6.7.0"
+=======
+    "mongodb": "^6.20.0",
+    "mongoose": "^8.4.4"
+>>>>>>> Stashed changes
   },
   "devDependencies": {
     "eslint": "^8.57.0",

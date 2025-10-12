@@ -1,9 +1,13 @@
 import './config/load-env.js';
 import http from 'http';
+import dotenv from 'dotenv';
+import 'dotenv/config';
 import app from './app.js';
 import { connectDatabase } from './config/database.js';
 
-const PORT = process.env.PORT || 5000;
+dotenv.config();
+
+const PORT = process.env.PORT || 2000;
 
 async function startServer() {
   await connectDatabase();
