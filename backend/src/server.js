@@ -7,7 +7,7 @@ import { connectDatabase } from './config/database.js';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 2000;
+const PORT = process.env.PORT || 5000;
 
 async function startServer() {
   await connectDatabase();
