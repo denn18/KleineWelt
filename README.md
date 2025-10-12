@@ -22,6 +22,7 @@ Dieses Repository enthält den Grundstein für die Plattform "Kleine Welt" mit g
 - REST-Endpunkte für Tagespflegepersonen, Eltern, Matches und Nachrichten.
 - Skripte
   - `npm run dev`: Entwicklungsmodus mit Nodemon
+  - `npm run server`: Alias für den Entwicklungsmodus – praktisch, falls bestehende Dokumentationen diesen Befehl verwenden
   - `npm run start`: Produktionsstart
   - `npm run lint`: ESLint-Prüfung
 

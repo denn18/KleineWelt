@@ -1,11 +1,21 @@
-import {
-  buildMessageDocument,
-  messagesCollection,
-  serializeMessage,
-} from '../models/Message.js';
+import { buildMessageDocument, messagesCollection, serializeMessage } from '../models/Message.js';
+
+let messagesCollectionOverride = null;
+
+function getMessagesCollection() {
+  return messagesCollectionOverride ?? messagesCollection();
+}
+
+export function __setMessagesCollectionForTesting(collection) {
+  messagesCollectionOverride = collection ?? null;
+}
+
+export function __resetMessagesCollectionForTesting() {
+  messagesCollectionOverride = null;
+}
 
 export async function listMessages(conversationId) {
-  const cursor = messagesCollection()
+  const cursor = getMessagesCollection()
     .find({ conversationId })
     .sort({ createdAt: 1 });
   const documents = await cursor.toArray();
@@ -13,15 +23,34 @@ export async function listMessages(conversationId) {
   return documents.map(serializeMessage);
 }
 
-export async function sendMessage({ conversationId, senderId, body }) {
-  if (!conversationId || !senderId || !body) {
+export async function sendMessage({ conversationId, senderId, recipientId, body }) {
+  if (!conversationId || !senderId || !recipientId || !body) {
     const error = new Error('Missing required message fields.');
     error.status = 400;
     throw error;
   }
 
-  const document = buildMessageDocument({ conversationId, senderId, body });
-  const result = await messagesCollection().insertOne(document);
+  const document = buildMessageDocument({ conversationId, senderId, recipientId, body });
+  const result = await getMessagesCollection().insertOne(document);
 
   return serializeMessage({ _id: result.insertedId, ...document });
+}
+
+export async function listConversationsForUser(participantId) {
+  const cursor = getMessagesCollection()
+    .aggregate([
+      { $match: { participants: participantId } },
+      { $sort: { createdAt: -1 } },
+      {
+        $group: {
+          _id: '$conversationId',
+          lastMessage: { $first: '$$ROOT' },
+        },
+      },
+      { $replaceRoot: { newRoot: '$lastMessage' } },
+      { $sort: { createdAt: -1 } },
+    ]);
+
+  const documents = await cursor.toArray();
+  return documents.map(serializeMessage);
 }
