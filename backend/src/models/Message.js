@@ -31,12 +31,14 @@ export function toObjectId(id) {
   }
 }
 
-export function buildMessageDocument({ conversationId, senderId, body }) {
+export function buildMessageDocument({ conversationId, senderId, recipientId, body }) {
   const now = new Date();
 
   return {
     conversationId,
+    participants: Array.from(new Set([senderId, recipientId])),
     senderId,
+    recipientId,
     body,
     createdAt: now,
     updatedAt: now,

@@ -40,10 +40,10 @@ function HomePage() {
               Jetzt registrieren
             </Link>
             <Link
-              to="/familienzentrum"
+              to="/login"
               className="rounded-full border border-brand-200 px-6 py-3 text-center text-sm font-semibold text-brand-700 transition hover:border-brand-400 hover:text-brand-800"
             >
-              Mehr erfahren
+              Bereits registriert? Jetzt einloggen
             </Link>
           </div>
         </div>
