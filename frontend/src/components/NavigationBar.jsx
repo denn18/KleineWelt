@@ -26,6 +26,10 @@ function NavigationBar() {
   }, [user]);
 
   function handleLogout() {
+    const confirmed = window.confirm('Möchtest du dich wirklich ausloggen?');
+    if (!confirmed) {
+      return;
+    }
     logout();
     setMobileOpen(false);
     navigate('/');

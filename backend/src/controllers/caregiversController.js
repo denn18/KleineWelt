@@ -1,13 +1,33 @@
-import { createCaregiver, findCaregiverById, listCaregivers, updateCaregiver } from '../services/caregiversService.js';
+import {
+  createCaregiver,
+  findCaregiverById,
+  listCaregiverLocations,
+  listCaregivers,
+  updateCaregiver,
+} from '../services/caregiversService.js';
 import { removeStoredFile, storeBase64File } from '../utils/fileStorage.js';
 
 export async function getCaregivers(req, res) {
   try {
-    const caregivers = await listCaregivers({ postalCode: req.query.postalCode });
+    const caregivers = await listCaregivers({
+      postalCode: req.query.postalCode,
+      city: req.query.city,
+      search: req.query.search,
+    });
     res.json(caregivers);
   } catch (error) {
     console.error('Failed to load caregivers', error);
     res.status(500).json({ message: 'Konnte Tagespflegepersonen nicht laden.' });
+  }
+}
+
+export async function getCaregiverLocations(req, res) {
+  try {
+    const suggestions = await listCaregiverLocations(req.query.q ?? '');
+    res.json(suggestions);
+  } catch (error) {
+    console.error('Failed to load caregiver locations', error);
+    res.status(500).json({ message: 'Konnte Orte nicht laden.' });
   }
 }
 
@@ -27,10 +47,23 @@ export async function postCaregiver(req, res) {
       fallbackExtension: 'pdf',
     });
 
+    const rawRoomImages = Array.isArray(req.body.roomImages) ? req.body.roomImages : [];
+    const storedRoomImages = await Promise.all(
+      rawRoomImages.map(async (image) =>
+        storeBase64File({
+          base64: image?.dataUrl ?? null,
+          originalName: image?.fileName,
+          folder: 'caregivers/room-gallery',
+          fallbackExtension: 'png',
+        })
+      )
+    );
+
     const caregiver = await createCaregiver({
       ...req.body,
       profileImageUrl,
       conceptUrl,
+      roomImages: storedRoomImages.filter(Boolean),
     });
     res.status(201).json(caregiver);
   } catch (error) {
@@ -95,10 +128,37 @@ export async function patchCaregiver(req, res) {
       });
     }
 
+    let roomImages = existing.roomImages ?? [];
+    if (req.body.roomImages !== undefined) {
+      const requestedImages = Array.isArray(req.body.roomImages) ? req.body.roomImages : [];
+      const normalizedImages = [];
+
+      for (const image of requestedImages) {
+        if (typeof image === 'string') {
+          normalizedImages.push(image);
+        } else if (image?.dataUrl) {
+          const storedUrl = await storeBase64File({
+            base64: image.dataUrl,
+            originalName: image.fileName,
+            folder: 'caregivers/room-gallery',
+            fallbackExtension: 'png',
+          });
+          if (storedUrl) {
+            normalizedImages.push(storedUrl);
+          }
+        }
+      }
+
+      const removedImages = roomImages.filter((url) => !normalizedImages.includes(url));
+      await Promise.all(removedImages.map((url) => removeStoredFile(url)));
+      roomImages = normalizedImages;
+    }
+
     const caregiver = await updateCaregiver(caregiverId, {
       ...req.body,
       profileImageUrl,
       conceptUrl,
+      roomImages,
     });
 
     res.json(caregiver);

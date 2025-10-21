@@ -7,6 +7,20 @@ export function caregiversCollection() {
   return getDatabase().collection(COLLECTION_NAME);
 }
 
+function normalizeScheduleEntries(entries) {
+  if (!Array.isArray(entries)) {
+    return [];
+  }
+
+  return entries
+    .map((entry) => ({
+      startTime: entry?.startTime?.trim() || '',
+      endTime: entry?.endTime?.trim() || '',
+      activity: entry?.activity?.trim() || '',
+    }))
+    .filter((entry) => entry.startTime && entry.endTime && entry.activity);
+}
+
 export function serializeCaregiver(document) {
   if (!document) {
     return null;
@@ -47,6 +61,10 @@ export function buildCaregiverDocument(data) {
       : Number.parseInt(data.childrenCount ?? '0', 10) || 0;
   const age =
     typeof data.age === 'number' ? data.age : Number.parseInt(data.age ?? '0', 10) || null;
+  const careTimes = normalizeScheduleEntries(data.careTimes);
+  const dailySchedule = normalizeScheduleEntries(data.dailySchedule);
+  const mealPlan = data.mealPlan?.trim() || null;
+  const roomImages = Array.isArray(data.roomImages) ? data.roomImages.filter(Boolean) : [];
 
   return {
     name: fullName || data.name?.trim(),
@@ -56,6 +74,7 @@ export function buildCaregiverDocument(data) {
     phone: data.phone?.trim(),
     address: data.address?.trim(),
     postalCode: data.postalCode?.trim(),
+    city: data.city?.trim() || null,
     daycareName: data.daycareName?.trim() || null,
     availableSpots,
     childrenCount,
@@ -67,6 +86,10 @@ export function buildCaregiverDocument(data) {
     bio: data.bio?.trim() || null,
     shortDescription: data.shortDescription?.trim() || null,
     location: data.location ?? null,
+    careTimes,
+    dailySchedule,
+    mealPlan,
+    roomImages,
     username: data.username?.trim() || data.email?.trim(),
     password: data.password,
     profileImageUrl: data.profileImageUrl || null,
@@ -104,6 +127,9 @@ export function buildCaregiverUpdate(data) {
   if (data.postalCode !== undefined) {
     update.postalCode = data.postalCode?.trim() || null;
   }
+  if (data.city !== undefined) {
+    update.city = data.city?.trim() || null;
+  }
   if (data.daycareName !== undefined) {
     update.daycareName = data.daycareName?.trim() || null;
   }
@@ -136,6 +162,18 @@ export function buildCaregiverUpdate(data) {
   }
   if (data.location !== undefined) {
     update.location = data.location;
+  }
+  if (data.careTimes !== undefined) {
+    update.careTimes = normalizeScheduleEntries(data.careTimes);
+  }
+  if (data.dailySchedule !== undefined) {
+    update.dailySchedule = normalizeScheduleEntries(data.dailySchedule);
+  }
+  if (data.mealPlan !== undefined) {
+    update.mealPlan = data.mealPlan?.trim() || null;
+  }
+  if (data.roomImages !== undefined) {
+    update.roomImages = Array.isArray(data.roomImages) ? data.roomImages.filter(Boolean) : [];
   }
   if (data.username !== undefined) {
     update.username = data.username?.trim() || null;
