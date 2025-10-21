@@ -10,6 +10,7 @@ import ProfilePage from './pages/ProfilePage.jsx';
 import MessagesOverviewPage from './pages/MessagesOverviewPage.jsx';
 import MessengerPage from './pages/MessengerPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import CaregiverDetailPage from './pages/CaregiverDetailPage.jsx';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="anmelden/tagespflegeperson" element={<CaregiverSignupPage />} />
         <Route path="anmelden/eltern" element={<ParentSignupPage />} />
         <Route path="familienzentrum" element={<DashboardPage />} />
+        <Route path="kindertagespflege/:id" element={<CaregiverDetailPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route
           path="profil"
