@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import axios from 'axios';
 
+
 const STORAGE_KEY = 'kleinewelt:user';
 
 const AuthContext = createContext({

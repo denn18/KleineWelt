@@ -1,20 +1,22 @@
-import fs from 'fs';
+// backend/src/config/load-env.js
 import { config } from 'dotenv';
-import path from 'path';
+import fs from 'fs';
+import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const envCandidates = [
-  // Project root .env (preferred location)
-  path.resolve(__dirname, '../../../.env'),
-  // Legacy backend/.env fallback so existing deployments keep working
-  path.resolve(__dirname, '../../.env'),
+const candidates = [
+  resolve(__dirname, '../../.env'),   // 1) backend/.env (bevorzugt)
+  resolve(__dirname, '../../../.env') // 2) Projektroot/.env (Fallback)
 ];
 
-envCandidates.forEach((envPath) => {
-  if (fs.existsSync(envPath)) {
-    config({ path: envPath, override: true });
+for (const p of candidates) {
+  if (fs.existsSync(p)) {
+    const r = config({ path: p, override: true });
+    if (r.parsed) {
+      console.log('🌱 .env geladen:', p);
+      break;
+    }
   }
-});
+}

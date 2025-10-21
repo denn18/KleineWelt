@@ -85,9 +85,9 @@ export async function createCaregiver(data) {
     'address',
     'postalCode',
     'username',
-    'password',
-    'profileImageUrl',
-    'conceptUrl',
+    'password'
+    // 'profileImageUrl' = null,
+    // 'conceptUrl' = null
   ];
   const missingFields = requiredFields.filter((field) => !data?.[field]);
 

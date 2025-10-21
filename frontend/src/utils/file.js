@@ -11,3 +11,9 @@ export function readFileAsDataUrl(file) {
     reader.readAsDataURL(file);
   });
 }
+
+
+export function assetUrl(p) {
+  if (!p) return '';
+  return p.startsWith('http') ? p : `${import.meta.env.VITE_BACKEND_URL || ''}${p}`;
+}

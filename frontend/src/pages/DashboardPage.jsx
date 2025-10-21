@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import MapView from '../components/MapView.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { assetUrl } from '../utils/file.js';
 
 function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -257,7 +258,8 @@ function DashboardPage() {
                       <div className="grid gap-3 sm:grid-cols-[auto,1fr]">
                         {caregiver.profileImageUrl ? (
                           <img
-                            src={caregiver.profileImageUrl}
+                          src={assetUrl(caregiver.profileImageUrl)}
+                           // src={caregiver.profileImageUrl} so war es vorher
                             alt={caregiver.daycareName || caregiver.name}
                             className="h-20 w-20 rounded-2xl bg-brand-50 object-contain"
                           />
