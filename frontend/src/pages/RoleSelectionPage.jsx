@@ -4,13 +4,8 @@ function RoleSelectionPage() {
   return (
     <section className="mx-auto flex w-full max-w-4xl flex-col gap-8 rounded-3xl bg-white/80 p-12 shadow-lg">
       <header className="flex flex-col gap-2 text-center">
-<<<<<<< Updated upstream
         <h1 className="text-3xl font-bold text-brand-700">Wie möchtest du Kleine Welt nutzen?</h1>
         <p className="text-brand-600">
-=======
-        <h1 className="text-3xl font-bold text-slate-900">Wie möchtest du Kleine Welt nutzen?</h1>
-        <p className="text-slate-600">
->>>>>>> Stashed changes
           Wähle deine Rolle aus, um ein persönliches Profil zu erstellen und passende Angebote zu entdecken.
         </p>
       </header>
