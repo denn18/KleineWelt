@@ -124,6 +124,7 @@ function CaregiverDetailPage() {
   }
 
   const roomImages = caregiver.roomImages ?? [];
+  const closedDays = caregiver.closedDays ?? [];
 
   return (
     <section className="mx-auto mt-12 flex w-full max-w-5xl flex-col gap-10 rounded-3xl bg-white/85 p-10 shadow-xl">
@@ -211,6 +212,27 @@ function CaregiverDetailPage() {
           entries={caregiver.careTimes}
           emptyLabel="Es wurden noch keine Betreuungszeiten hinterlegt."
         />
+      </section>
+
+      <section className="grid gap-4">
+        <SectionHeading
+          title="Betreuungsfreie Tage"
+          description="An diesen Tagen findet regulär keine Betreuung statt."
+        />
+        {closedDays.length ? (
+          <ul className="flex flex-wrap gap-2">
+            {closedDays.map((day, index) => (
+              <li
+                key={`${day}-${index}`}
+                className="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700"
+              >
+                {day}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-slate-500">Es wurden keine betreuungsfreien Tage angegeben.</p>
+        )}
       </section>
 
       <section className="grid gap-4">

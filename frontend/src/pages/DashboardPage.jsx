@@ -20,6 +20,16 @@ function DashboardPage() {
   const location = useLocation();
 
   useEffect(() => {
+    setSearchTerm('');
+    setFilters((current) => {
+      if (!current.postalCode && !current.city && !current.search) {
+        return current;
+      }
+      return { postalCode: '', city: '', search: '' };
+    });
+  }, [location.key]);
+
+  useEffect(() => {
     async function fetchCaregivers() {
       const params = Object.fromEntries(
         Object.entries(filters)

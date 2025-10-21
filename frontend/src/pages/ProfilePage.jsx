@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
-import { readFileAsDataUrl } from '../utils/file.js';
+import { assetUrl, readFileAsDataUrl } from '../utils/file.js';
 
 function useProfileData(user) {
   const [profile, setProfile] = useState(null);
@@ -43,6 +43,31 @@ function createChild(initial = {}) {
     age: initial.age || '',
     notes: initial.notes || '',
   };
+}
+
+function createScheduleEntry(initial = {}) {
+  return {
+    startTime: initial.startTime || '',
+    endTime: initial.endTime || '',
+    activity: initial.activity || '',
+  };
+}
+
+const WEEKDAY_SUGGESTIONS = [
+  'Montag',
+  'Dienstag',
+  'Mittwoch',
+  'Donnerstag',
+  'Freitag',
+  'Samstag',
+  'Sonntag',
+];
+
+function generateTempId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 function ChildrenEditor({ childrenList, onChange }) {
@@ -391,8 +416,31 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
     age: profile.age ?? '',
     shortDescription: profile.shortDescription || '',
     bio: profile.bio || '',
+    mealPlan: profile.mealPlan || '',
     newPassword: '',
   });
+  const [careTimes, setCareTimes] = useState(() =>
+    profile.careTimes?.length ? profile.careTimes.map((entry) => createScheduleEntry(entry)) : [createScheduleEntry()]
+  );
+  const [dailySchedule, setDailySchedule] = useState(() =>
+    profile.dailySchedule?.length
+      ? profile.dailySchedule.map((entry) => createScheduleEntry(entry))
+      : [createScheduleEntry()]
+  );
+  const [closedDays, setClosedDays] = useState(() =>
+    Array.isArray(profile.closedDays) ? [...profile.closedDays] : []
+  );
+  const [closedDayInput, setClosedDayInput] = useState('');
+  const [roomGallery, setRoomGallery] = useState(() =>
+    (profile.roomImages ?? []).map((url) => ({
+      id: url,
+      source: url,
+      preview: assetUrl(url),
+      fileData: null,
+      fileName: '',
+    }))
+  );
+  const roomGalleryRef = useRef(null);
   const [imageState, setImageState] = useState({
     preview: profile.profileImageUrl || '',
     fileData: null,
@@ -422,15 +470,98 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
       age: profile.age ?? '',
       shortDescription: profile.shortDescription || '',
       bio: profile.bio || '',
+      mealPlan: profile.mealPlan || '',
       newPassword: '',
     });
+    setCareTimes(
+      profile.careTimes?.length ? profile.careTimes.map((entry) => createScheduleEntry(entry)) : [createScheduleEntry()]
+    );
+    setDailySchedule(
+      profile.dailySchedule?.length
+        ? profile.dailySchedule.map((entry) => createScheduleEntry(entry))
+        : [createScheduleEntry()]
+    );
+    setClosedDays(Array.isArray(profile.closedDays) ? [...profile.closedDays] : []);
+    setClosedDayInput('');
     setImageState({ preview: profile.profileImageUrl || '', fileData: null, fileName: '', action: 'keep' });
     setConceptState({ fileName: '', fileData: null, action: 'keep' });
+    setRoomGallery(
+      (profile.roomImages ?? []).map((url) => ({
+        id: url,
+        source: url,
+        preview: assetUrl(url),
+        fileData: null,
+        fileName: '',
+      }))
+    );
     setStatusMessage(null);
   }, [profile]);
 
   function updateField(field, value) {
     setFormState((current) => ({ ...current, [field]: value }));
+  }
+
+  function updateScheduleEntry(setter, index, field, value) {
+    setter((current) =>
+      current.map((entry, entryIndex) => (entryIndex === index ? { ...entry, [field]: value } : entry))
+    );
+  }
+
+  function addScheduleEntry(setter, defaults = {}) {
+    setter((current) => [...current, createScheduleEntry(defaults)]);
+  }
+
+  function removeScheduleEntry(setter, index) {
+    setter((current) => {
+      if (current.length <= 1) {
+        return current;
+      }
+      return current.filter((_, entryIndex) => entryIndex !== index);
+    });
+  }
+
+  function handleAddCareTime() {
+    addScheduleEntry(setCareTimes);
+  }
+
+  function handleRemoveCareTime(index) {
+    removeScheduleEntry(setCareTimes, index);
+  }
+
+  function handleAddDailySchedule() {
+    addScheduleEntry(setDailySchedule);
+  }
+
+  function handleRemoveDailySchedule(index) {
+    removeScheduleEntry(setDailySchedule, index);
+  }
+
+  function appendClosedDay(label) {
+    const trimmed = label.trim();
+    if (!trimmed) {
+      return false;
+    }
+    setClosedDays((current) => {
+      if (current.includes(trimmed)) {
+        return current;
+      }
+      return [...current, trimmed];
+    });
+    return true;
+  }
+
+  function handleAddClosedDay() {
+    if (appendClosedDay(closedDayInput)) {
+      setClosedDayInput('');
+    }
+  }
+
+  function handleSuggestionClick(day) {
+    appendClosedDay(day);
+  }
+
+  function handleRemoveClosedDay(day) {
+    setClosedDays((current) => current.filter((entry) => entry !== day));
   }
 
   async function handleImageChange(event) {
@@ -459,6 +590,43 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
     setConceptState({ fileName: '', fileData: null, action: 'remove' });
   }
 
+  async function handleRoomImagesChange(event) {
+    const files = Array.from(event.target.files ?? []);
+    if (!files.length) {
+      return;
+    }
+
+    const additions = [];
+    for (const file of files) {
+      const dataUrl = await readFileAsDataUrl(file);
+      if (dataUrl) {
+        additions.push({
+          id: generateTempId(),
+          source: null,
+          preview: dataUrl,
+          fileData: dataUrl,
+          fileName: file.name,
+        });
+      }
+    }
+
+    if (additions.length) {
+      setRoomGallery((current) => [...current, ...additions]);
+    }
+    event.target.value = '';
+  }
+
+  function handleRemoveRoomImage(imageId) {
+    setRoomGallery((current) => current.filter((image) => image.id !== imageId));
+  }
+
+  function scrollRoomGallery(offset) {
+    if (!roomGalleryRef.current) {
+      return;
+    }
+    roomGalleryRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     setStatusMessage(null);
@@ -478,6 +646,15 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
       age: formState.age ? Number(formState.age) : undefined,
       shortDescription: formState.shortDescription,
       bio: formState.bio,
+      mealPlan: formState.mealPlan,
+      careTimes,
+      dailySchedule,
+      closedDays,
+      roomImages: roomGallery
+        .map((image) =>
+          image.fileData ? { dataUrl: image.fileData, fileName: image.fileName } : image.source
+        )
+        .filter(Boolean),
     };
 
     if (formState.newPassword.trim()) {
@@ -574,14 +751,14 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
             />
           </label>
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Verfügbarkeit
+            Plätze verfügbar?
             <select
-              value={formState.hasAvailability ? 'true' : 'false'}
-              onChange={(event) => updateField('hasAvailability', event.target.value === 'true')}
+              value={formState.hasAvailability ? 'yes' : 'no'}
+              onChange={(event) => updateField('hasAvailability', event.target.value === 'yes')}
               className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
             >
-              <option value="true">Es gibt freie Plätze</option>
-              <option value="false">Aktuell keine freien Plätze</option>
+              <option value="yes">Ja, es sind Plätze frei</option>
+              <option value="no">Momentan ausgebucht</option>
             </select>
           </label>
         </div>
@@ -654,6 +831,254 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
       </section>
 
       <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-brand-700">Betreuungszeiten</h2>
+            <p className="text-xs text-slate-500">
+              Aktualisiere deine Bring- und Abholzeiten inklusive kurzer Aktivitätsbeschreibung.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAddCareTime}
+            className="rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+          >
+            Weiteren Zeitplan hinzufügen
+          </button>
+        </div>
+        <div className="flex flex-col gap-4">
+          {careTimes.map((entry, index) => (
+            <div key={`care-${index}`} className="grid gap-3 sm:grid-cols-3 sm:items-end">
+              <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+                Von
+                <input
+                  type="time"
+                  value={entry.startTime}
+                  onChange={(event) => updateScheduleEntry(setCareTimes, index, 'startTime', event.target.value)}
+                  className="rounded-xl border border-brand-200 px-4 py-2 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+                Bis
+                <input
+                  type="time"
+                  value={entry.endTime}
+                  onChange={(event) => updateScheduleEntry(setCareTimes, index, 'endTime', event.target.value)}
+                  className="rounded-xl border border-brand-200 px-4 py-2 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+                Aktivität
+                <input
+                  value={entry.activity}
+                  onChange={(event) => updateScheduleEntry(setCareTimes, index, 'activity', event.target.value)}
+                  className="rounded-xl border border-brand-200 px-4 py-2 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+                  placeholder="z. B. Bringzeit"
+                />
+              </label>
+              {careTimes.length > 1 ? (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveCareTime(index)}
+                  className="justify-self-start text-xs font-semibold text-rose-600 hover:text-rose-700 sm:col-span-3 sm:justify-self-end"
+                >
+                  Eintrag entfernen
+                </button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-lg font-semibold text-brand-700">Betreuungsfreie Tage</h2>
+          <p className="text-xs text-slate-500">
+            Hinterlege regelmäßige Wochentage oder besondere Anmerkungen, an denen keine Betreuung stattfindet.
+          </p>
+        </div>
+        <div className="flex flex-col gap-3 text-sm">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <input
+              value={closedDayInput}
+              onChange={(event) => setClosedDayInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  handleAddClosedDay();
+                }
+              }}
+              className="flex-1 rounded-xl border border-brand-200 px-4 py-2 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+              placeholder="z. B. Samstag oder Feiertage"
+            />
+            <button
+              type="button"
+              onClick={handleAddClosedDay}
+              className="rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+            >
+              Tag hinzufügen
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {WEEKDAY_SUGGESTIONS.map((day) => (
+              <button
+                key={day}
+                type="button"
+                onClick={() => handleSuggestionClick(day)}
+                className="rounded-full border border-dashed border-brand-200 px-3 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+              >
+                {day}
+              </button>
+            ))}
+          </div>
+          {closedDays.length ? (
+            <ul className="flex flex-wrap gap-2">
+              {closedDays.map((day) => (
+                <li
+                  key={day}
+                  className="flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700"
+                >
+                  <span>{day}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveClosedDay(day)}
+                    className="text-[10px] font-semibold text-rose-600 hover:text-rose-700"
+                  >
+                    Entfernen
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-slate-500">Noch keine betreuungsfreien Tage hinterlegt.</p>
+          )}
+        </div>
+      </section>
+
+      <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-brand-700">Tagesablauf</h2>
+            <p className="text-xs text-slate-500">Beschreibe chronologisch, was die Kinder im Laufe des Tages erwartet.</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAddDailySchedule}
+            className="rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+          >
+            Weiteren Abschnitt hinzufügen
+          </button>
+        </div>
+        <div className="flex flex-col gap-4">
+          {dailySchedule.map((entry, index) => (
+            <div key={`daily-${index}`} className="grid gap-3 sm:grid-cols-3 sm:items-end">
+              <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+                Von
+                <input
+                  type="time"
+                  value={entry.startTime}
+                  onChange={(event) => updateScheduleEntry(setDailySchedule, index, 'startTime', event.target.value)}
+                  className="rounded-xl border border-brand-200 px-4 py-2 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+                Bis
+                <input
+                  type="time"
+                  value={entry.endTime}
+                  onChange={(event) => updateScheduleEntry(setDailySchedule, index, 'endTime', event.target.value)}
+                  className="rounded-xl border border-brand-200 px-4 py-2 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+                />
+              </label>
+              <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+                Aktivität
+                <input
+                  value={entry.activity}
+                  onChange={(event) => updateScheduleEntry(setDailySchedule, index, 'activity', event.target.value)}
+                  className="rounded-xl border border-brand-200 px-4 py-2 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+                  placeholder="z. B. Gemeinsames Frühstück"
+                />
+              </label>
+              {dailySchedule.length > 1 ? (
+                <button
+                  type="button"
+                  onClick={() => handleRemoveDailySchedule(index)}
+                  className="justify-self-start text-xs font-semibold text-rose-600 hover:text-rose-700 sm:col-span-3 sm:justify-self-end"
+                >
+                  Abschnitt entfernen
+                </button>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-3 rounded-3xl bg-white/80 p-6 shadow">
+        <h2 className="text-lg font-semibold text-brand-700">Essensplan</h2>
+        <p className="text-xs text-slate-500">Gib Familien einen Überblick darüber, welche Mahlzeiten du anbietest.</p>
+        <textarea
+          value={formState.mealPlan}
+          onChange={(event) => updateField('mealPlan', event.target.value)}
+          rows={4}
+          className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+          placeholder="Beschreibe Frühstück, Mittagessen und Snacks."
+        />
+      </section>
+
+      <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-brand-700">Räumlichkeiten</h2>
+            <p className="text-xs text-slate-500">Lade Bilder hoch, um Familien einen Eindruck deiner Räume zu geben.</p>
+          </div>
+          {roomGallery.length ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => scrollRoomGallery(-240)}
+                className="rounded-full border border-brand-200 px-2 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                aria-label="Räumlichkeiten nach links scrollen"
+              >
+                ←
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollRoomGallery(240)}
+                className="rounded-full border border-brand-200 px-2 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                aria-label="Räumlichkeiten nach rechts scrollen"
+              >
+                →
+              </button>
+            </div>
+          ) : null}
+        </div>
+        <input type="file" accept="image/*" multiple onChange={handleRoomImagesChange} />
+        {roomGallery.length ? (
+          <div className="relative">
+            <div ref={roomGalleryRef} className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+              {roomGallery.map((image) => (
+                <div
+                  key={image.id}
+                  className="relative h-32 w-48 flex-shrink-0 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50"
+                >
+                  <img src={image.preview} alt="Räumlichkeit" className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveRoomImage(image.id)}
+                    className="absolute right-2 top-2 rounded-full bg-white/80 px-2 py-1 text-[10px] font-semibold text-rose-600 shadow hover:bg-white"
+                  >
+                    Entfernen
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-slate-500">Noch keine Bilder ausgewählt. Lade Fotos deiner Räume hoch.</p>
+        )}
+      </section>
+
+      <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
         <h2 className="text-lg font-semibold text-brand-700">Profilbild & Konzept</h2>
         <div className="flex flex-col gap-6 lg:flex-row">
           <div className="flex flex-1 flex-col gap-3">
@@ -723,7 +1148,7 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
             onChange={(event) => updateField('bio', event.target.value)}
             rows={6}
             className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
-            placeholder="Erfahrungen, Schwerpunkte und Tagesablauf"
+            placeholder="Erfahrungen, Schwerpunkte und besondere Momente"
           />
         </label>
       </section>
@@ -757,7 +1182,6 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
     </form>
   );
 }
-
 function ProfilePage() {
   const { user, updateUser } = useAuth();
   const { profile, loading, error, setProfile } = useProfileData(user);

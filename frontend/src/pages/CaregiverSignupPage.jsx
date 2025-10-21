@@ -28,6 +28,7 @@ function buildInitialState() {
     mealPlan: '',
     careTimes: [createScheduleEntry({ startTime: '07:30', endTime: '09:00', activity: 'Bringzeit' })],
     dailySchedule: [createScheduleEntry()],
+    closedDays: [],
     username: '',
     password: '',
   };
@@ -41,6 +42,7 @@ function CaregiverSignupPage() {
   const [status, setStatus] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const roomGalleryRef = useRef(null);
+  const [closedDayInput, setClosedDayInput] = useState('');
 
   function updateField(field, value) {
     setFormState((current) => ({ ...current, [field]: value }));
@@ -88,6 +90,30 @@ function CaregiverSignupPage() {
 
   function handleRemoveDailySchedule(index) {
     removeScheduleEntry('dailySchedule', index);
+  }
+
+  function handleAddClosedDay() {
+    const trimmed = closedDayInput.trim();
+    if (!trimmed) {
+      return;
+    }
+    setFormState((current) => {
+      if (current.closedDays.includes(trimmed)) {
+        return current;
+      }
+      return {
+        ...current,
+        closedDays: [...current.closedDays, trimmed],
+      };
+    });
+    setClosedDayInput('');
+  }
+
+  function handleRemoveClosedDay(day) {
+    setFormState((current) => ({
+      ...current,
+      closedDays: current.closedDays.filter((entry) => entry !== day),
+    }));
   }
 
   async function handleImageChange(event) {
@@ -162,6 +188,7 @@ function CaregiverSignupPage() {
         dailySchedule: formState.dailySchedule,
         mealPlan: formState.mealPlan,
         roomImages: roomGallery.map((image) => ({ dataUrl: image.dataUrl, fileName: image.fileName })),
+        closedDays: formState.closedDays,
       });
 
       setStatus({ type: 'success', message: 'Dein Profil wurde gespeichert. Wir melden uns bei dir!' });
@@ -169,6 +196,7 @@ function CaregiverSignupPage() {
       setProfileImage({ preview: '', dataUrl: null, fileName: '' });
       setConceptFile({ dataUrl: null, fileName: '' });
       setRoomGallery([]);
+      setClosedDayInput('');
     } catch (error) {
       console.error(error);
       setStatus({
@@ -350,6 +378,56 @@ function CaregiverSignupPage() {
                 <span className="text-xs text-slate-500">Bitte lade dein pädagogisches Konzept als PDF hoch.</span>
               )}
             </div>
+          </div>
+        </section>
+        <section className="grid gap-3 rounded-2xl border border-brand-100 bg-white/80 p-6">
+          <div>
+            <h2 className="text-lg font-semibold text-brand-700">Betreuungsfreie Tage</h2>
+            <p className="text-xs text-slate-500">Lege fest, an welchen Tagen regulär keine Betreuung stattfindet.</p>
+          </div>
+          <div className="flex flex-col gap-3 text-sm">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                value={closedDayInput}
+                onChange={(event) => setClosedDayInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    handleAddClosedDay();
+                  }
+                }}
+                className="flex-1 rounded-xl border border-brand-200 px-4 py-2 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+                placeholder="z. B. Samstag oder Feiertage"
+              />
+              <button
+                type="button"
+                onClick={handleAddClosedDay}
+                className="rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+              >
+                Tag hinzufügen
+              </button>
+            </div>
+            {formState.closedDays.length ? (
+              <ul className="flex flex-wrap gap-2">
+                {formState.closedDays.map((day) => (
+                  <li
+                    key={day}
+                    className="flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700"
+                  >
+                    <span>{day}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveClosedDay(day)}
+                      className="text-[10px] font-semibold text-rose-600 hover:text-rose-700"
+                    >
+                      Entfernen
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-slate-500">Noch keine betreuungsfreien Tage hinterlegt.</p>
+            )}
           </div>
         </section>
         <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/80 p-6">
