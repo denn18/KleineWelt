@@ -65,6 +65,9 @@ export function buildCaregiverDocument(data) {
   const dailySchedule = normalizeScheduleEntries(data.dailySchedule);
   const mealPlan = data.mealPlan?.trim() || null;
   const roomImages = Array.isArray(data.roomImages) ? data.roomImages.filter(Boolean) : [];
+  const closedDays = Array.isArray(data.closedDays)
+    ? data.closedDays.map((day) => day?.trim()).filter(Boolean)
+    : [];
 
   return {
     name: fullName || data.name?.trim(),
@@ -90,6 +93,7 @@ export function buildCaregiverDocument(data) {
     dailySchedule,
     mealPlan,
     roomImages,
+    closedDays,
     username: data.username?.trim() || data.email?.trim(),
     password: data.password,
     profileImageUrl: data.profileImageUrl || null,
@@ -174,6 +178,11 @@ export function buildCaregiverUpdate(data) {
   }
   if (data.roomImages !== undefined) {
     update.roomImages = Array.isArray(data.roomImages) ? data.roomImages.filter(Boolean) : [];
+  }
+  if (data.closedDays !== undefined) {
+    update.closedDays = Array.isArray(data.closedDays)
+      ? data.closedDays.map((day) => day?.trim()).filter(Boolean)
+      : [];
   }
   if (data.username !== undefined) {
     update.username = data.username?.trim() || null;
