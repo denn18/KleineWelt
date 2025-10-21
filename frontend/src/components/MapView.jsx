@@ -17,17 +17,11 @@ function getValidPositions(caregivers) {
     .filter((entry) => entry.position);
 }
 
-function MapView({ caregivers }) {
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  const shouldLoadScript = Boolean(apiKey);
-  const { isLoaded, loadError } = useJsApiLoader(
-    shouldLoadScript
-      ? {
-          id: 'google-maps-script',
-          googleMapsApiKey: apiKey,
-        }
-      : { id: 'google-maps-script', googleMapsApiKey: '' }
-  );
+function MapContainer({ caregivers, apiKey }) {
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-maps-script',
+    googleMapsApiKey: apiKey,
+  });
   const [mapInstance, setMapInstance] = useState(null);
 
   const markers = useMemo(() => getValidPositions(caregivers), [caregivers]);
@@ -59,15 +53,6 @@ function MapView({ caregivers }) {
     setMapInstance(null);
   }, []);
 
-  if (!shouldLoadScript) {
-    return (
-      <div className="flex h-80 w-full flex-col items-center justify-center gap-2 rounded-2xl border border-brand-100 bg-white/80 p-6 text-center text-sm text-slate-500">
-        <p>Aktiviere die Google Maps API, um die Live-Karte mit Standorten zu sehen.</p>
-        <p className="text-xs text-slate-400">Setze die Variable VITE_GOOGLE_MAPS_API_KEY in deiner Umgebung.</p>
-      </div>
-    );
-  }
-
   if (loadError) {
     return (
       <div className="flex h-80 w-full items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 px-6 text-sm text-rose-600">
@@ -94,6 +79,21 @@ function MapView({ caregivers }) {
       ))}
     </GoogleMap>
   );
+}
+
+function MapView({ caregivers }) {
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.trim();
+
+  if (!apiKey) {
+    return (
+      <div className="flex h-80 w-full flex-col items-center justify-center gap-2 rounded-2xl border border-brand-100 bg-white/80 p-6 text-center text-sm text-slate-500">
+        <p>Aktiviere die Google Maps API, um die Live-Karte mit Standorten zu sehen.</p>
+        <p className="text-xs text-slate-400">Setze die Variable VITE_GOOGLE_MAPS_API_KEY in deiner Umgebung.</p>
+      </div>
+    );
+  }
+
+  return <MapContainer caregivers={caregivers} apiKey={apiKey} />;
 }
 
 export default MapView;
