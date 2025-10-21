@@ -2,9 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { storeBase64File, removeStoredFile } from '../src/utils/fileStorage.js';
 
-const uploadsRoot = path.resolve(process.cwd(), 'backend/uploads');
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const uploadsRoot = path.resolve(currentDir, '..', 'uploads');
 
 async function fileExists(filePath) {
   try {

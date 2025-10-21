@@ -1,8 +1,10 @@
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
+import { fileURLToPath } from 'url';
 
-const uploadsRoot = path.resolve(process.cwd(), 'backend/uploads');
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const uploadsRoot = path.resolve(currentDir, '..', '..', 'uploads');
 
 async function ensureDirectory(directory) {
   await fs.mkdir(directory, { recursive: true });
