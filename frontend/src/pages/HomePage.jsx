@@ -24,7 +24,7 @@ function HomePage() {
     <div className="flex flex-col gap-24">
       <section className="grid gap-12 rounded-3xl bg-white/70 p-10 shadow-lg backdrop-blur sm:grid-cols-2">
         <div className="flex flex-col gap-6">
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-500">Willkommen bei Kleine Welt</p>
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-500">Willkommen bei Wimmel Welt</p>
           <h1 className="text-4xl font-bold text-slate-900 sm:text-5xl">
             Gemeinsam schaffen wir einen sicheren Ort zum Wachsen.
           </h1>

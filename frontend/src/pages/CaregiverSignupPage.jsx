@@ -335,12 +335,15 @@ function CaregiverSignupPage() {
                     <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">Kein Bild</div>
                   )}
                 </div>
-                <input type="file" accept="image/*" onChange={handleImageChange} required={!profileImage.dataUrl} />
+                <input type="file" accept="image/*" onChange={handleImageChange} required={false} />
+                {/* <input type="file" accept="image/*" onChange={handleImageChange} required={!profileImage.dataUrl} /> */}
               </div>
             </div>
             <div className="flex flex-col gap-3">
               <p className="text-sm font-medium text-slate-700">Konzeption (PDF)</p>
-              <input type="file" accept="application/pdf" onChange={handleConceptChange} required={!conceptFile.dataUrl} />
+              <input type="file" accept="application/pdf" onChange={handleConceptChange} required={false} />
+
+              {/* <input type="file" accept="application/pdf" onChange={handleConceptChange} required={!conceptFile.dataUrl} /> */}
               {conceptFile.fileName ? (
                 <span className="text-xs text-slate-500">Ausgewählt: {conceptFile.fileName}</span>
               ) : (
@@ -562,11 +565,10 @@ function CaregiverSignupPage() {
         </button>
         {status ? (
           <p
-            className={`rounded-xl border px-4 py-3 text-sm ${
-              status.type === 'success'
+            className={`rounded-xl border px-4 py-3 text-sm ${status.type === 'success'
                 ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                 : 'border-rose-200 bg-rose-50 text-rose-700'
-            }`}
+              }`}
           >
             {status.message}
           </p>
