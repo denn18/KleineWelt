@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -81,15 +81,19 @@ function CaregiverSignupPage() {
   const [logoImage, setLogoImage] = useState({ preview: '', dataUrl: null, fileName: '' });
   const [conceptFile, setConceptFile] = useState({ dataUrl: null, fileName: '' });
   const [roomGallery, setRoomGallery] = useState([]);
-  const [caregiverGallery, setCaregiverGallery] = useState([]);
   const [status, setStatus] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const roomGalleryRef = useRef(null);
+  const [roomGalleryOffset, setRoomGalleryOffset] = useState(0);
   const [closedDayInput, setClosedDayInput] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
   const computedAge = calculateAgeFromDateString(formState.birthDate);
   const experienceYears = calculateYearsSince(formState.caregiverSince);
+  const visibleRoomImages =
+    roomGallery.length <= 3
+      ? roomGallery
+      : Array.from({ length: 3 }, (_, index) => roomGallery[(roomGalleryOffset + index) % roomGallery.length]);
+  const showRoomNavigation = roomGallery.length > 3;
 
   function updateField(field, value) {
     setFormState((current) => ({ ...current, [field]: value }));
@@ -209,39 +213,50 @@ function CaregiverSignupPage() {
       additions.push({ id: generateTempId(), preview: dataUrl, dataUrl, fileName: file.name });
     }
 
-    setRoomGallery((current) => [...current, ...additions]);
+    if (!additions.length) {
+      return;
+    }
+
+    setRoomGallery((current) => {
+      const next = [...current, ...additions];
+      setRoomGalleryOffset(() => (next.length <= 3 ? 0 : Math.max(0, next.length - 3)));
+      return next;
+    });
     event.target.value = '';
   }
 
   function handleRemoveRoomImage(imageId) {
-    setRoomGallery((current) => current.filter((image) => image.id !== imageId));
+    setRoomGallery((current) => {
+      const filtered = current.filter((image) => image.id !== imageId);
+      setRoomGalleryOffset((offset) => {
+        if (!filtered.length || filtered.length <= 3) {
+          return 0;
+        }
+        const normalized = offset % filtered.length;
+        return normalized;
+      });
+      return filtered;
+    });
   }
 
-  async function handleCaregiverImagesChange(event) {
-    const files = Array.from(event.target.files ?? []);
-    if (!files.length) {
+  function showPreviousRoomImages() {
+    if (roomGallery.length <= 3) {
       return;
     }
-
-    const additions = [];
-    for (const file of files) {
-      const dataUrl = await readFileAsDataUrl(file);
-      additions.push({ id: generateTempId(), preview: dataUrl, dataUrl, fileName: file.name });
-    }
-
-    setCaregiverGallery((current) => [...current, ...additions]);
-    event.target.value = '';
+    setRoomGalleryOffset((current) => {
+      const total = roomGallery.length;
+      return (current - 1 + total) % total;
+    });
   }
 
-  function handleRemoveCaregiverImage(imageId) {
-    setCaregiverGallery((current) => current.filter((image) => image.id !== imageId));
-  }
-
-  function scrollRoomGallery(offset) {
-    if (!roomGalleryRef.current) {
+  function showNextRoomImages() {
+    if (roomGallery.length <= 3) {
       return;
     }
-    roomGalleryRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+    setRoomGalleryOffset((current) => {
+      const total = roomGallery.length;
+      return (current + 1) % total;
+    });
   }
 
   async function handleSubmit(event) {
@@ -271,7 +286,6 @@ function CaregiverSignupPage() {
         dailySchedule: formState.dailySchedule,
         mealPlan: formState.mealPlan,
         roomImages: roomGallery.map((image) => ({ dataUrl: image.dataUrl, fileName: image.fileName })),
-        caregiverImages: caregiverGallery.map((image) => ({ dataUrl: image.dataUrl, fileName: image.fileName })),
         closedDays: formState.closedDays,
       });
 
@@ -305,7 +319,7 @@ function CaregiverSignupPage() {
       setLogoImage({ preview: '', dataUrl: null, fileName: '' });
       setConceptFile({ dataUrl: null, fileName: '' });
       setRoomGallery([]);
-      setCaregiverGallery([]);
+      setRoomGalleryOffset(0);
       setClosedDayInput('');
     } catch (error) {
       console.error(error);
@@ -319,7 +333,7 @@ function CaregiverSignupPage() {
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-3xl flex-col gap-8 rounded-3xl bg-white/85 p-10 shadow-lg">
+    <section className="mx-auto flex w-full max-w-4xl flex-col gap-8 rounded-3xl bg-white/90 p-12 shadow-xl">
       <header className="text-center">
         <h1 className="text-3xl font-semibold text-brand-700">Profil für Tagespflegepersonen</h1>
         <p className="mt-2 text-sm text-slate-600">
@@ -404,90 +418,13 @@ function CaregiverSignupPage() {
               {experienceYears !== null ? `${experienceYears} Jahre Erfahrung` : 'Optional: Sichtbar im Profil.'}
             </span>
           </label>
-<<<<<<< Updated upstream
-          </div>
-          <div className="grid gap-4 sm:grid-cols-4">
-            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-              Aktuell betreute Kinder
-              <input
-                type="number"
-                min="0"
-=======
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Passwort
-            <input
-              type="password"
-              value={formState.password}
-              onChange={(event) => updateField('password', event.target.value)}
-              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-              required
-            />
-          </label>
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            E-Mail-Adresse
-            <input
-              type="email"
-              value={formState.email}
-              onChange={(event) => updateField('email', event.target.value)}
-              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-              required
-            />
-          </label>
         </div>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700 sm:col-span-2">
-            Adresse
-            <input
-              value={formState.address}
-              onChange={(event) => updateField('address', event.target.value)}
-              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-              required
-            />
-          </label>
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Postleitzahl
-            <input
-              value={formState.postalCode}
-              onChange={(event) => updateField('postalCode', event.target.value)}
-              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-              required
-            />
-          </label>
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Ort
-            <input
-              value={formState.city}
-              onChange={(event) => updateField('city', event.target.value)}
-              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-              required
-            />
-          </label>
-            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Phone
-            <input
-              value={formState.phone}
-              onChange={(event) => updateField('phone', event.target.value)}
-              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-              required
-            />
-          </label>
-        </div>
-        <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-          Name deiner Kindertagespflege
-          <input
-            value={formState.daycareName}
-            onChange={(event) => updateField('daycareName', event.target.value)}
-            className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-            required
-          />
-        </label>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-4">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
             Aktuell betreute Kinder
             <input
               type="number"
               min="0"
->>>>>>> Stashed changes
               value={formState.childrenCount}
               onChange={(event) => updateField('childrenCount', event.target.value)}
               className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
@@ -527,13 +464,13 @@ function CaregiverSignupPage() {
               placeholder="z. B. 6"
             />
           </label>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-              <span className="flex items-center gap-1">
-                Benutzername
-                <span className="text-rose-500" aria-hidden="true">*</span>
-                <span className="sr-only">Pflichtfeld</span>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            <span className="flex items-center gap-1">
+              Benutzername
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
             </span>
             <input
               value={formState.username}
@@ -558,7 +495,7 @@ function CaregiverSignupPage() {
               aria-required="true"
             />
           </label>
-          </div>
+        </div>
         </section>
         <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
           <h2 className="text-lg font-semibold text-brand-700">Kontakt & Standort</h2>
@@ -639,87 +576,64 @@ function CaregiverSignupPage() {
           </div>
         </section>
 
-        <section className="grid gap-5 rounded-2xl border border-brand-100 bg-white/80 p-6">
-          <h2 className="text-lg font-semibold text-brand-700">Profil, Logo & Team</h2>
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="flex flex-col gap-3">
-              <p className="text-sm font-medium text-slate-700">Profilbild</p>
-              <div className="flex items-center gap-4">
-                <div className="h-24 w-24 overflow-hidden rounded-full border border-brand-200 bg-brand-50">
-                  {profileImage.preview ? (
-                    <img src={profileImage.preview} alt="Profilbild" className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">Kein Bild</div>
-                  )}
-                </div>
-                <div className="flex flex-col gap-1">
-                  <IconUploadButton label="Profilbild wählen" accept="image/*" onChange={handleImageChange} />
-                  <span className="text-xs text-slate-500">
-                    {profileImage.fileName ? `Ausgewählt: ${profileImage.fileName}` : 'Pflichtfeld für die Profilansicht.'}
-                  </span>
-                </div>
+        <section className="grid gap-6 rounded-3xl bg-white/80 p-6 shadow">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-lg font-semibold text-brand-700">Profil, Logo & Unterlagen</h2>
+            <p className="text-xs text-slate-500">
+              Lade ein freundliches Profilfoto, dein Logo und deine pädagogische Konzeption hoch.
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="flex items-center gap-4 rounded-2xl border border-brand-100 bg-white/70 p-4">
+              <div className="h-28 w-28 overflow-hidden rounded-full border border-brand-200 bg-brand-50">
+                {profileImage.preview ? (
+                  <img src={profileImage.preview} alt="Profilbild" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">Kein Bild</div>
+                )}
               </div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <p className="text-sm font-medium text-slate-700">Logo deiner Kindertagespflegestelle</p>
-              <div className="flex items-center gap-4">
-                <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border border-brand-200 bg-brand-50">
-                  {logoImage.preview ? (
-                    <img src={logoImage.preview} alt="Logo" className="h-full w-full object-contain" />
-                  ) : (
-                    <span className="text-xs text-slate-400">Kein Logo</span>
-                  )}
-                </div>
-                <div className="flex flex-col gap-1">
-                  <IconUploadButton label="Logo hochladen" accept="image/*" onChange={handleLogoChange} />
-                  <span className="text-xs text-slate-500">
-                    {logoImage.fileName ? `Ausgewählt: ${logoImage.fileName}` : 'Optional, ideal für Wiedererkennung.'}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <p className="text-sm font-medium text-slate-700">Konzeption (PDF)</p>
-              <div className="flex flex-col gap-2">
-                <IconUploadButton label="PDF auswählen" accept="application/pdf" onChange={handleConceptChange} />
+              <div className="flex flex-1 flex-col gap-1">
+                <p className="text-sm font-semibold text-brand-700">Profilbild</p>
+                <IconUploadButton label="Profilbild wählen" accept="image/*" onChange={handleImageChange} />
                 <span className="text-xs text-slate-500">
-                  {conceptFile.fileName ? `Ausgewählt: ${conceptFile.fileName}` : 'Lade deine pädagogische Konzeption hoch.'}
+                  {profileImage.fileName
+                    ? `Ausgewählt: ${profileImage.fileName}`
+                    : 'Pflichtfeld für die Profilansicht deiner Tagespflege.'}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 rounded-2xl border border-brand-100 bg-white/70 p-4">
+              <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-2xl border border-brand-200 bg-brand-50">
+                {logoImage.preview ? (
+                  <img src={logoImage.preview} alt="Logo" className="h-full w-full object-contain" />
+                ) : (
+                  <span className="text-xs text-slate-400">Kein Logo</span>
+                )}
+              </div>
+              <div className="flex flex-1 flex-col gap-1">
+                <p className="text-sm font-semibold text-brand-700">Logo deiner Kindertagespflege</p>
+                <IconUploadButton label="Logo hochladen" accept="image/*" onChange={handleLogoChange} />
+                <span className="text-xs text-slate-500">
+                  {logoImage.fileName
+                    ? `Ausgewählt: ${logoImage.fileName}`
+                    : 'Optional, sorgt für Wiedererkennung bei Familien.'}
                 </span>
               </div>
             </div>
           </div>
-
-          <div className="grid gap-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-brand-700">Fotos der Betreuungsperson(en)</h3>
-              <IconUploadButton
-                label="Teamfotos hinzufügen"
-                accept="image/*"
-                multiple
-                onChange={handleCaregiverImagesChange}
-              />
+          <div className="rounded-2xl border border-dashed border-brand-200 bg-white/70 p-4">
+            <p className="text-sm font-semibold text-brand-700">Konzeption (PDF)</p>
+            <p className="mt-1 text-xs text-slate-500">
+              Teile Familien deine pädagogische Ausrichtung und Schwerpunkte mit.
+            </p>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+              <IconUploadButton label="PDF auswählen" accept="application/pdf" onChange={handleConceptChange} />
+              <span className="text-xs text-slate-500 sm:ml-3">
+                {conceptFile.fileName
+                  ? `Ausgewählt: ${conceptFile.fileName}`
+                  : 'Optional, hilft Familien bei der Entscheidungsfindung.'}
+              </span>
             </div>
-            {caregiverGallery.length ? (
-              <div className="flex flex-wrap gap-4">
-                {caregiverGallery.map((image) => (
-                  <div
-                    key={image.id}
-                    className="relative h-28 w-28 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50"
-                  >
-                    <img src={image.preview} alt="Teamfoto" className="h-full w-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveCaregiverImage(image.id)}
-                      className="absolute right-1 top-1 rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-semibold text-rose-600 shadow hover:bg-white"
-                    >
-                      Entfernen
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-slate-500">Zeige dein Team mit sympathischen Fotos.</p>
-            )}
           </div>
         </section>
         <section className="grid gap-3 rounded-2xl border border-brand-100 bg-white/80 p-6">
@@ -922,30 +836,30 @@ function CaregiverSignupPage() {
             placeholder="Beschreibe, welche Mahlzeiten du anbietest."
           />
         </label>
-        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/80 p-6">
+        <section className="grid gap-5 rounded-2xl border border-brand-100 bg-white/80 p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-brand-700">Räumlichkeiten</h2>
               <p className="text-xs text-slate-500">
-                Lade Bilder hoch, um Familien einen Eindruck deiner Räume zu geben.
+                Zeige Familien, wie deine Räume aussehen. Maximal drei Bilder werden gleichzeitig dargestellt.
               </p>
             </div>
             <div className="flex items-center gap-3">
-              {roomGallery.length ? (
-                <div className="flex items-center gap-2">
+              {showRoomNavigation ? (
+                <div className="hidden items-center gap-2 sm:flex">
                   <button
                     type="button"
-                    onClick={() => scrollRoomGallery(-240)}
-                    className="rounded-full border border-brand-200 px-2 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
-                    aria-label="Räumlichkeiten nach links scrollen"
+                    onClick={showPreviousRoomImages}
+                    className="rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                    aria-label="Vorherige Raumbilder anzeigen"
                   >
                     ←
                   </button>
                   <button
                     type="button"
-                    onClick={() => scrollRoomGallery(240)}
-                    className="rounded-full border border-brand-200 px-2 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
-                    aria-label="Räumlichkeiten nach rechts scrollen"
+                    onClick={showNextRoomImages}
+                    className="rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                    aria-label="Nächste Raumbilder anzeigen"
                   >
                     →
                   </button>
@@ -960,27 +874,50 @@ function CaregiverSignupPage() {
             </div>
           </div>
           {roomGallery.length ? (
-            <div className="relative">
-              <div ref={roomGalleryRef} className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-                {roomGallery.map((image) => (
+            <div className="flex flex-col gap-4">
+              <div className="grid gap-4 sm:grid-cols-3">
+                {visibleRoomImages.map((image) => (
                   <div
                     key={image.id}
-                    className="relative h-32 w-48 flex-shrink-0 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50"
+                    className="relative h-40 w-full overflow-hidden rounded-3xl border border-brand-100 bg-brand-50"
                   >
                     <img src={image.preview} alt="Räumlichkeit" className="h-full w-full object-cover" />
                     <button
                       type="button"
                       onClick={() => handleRemoveRoomImage(image.id)}
-                      className="absolute right-2 top-2 rounded-full bg-white/80 px-2 py-1 text-[10px] font-semibold text-rose-600 shadow hover:bg-white"
+                      className="absolute right-2 top-2 rounded-full bg-white/85 px-2 py-1 text-[10px] font-semibold text-rose-600 shadow hover:bg-white"
                     >
                       Entfernen
                     </button>
                   </div>
                 ))}
               </div>
+              {showRoomNavigation ? (
+                <div className="flex items-center justify-center gap-3 sm:hidden">
+                  <button
+                    type="button"
+                    onClick={showPreviousRoomImages}
+                    className="rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                    aria-label="Vorherige Raumbilder anzeigen"
+                  >
+                    ←
+                  </button>
+                  <span className="text-xs text-slate-500">Weitere Bilder mit den Pfeilen ansehen.</span>
+                  <button
+                    type="button"
+                    onClick={showNextRoomImages}
+                    className="rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                    aria-label="Nächste Raumbilder anzeigen"
+                  >
+                    →
+                  </button>
+                </div>
+              ) : null}
             </div>
           ) : (
-            <p className="text-xs text-slate-500">Noch keine Bilder ausgewählt. Lade Fotos deiner Räume hoch, um Eltern einen Eindruck zu vermitteln.</p>
+            <p className="rounded-2xl border border-dashed border-brand-200 bg-white/60 px-4 py-6 text-sm text-slate-500">
+              Noch keine Bilder ausgewählt. Lade Fotos deiner Räume hoch, um Eltern einen Eindruck zu vermitteln.
+            </p>
           )}
         </section>
         <button
