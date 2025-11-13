@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
+import IconUploadButton from '../components/IconUploadButton.jsx';
 import { assetUrl, readFileAsDataUrl } from '../utils/file.js';
 
 function useProfileData(user) {
@@ -41,6 +42,7 @@ function createChild(initial = {}) {
   return {
     name: initial.name || '',
     age: initial.age || '',
+    gender: initial.gender || '',
     notes: initial.notes || '',
   };
 }
@@ -94,7 +96,7 @@ function ChildrenEditor({ childrenList, onChange }) {
   return (
     <div className="flex flex-col gap-4">
       {childrenList.map((child, index) => (
-        <div key={index} className="grid gap-4 rounded-2xl border border-brand-100 bg-white/70 p-4 sm:grid-cols-3">
+        <div key={index} className="grid gap-4 rounded-2xl border border-brand-100 bg-white/70 p-4 sm:grid-cols-4">
           <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
             Name des Kindes
             <input
@@ -113,6 +115,19 @@ function ChildrenEditor({ childrenList, onChange }) {
               placeholder="z. B. 3 Jahre"
             />
           </label>
+          <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
+            Geschlecht
+            <select
+              value={child.gender}
+              onChange={(event) => updateChild(index, 'gender', event.target.value)}
+              className="rounded-xl border border-brand-200 px-3 py-2 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+            >
+              <option value="">Nicht angegeben</option>
+              <option value="female">Weiblich</option>
+              <option value="male">Männlich</option>
+              <option value="diverse">Divers</option>
+            </select>
+          </label>
           <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-wide text-slate-600 sm:col-span-1">
             Alltag & Besonderheiten
             <textarea
@@ -123,13 +138,13 @@ function ChildrenEditor({ childrenList, onChange }) {
               placeholder="z. B. schläft nach dem Mittag gern"
             />
           </label>
-          <div className="flex items-end justify-end sm:col-span-3">
+          <div className="flex items-end justify-end sm:col-span-4">
             <button
               type="button"
               onClick={() => removeChild(index)}
               className="text-xs font-semibold text-rose-600 hover:text-rose-700"
             >
-              Kind entfernen
+              Eintrag entfernen
             </button>
           </div>
         </div>
@@ -162,7 +177,7 @@ function ParentProfileEditor({ profile, onSave, saving }) {
     profile.children?.length ? profile.children.map((child) => createChild(child)) : [createChild()],
   );
   const [imageState, setImageState] = useState({
-    preview: profile.profileImageUrl || '',
+    preview: profile.profileImageUrl ? assetUrl(profile.profileImageUrl) : '',
     fileData: null,
     fileName: '',
     action: 'keep',
@@ -184,7 +199,7 @@ function ParentProfileEditor({ profile, onSave, saving }) {
     });
     setChildren(profile.children?.length ? profile.children.map((child) => createChild(child)) : [createChild()]);
     setImageState({
-      preview: profile.profileImageUrl || '',
+      preview: profile.profileImageUrl ? assetUrl(profile.profileImageUrl) : '',
       fileData: null,
       fileName: '',
       action: 'keep',
@@ -343,10 +358,19 @@ function ParentProfileEditor({ profile, onSave, saving }) {
               <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">Kein Bild</div>
             )}
           </div>
-          <div className="flex flex-col gap-2 text-sm">
-            <input type="file" accept="image/*" onChange={handleImageChange} />
+          <div className="flex flex-col gap-1 text-sm">
+            <IconUploadButton label="Foto auswählen" accept="image/*" onChange={handleImageChange} />
+            <span className="text-xs text-slate-500">
+              {imageState.fileName
+                ? `Ausgewählt: ${imageState.fileName}`
+                : 'Optional: Hilf Betreuungspersonen, dich schneller zu erkennen.'}
+            </span>
             {imageState.preview ? (
-              <button type="button" onClick={handleRemoveImage} className="self-start text-xs font-semibold text-rose-600 hover:text-rose-700">
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="self-start text-xs font-semibold text-rose-600 hover:text-rose-700"
+              >
                 Bild entfernen
               </button>
             ) : null}
@@ -408,12 +432,15 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
     phone: profile.phone || '',
     address: profile.address || '',
     postalCode: profile.postalCode || '',
+    city: profile.city || '',
     username: profile.username || '',
     daycareName: profile.daycareName || '',
     availableSpots: profile.availableSpots ?? 0,
     hasAvailability: profile.hasAvailability ?? true,
     childrenCount: profile.childrenCount ?? 0,
-    age: profile.age ?? '',
+    maxChildAge: profile.maxChildAge ?? '',
+    birthDate: profile.birthDate ? profile.birthDate.slice(0, 10) : '',
+    caregiverSince: profile.caregiverSince ? profile.caregiverSince.slice(0, 7) : '',
     shortDescription: profile.shortDescription || '',
     bio: profile.bio || '',
     mealPlan: profile.mealPlan || '',
@@ -447,11 +474,26 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
     fileName: '',
     action: 'keep',
   });
+  const [logoState, setLogoState] = useState({
+    preview: profile.logoImageUrl ? assetUrl(profile.logoImageUrl) : '',
+    fileData: null,
+    fileName: '',
+    action: 'keep',
+  });
   const [conceptState, setConceptState] = useState({
     fileName: '',
     fileData: null,
     action: 'keep',
   });
+  const [teamGallery, setTeamGallery] = useState(() =>
+    (profile.caregiverImages ?? []).map((url) => ({
+      id: url,
+      source: url,
+      preview: assetUrl(url),
+      fileData: null,
+      fileName: '',
+    }))
+  );
   const [statusMessage, setStatusMessage] = useState(null);
 
   useEffect(() => {
@@ -462,12 +504,15 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
       phone: profile.phone || '',
       address: profile.address || '',
       postalCode: profile.postalCode || '',
+      city: profile.city || '',
       username: profile.username || '',
       daycareName: profile.daycareName || '',
       availableSpots: profile.availableSpots ?? 0,
       hasAvailability: profile.hasAvailability ?? true,
       childrenCount: profile.childrenCount ?? 0,
-      age: profile.age ?? '',
+      maxChildAge: profile.maxChildAge ?? '',
+      birthDate: profile.birthDate ? profile.birthDate.slice(0, 10) : '',
+      caregiverSince: profile.caregiverSince ? profile.caregiverSince.slice(0, 7) : '',
       shortDescription: profile.shortDescription || '',
       bio: profile.bio || '',
       mealPlan: profile.mealPlan || '',
@@ -483,10 +528,30 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
     );
     setClosedDays(Array.isArray(profile.closedDays) ? [...profile.closedDays] : []);
     setClosedDayInput('');
-    setImageState({ preview: profile.profileImageUrl || '', fileData: null, fileName: '', action: 'keep' });
+    setImageState({
+      preview: profile.profileImageUrl ? assetUrl(profile.profileImageUrl) : '',
+      fileData: null,
+      fileName: '',
+      action: 'keep',
+    });
+    setLogoState({
+      preview: profile.logoImageUrl ? assetUrl(profile.logoImageUrl) : '',
+      fileData: null,
+      fileName: '',
+      action: 'keep',
+    });
     setConceptState({ fileName: '', fileData: null, action: 'keep' });
     setRoomGallery(
       (profile.roomImages ?? []).map((url) => ({
+        id: url,
+        source: url,
+        preview: assetUrl(url),
+        fileData: null,
+        fileName: '',
+      }))
+    );
+    setTeamGallery(
+      (profile.caregiverImages ?? []).map((url) => ({
         id: url,
         source: url,
         preview: assetUrl(url),
@@ -627,6 +692,75 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
     roomGalleryRef.current.scrollBy({ left: offset, behavior: 'smooth' });
   }
 
+  async function handleCaregiverImagesChange(event) {
+    const files = Array.from(event.target.files ?? []);
+    if (!files.length) {
+      return;
+    }
+
+    const additions = [];
+    for (const file of files) {
+      const dataUrl = await readFileAsDataUrl(file);
+      if (dataUrl) {
+        additions.push({
+          id: generateTempId(),
+          source: null,
+          preview: dataUrl,
+          fileData: dataUrl,
+          fileName: file.name,
+        });
+      }
+    }
+
+    if (additions.length) {
+      setTeamGallery((current) => [...current, ...additions]);
+    }
+    event.target.value = '';
+  }
+
+  function handleRemoveCaregiverImage(imageId) {
+    setTeamGallery((current) => current.filter((image) => image.id !== imageId));
+  }
+
+  function deriveAge(value) {
+    if (!value) {
+      return null;
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.valueOf())) {
+      return null;
+    }
+    const now = new Date();
+    let age = now.getFullYear() - date.getFullYear();
+    const hasBirthdayPassed =
+      now.getMonth() > date.getMonth() || (now.getMonth() === date.getMonth() && now.getDate() >= date.getDate());
+    if (!hasBirthdayPassed) {
+      age -= 1;
+    }
+    return age >= 0 ? age : null;
+  }
+
+  function deriveYears(value) {
+    if (!value) {
+      return null;
+    }
+    const date = new Date(`${value}-01`);
+    if (Number.isNaN(date.valueOf())) {
+      return null;
+    }
+    const now = new Date();
+    let years = now.getFullYear() - date.getFullYear();
+    const hasAnniversaryPassed =
+      now.getMonth() > date.getMonth() || (now.getMonth() === date.getMonth() && now.getDate() >= date.getDate());
+    if (!hasAnniversaryPassed) {
+      years -= 1;
+    }
+    return years >= 0 ? years : null;
+  }
+
+  const computedAge = deriveAge(formState.birthDate);
+  const experienceYears = deriveYears(formState.caregiverSince);
+
   async function handleSubmit(event) {
     event.preventDefault();
     setStatusMessage(null);
@@ -638,12 +772,15 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
       phone: formState.phone,
       address: formState.address,
       postalCode: formState.postalCode,
+      city: formState.city,
       username: formState.username,
       daycareName: formState.daycareName,
       availableSpots: Number(formState.availableSpots),
       hasAvailability: formState.hasAvailability,
       childrenCount: Number(formState.childrenCount),
-      age: formState.age ? Number(formState.age) : undefined,
+      maxChildAge: formState.maxChildAge ? Number(formState.maxChildAge) : null,
+      birthDate: formState.birthDate || null,
+      caregiverSince: formState.caregiverSince || null,
       shortDescription: formState.shortDescription,
       bio: formState.bio,
       mealPlan: formState.mealPlan,
@@ -651,6 +788,11 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
       dailySchedule,
       closedDays,
       roomImages: roomGallery
+        .map((image) =>
+          image.fileData ? { dataUrl: image.fileData, fileName: image.fileName } : image.source
+        )
+        .filter(Boolean),
+      caregiverImages: teamGallery
         .map((image) =>
           image.fileData ? { dataUrl: image.fileData, fileName: image.fileName } : image.source
         )
@@ -666,6 +808,13 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
       payload.profileImageName = imageState.fileName;
     } else if (imageState.action === 'remove') {
       payload.profileImage = null;
+    }
+
+    if (logoState.action === 'replace') {
+      payload.logoImage = logoState.fileData;
+      payload.logoImageName = logoState.fileName;
+    } else if (logoState.action === 'remove') {
+      payload.logoImage = null;
     }
 
     if (conceptState.action === 'replace') {
@@ -690,9 +839,13 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
     <form className="grid gap-6" onSubmit={handleSubmit}>
       <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
         <h2 className="text-lg font-semibold text-brand-700">Basisdaten deiner Kindertagespflege</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Vorname
+            <span className="flex items-center gap-1">
+              Vorname
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
               value={formState.firstName}
               onChange={(event) => updateField('firstName', event.target.value)}
@@ -701,7 +854,11 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
             />
           </label>
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Nachname
+            <span className="flex items-center gap-1">
+              Nachname
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
               value={formState.lastName}
               onChange={(event) => updateField('lastName', event.target.value)}
@@ -710,22 +867,58 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
             />
           </label>
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Alter
+            <span className="flex items-center gap-1">
+              Geburtsdatum
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
-              type="number"
-              min="18"
-              value={formState.age}
-              onChange={(event) => updateField('age', event.target.value)}
+              type="date"
+              value={formState.birthDate}
+              onChange={(event) => updateField('birthDate', event.target.value)}
               className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+              required
             />
+            <span className="text-xs text-slate-500">
+              {computedAge !== null ? `Aktuell ${computedAge} Jahre alt.` : 'Geburtsdatum für automatische Altersaktualisierung.'}
+            </span>
           </label>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Name der Kindertagespflege
+            <span className="flex items-center gap-1">
+              Name der Kindertagespflege
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
               value={formState.daycareName}
               onChange={(event) => updateField('daycareName', event.target.value)}
               className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
               required
+            />
+          </label>
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            Seit wann aktiv
+            <input
+              type="month"
+              value={formState.caregiverSince}
+              onChange={(event) => updateField('caregiverSince', event.target.value)}
+              className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+            />
+            <span className="text-xs text-slate-500">
+              {experienceYears !== null ? `${experienceYears} Jahre Erfahrung` : 'Optional: Zeigt deine Erfahrung.'}
+            </span>
+          </label>
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            Maximales Alter der Kinder
+            <input
+              type="number"
+              min="0"
+              value={formState.maxChildAge}
+              onChange={(event) => updateField('maxChildAge', event.target.value)}
+              className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+              placeholder="z. B. 6"
             />
           </label>
         </div>
@@ -768,7 +961,11 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
         <h2 className="text-lg font-semibold text-brand-700">Kontakt und Zugang</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            E-Mail-Adresse
+            <span className="flex items-center gap-1">
+              E-Mail-Adresse
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
               type="email"
               value={formState.email}
@@ -778,7 +975,11 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
             />
           </label>
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Telefonnummer
+            <span className="flex items-center gap-1">
+              Telefonnummer
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
               value={formState.phone}
               onChange={(event) => updateField('phone', event.target.value)}
@@ -787,9 +988,13 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
             />
           </label>
         </div>
-        <div className="grid gap-4 sm:grid-cols-[2fr,1fr]">
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Adresse
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700 sm:col-span-2">
+            <span className="flex items-center gap-1">
+              Adresse
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
               value={formState.address}
               onChange={(event) => updateField('address', event.target.value)}
@@ -798,10 +1003,27 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
             />
           </label>
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Postleitzahl
+            <span className="flex items-center gap-1">
+              Postleitzahl
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
               value={formState.postalCode}
               onChange={(event) => updateField('postalCode', event.target.value)}
+              className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+              required
+            />
+          </label>
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            <span className="flex items-center gap-1">
+              Ort
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
+            <input
+              value={formState.city}
+              onChange={(event) => updateField('city', event.target.value)}
               className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
               required
             />
@@ -1025,34 +1247,217 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
         />
       </section>
 
+      <section className="grid gap-5 rounded-3xl bg-white/80 p-6 shadow">
+        <h2 className="text-lg font-semibold text-brand-700">Profil, Logo & Team</h2>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="flex flex-col gap-3">
+            <p className="text-sm font-medium text-slate-700">Profilbild</p>
+            <div className="flex items-center gap-4">
+              <div className="h-28 w-28 overflow-hidden rounded-full border border-brand-200 bg-brand-50">
+                {imageState.preview ? (
+                  <img src={imageState.preview} alt="Profilbild" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">Kein Bild</div>
+                )}
+              </div>
+              <div className="flex flex-col gap-1 text-sm">
+                <IconUploadButton label="Profilbild wählen" accept="image/*" onChange={handleImageChange} />
+                <span className="text-xs text-slate-500">
+                  {imageState.fileName
+                    ? `Ausgewählt: ${imageState.fileName}`
+                    : 'Dieses Bild erscheint in deinem öffentlichen Profil.'}
+                </span>
+                {imageState.action === 'remove' && profile.profileImageUrl ? (
+                  <span className="text-xs text-rose-600">Das bisherige Profilbild wird entfernt.</span>
+                ) : null}
+                {imageState.preview || (profile.profileImageUrl && imageState.action !== 'remove') ? (
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="self-start text-xs font-semibold text-rose-600 hover:text-rose-700"
+                  >
+                    Bild entfernen
+                  </button>
+                ) : null}
+                {imageState.action === 'remove' && profile.profileImageUrl ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setImageState({
+                        preview: profile.profileImageUrl ? assetUrl(profile.profileImageUrl) : '',
+                        fileData: null,
+                        fileName: '',
+                        action: 'keep',
+                      })
+                    }
+                    className="self-start text-xs font-semibold text-brand-600 hover:text-brand-700"
+                  >
+                    Entfernung rückgängig machen
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            <p className="text-sm font-medium text-slate-700">Logo deiner Kindertagespflege</p>
+            <div className="flex items-center gap-4">
+              <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-2xl border border-brand-200 bg-brand-50">
+                {logoState.preview ? (
+                  <img src={logoState.preview} alt="Logo" className="h-full w-full object-contain" />
+                ) : (
+                  <span className="text-xs text-slate-400">Kein Logo</span>
+                )}
+              </div>
+              <div className="flex flex-col gap-1 text-sm">
+                <IconUploadButton label="Logo hochladen" accept="image/*" onChange={handleLogoChange} />
+                <span className="text-xs text-slate-500">
+                  {logoState.fileName ? `Ausgewählt: ${logoState.fileName}` : 'Optional, sorgt für Wiedererkennung in der Übersicht.'}
+                </span>
+                {logoState.action === 'remove' && profile.logoImageUrl ? (
+                  <span className="text-xs text-rose-600">Das Logo wird nach dem Speichern entfernt.</span>
+                ) : null}
+                {logoState.preview && logoState.action !== 'remove' ? (
+                  <button
+                    type="button"
+                    onClick={handleRemoveLogo}
+                    className="self-start text-xs font-semibold text-rose-600 hover:text-rose-700"
+                  >
+                    Logo entfernen
+                  </button>
+                ) : null}
+                {logoState.action === 'remove' && profile.logoImageUrl ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setLogoState({
+                        preview: assetUrl(profile.logoImageUrl),
+                        fileData: null,
+                        fileName: '',
+                        action: 'keep',
+                      })
+                    }
+                    className="self-start text-xs font-semibold text-brand-600 hover:text-brand-700"
+                  >
+                    Entfernung rückgängig machen
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            <p className="text-sm font-medium text-slate-700">Konzeption (PDF)</p>
+            <div className="flex flex-col gap-1 text-sm">
+              <IconUploadButton label="PDF auswählen" accept="application/pdf" onChange={handleConceptChange} />
+              <span className="text-xs text-slate-500">
+                {conceptState.fileName
+                  ? `Ausgewählt: ${conceptState.fileName}`
+                  : profile.conceptUrl
+                    ? 'Es ist bereits eine Konzeption hinterlegt.'
+                    : 'Lade deine pädagogische Konzeption hoch.'}
+              </span>
+              {profile.conceptUrl ? (
+                <a
+                  href={assetUrl(profile.conceptUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                >
+                  Aktuelle Konzeption ansehen
+                </a>
+              ) : null}
+              {conceptState.action === 'remove' && profile.conceptUrl ? (
+                <span className="text-xs text-rose-600">Die Konzeption wird nach dem Speichern entfernt.</span>
+              ) : null}
+              {profile.conceptUrl && conceptState.action !== 'remove' ? (
+                <button
+                  type="button"
+                  onClick={handleRemoveConcept}
+                  className="self-start text-xs font-semibold text-rose-600 hover:text-rose-700"
+                >
+                  Konzeption entfernen
+                </button>
+              ) : null}
+              {conceptState.action === 'remove' && profile.conceptUrl ? (
+                <button
+                  type="button"
+                  onClick={() => setConceptState({ fileName: '', fileData: null, action: 'keep' })}
+                  className="self-start text-xs font-semibold text-brand-600 hover:text-brand-700"
+                >
+                  Entfernung rückgängig machen
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+        <div className="grid gap-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-brand-700">Fotos der Betreuungsperson(en)</h3>
+            <IconUploadButton
+              label="Teamfotos hinzufügen"
+              accept="image/*"
+              multiple
+              onChange={handleCaregiverImagesChange}
+            />
+          </div>
+          {teamGallery.length ? (
+            <div className="flex flex-wrap gap-4">
+              {teamGallery.map((image) => (
+                <div
+                  key={image.id}
+                  className="relative h-28 w-28 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50"
+                >
+                  <img src={image.preview} alt="Teamfoto" className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveCaregiverImage(image.id)}
+                    className="absolute right-1 top-1 rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-semibold text-rose-600 shadow hover:bg-white"
+                  >
+                    Entfernen
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-500">Zeige dich und dein Team mit sympathischen Fotos.</p>
+          )}
+        </div>
+      </section>
+
       <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-brand-700">Räumlichkeiten</h2>
             <p className="text-xs text-slate-500">Lade Bilder hoch, um Familien einen Eindruck deiner Räume zu geben.</p>
           </div>
-          {roomGallery.length ? (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => scrollRoomGallery(-240)}
-                className="rounded-full border border-brand-200 px-2 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
-                aria-label="Räumlichkeiten nach links scrollen"
-              >
-                ←
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollRoomGallery(240)}
-                className="rounded-full border border-brand-200 px-2 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
-                aria-label="Räumlichkeiten nach rechts scrollen"
-              >
-                →
-              </button>
-            </div>
-          ) : null}
+          <div className="flex items-center gap-3">
+            {roomGallery.length ? (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => scrollRoomGallery(-240)}
+                  className="rounded-full border border-brand-200 px-2 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                  aria-label="Räumlichkeiten nach links scrollen"
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollRoomGallery(240)}
+                  className="rounded-full border border-brand-200 px-2 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                  aria-label="Räumlichkeiten nach rechts scrollen"
+                >
+                  →
+                </button>
+              </div>
+            ) : null}
+            <IconUploadButton
+              label="Raumbilder hochladen"
+              accept="image/*"
+              multiple
+              onChange={handleRoomImagesChange}
+            />
+          </div>
         </div>
-        <input type="file" accept="image/*" multiple onChange={handleRoomImagesChange} />
         {roomGallery.length ? (
           <div className="relative">
             <div ref={roomGalleryRef} className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
@@ -1076,58 +1481,6 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
         ) : (
           <p className="text-xs text-slate-500">Noch keine Bilder ausgewählt. Lade Fotos deiner Räume hoch.</p>
         )}
-      </section>
-
-      <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
-        <h2 className="text-lg font-semibold text-brand-700">Profilbild & Konzept</h2>
-        <div className="flex flex-col gap-6 lg:flex-row">
-          <div className="flex flex-1 flex-col gap-3">
-            <p className="text-sm font-medium text-slate-700">Profilbild</p>
-            <div className="flex items-center gap-4">
-              <div className="h-28 w-28 overflow-hidden rounded-full border border-brand-200 bg-brand-50">
-                {imageState.preview ? (
-                  <img src={imageState.preview} alt="Profilbild" className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">Kein Bild</div>
-                )}
-              </div>
-              <div className="flex flex-col gap-2 text-sm">
-                <input type="file" accept="image/*" onChange={handleImageChange} required={!imageState.preview} />
-                {imageState.preview ? (
-                  <button type="button" onClick={handleRemoveImage} className="self-start text-xs font-semibold text-rose-600 hover:text-rose-700">
-                    Bild entfernen
-                  </button>
-                ) : null}
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-1 flex-col gap-3">
-            <p className="text-sm font-medium text-slate-700">Konzeption (PDF)</p>
-            <div className="flex flex-col gap-2 text-sm">
-              <input type="file" accept="application/pdf" onChange={handleConceptChange} />
-              {profile.conceptUrl ? (
-                <a
-                  href={profile.conceptUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-semibold text-brand-600 hover:text-brand-700"
-                >
-                  Aktuelle Konzeption ansehen
-                </a>
-              ) : (
-                <p className="text-xs text-slate-500">Lade eine PDF mit deinem Konzept hoch.</p>
-              )}
-              {conceptState.action === 'remove' ? (
-                <span className="text-xs text-rose-600">Die Konzeption wird nach dem Speichern entfernt.</span>
-              ) : null}
-              {profile.conceptUrl ? (
-                <button type="button" onClick={handleRemoveConcept} className="self-start text-xs font-semibold text-rose-600 hover:text-rose-700">
-                  Konzeption entfernen
-                </button>
-              ) : null}
-            </div>
-          </div>
-        </div>
       </section>
 
       <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">

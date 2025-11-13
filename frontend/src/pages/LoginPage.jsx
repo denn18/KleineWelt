@@ -6,6 +6,7 @@ function LoginPage() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
   const { login, authError, setAuthError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,10 +16,14 @@ function LoginPage() {
     setSubmitting(true);
     try {
       const user = await login(identifier, password);
-      const redirectTo = location.state?.from || (user.role === 'caregiver' ? '/profil' : '/familienzentrum');
-      navigate(redirectTo, { replace: true });
+      const redirectTo = location.state?.from || '/familienzentrum';
+      setSuccessMessage('Willkommen zurück! Du wirst zum Familienzentrum weitergeleitet.');
+      setTimeout(() => {
+        navigate(redirectTo, { replace: true, state: { fromLogin: true, role: user.role } });
+      }, 900);
     } catch (error) {
       // Fehler wird bereits im Context gesetzt
+      setSuccessMessage(null);
     } finally {
       setSubmitting(false);
     }
@@ -32,7 +37,13 @@ function LoginPage() {
       </header>
       <form className="grid gap-6" onSubmit={handleSubmit}>
         <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-          Benutzername oder E-Mail
+          <span className="flex items-center gap-1">
+            Benutzername oder E-Mail
+            <span className="text-rose-500" aria-hidden="true">
+              *
+            </span>
+            <span className="sr-only">Pflichtfeld</span>
+          </span>
           <input
             value={identifier}
             onChange={(event) => {
@@ -41,10 +52,17 @@ function LoginPage() {
             }}
             className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
             required
+            aria-required="true"
           />
         </label>
         <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-          Passwort
+          <span className="flex items-center gap-1">
+            Passwort
+            <span className="text-rose-500" aria-hidden="true">
+              *
+            </span>
+            <span className="sr-only">Pflichtfeld</span>
+          </span>
           <input
             type="password"
             value={password}
@@ -54,6 +72,7 @@ function LoginPage() {
             }}
             className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
             required
+            aria-required="true"
           />
         </label>
         <button
@@ -63,6 +82,11 @@ function LoginPage() {
         >
           {submitting ? 'Wird geprüft…' : 'Einloggen'}
         </button>
+        {successMessage ? (
+          <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            {successMessage}
+          </p>
+        ) : null}
         {authError ? (
           <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{authError}</p>
         ) : null}

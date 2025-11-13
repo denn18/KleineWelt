@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext.jsx';
+import IconUploadButton from '../components/IconUploadButton.jsx';
 import { readFileAsDataUrl } from '../utils/file.js';
 
 function createChild() {
-  return { name: '', age: '', notes: '' };
+  return { name: '', age: '', gender: '', notes: '' };
 }
 
 const initialState = {
@@ -24,6 +27,8 @@ function ParentSignupPage() {
   const [profileImage, setProfileImage] = useState({ preview: '', dataUrl: null, fileName: '' });
   const [status, setStatus] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   function updateField(field, value) {
     setFormState((current) => ({ ...current, [field]: value }));
@@ -63,10 +68,11 @@ function ParentSignupPage() {
       const cleanedChildren = children.map((child) => ({
         name: child.name.trim(),
         age: child.age.trim(),
+        gender: child.gender || '',
         notes: child.notes.trim(),
       }));
 
-      await axios.post('/api/parents', {
+      const response = await axios.post('/api/parents', {
         ...formState,
         children: cleanedChildren,
         profileImage: profileImage.dataUrl,
@@ -75,7 +81,36 @@ function ParentSignupPage() {
         numberOfChildren: cleanedChildren.filter((child) => child.name).length,
       });
 
-      setStatus({ type: 'success', message: 'Vielen Dank! Wir suchen passende Tagespflegepersonen für dich.' });
+      const credentials = {
+        identifier: formState.username || formState.email,
+        password: formState.password,
+      };
+
+      setStatus({
+        type: 'success',
+        message: 'Registrierung erfolgreich! Wir melden uns mit passenden Tagespflegepersonen.',
+      });
+
+      try {
+        await login(credentials.identifier, credentials.password);
+        setStatus({
+          type: 'success',
+          message: 'Registrierung erfolgreich! Du wirst jetzt zum Familienzentrum weitergeleitet.',
+        });
+        setTimeout(() => {
+          navigate('/familienzentrum', {
+            replace: true,
+            state: { fromRegistration: true, role: response.data?.role || 'parent' },
+          });
+        }, 1200);
+      } catch (authError) {
+        console.warn('Automatischer Login nach Registrierung nicht möglich', authError);
+        setStatus({
+          type: 'success',
+          message: 'Registrierung erfolgreich! Bitte melde dich jetzt mit deinen Zugangsdaten an.',
+        });
+      }
+
       setFormState(initialState);
       setChildren([createChild()]);
       setProfileImage({ preview: '', dataUrl: null, fileName: '' });
@@ -101,40 +136,60 @@ function ParentSignupPage() {
       <form className="grid gap-6" onSubmit={handleSubmit}>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Vorname
+            <span className="flex items-center gap-1">
+              Vorname
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
               value={formState.firstName}
               onChange={(event) => updateField('firstName', event.target.value)}
               className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
               required
+              aria-required="true"
             />
           </label>
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Nachname
+            <span className="flex items-center gap-1">
+              Nachname
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
               value={formState.lastName}
               onChange={(event) => updateField('lastName', event.target.value)}
               className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
               required
+              aria-required="true"
             />
           </label>
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            E-Mail-Adresse
+            <span className="flex items-center gap-1">
+              E-Mail-Adresse
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
               type="email"
               value={formState.email}
               onChange={(event) => updateField('email', event.target.value)}
               className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
               required
+              aria-required="true"
             />
           </label>
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Telefonnummer
+            <span className="flex items-center gap-1">
+              Telefonnummer
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
               value={formState.phone}
               onChange={(event) => updateField('phone', event.target.value)}
               className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
               required
+              aria-required="true"
             />
           </label>
         </div>
@@ -148,33 +203,48 @@ function ParentSignupPage() {
             />
           </label>
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Postleitzahl
+            <span className="flex items-center gap-1">
+              Postleitzahl
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
               value={formState.postalCode}
               onChange={(event) => updateField('postalCode', event.target.value)}
               className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
               required
+              aria-required="true"
             />
           </label>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Benutzername
+            <span className="flex items-center gap-1">
+              Benutzername
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
               value={formState.username}
               onChange={(event) => updateField('username', event.target.value)}
               className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
               required
+              aria-required="true"
             />
           </label>
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Passwort
+            <span className="flex items-center gap-1">
+              Passwort
+              <span className="text-rose-500" aria-hidden="true">*</span>
+              <span className="sr-only">Pflichtfeld</span>
+            </span>
             <input
               type="password"
               value={formState.password}
               onChange={(event) => updateField('password', event.target.value)}
               className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
               required
+              aria-required="true"
             />
           </label>
         </div>
@@ -190,7 +260,7 @@ function ParentSignupPage() {
           </header>
           <div className="flex flex-col gap-4">
             {children.map((child, index) => (
-              <div key={index} className="grid gap-4 rounded-2xl border border-brand-100 bg-white p-4 sm:grid-cols-3">
+              <div key={index} className="grid gap-4 rounded-2xl border border-brand-100 bg-white p-4 sm:grid-cols-4">
                 <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
                   Name
                   <input
@@ -209,7 +279,20 @@ function ParentSignupPage() {
                     placeholder="z. B. 3 Jahre"
                   />
                 </label>
-                <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-wide text-slate-600 sm:col-span-1">
+                <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  Geschlecht
+                  <select
+                    value={child.gender}
+                    onChange={(event) => updateChild(index, 'gender', event.target.value)}
+                    className="rounded-xl border border-brand-200 px-3 py-2 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+                  >
+                    <option value="">Bitte auswählen</option>
+                    <option value="female">Weiblich</option>
+                    <option value="male">Männlich</option>
+                    <option value="diverse">Divers</option>
+                  </select>
+                </label>
+                <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-wide text-slate-600 sm:col-span-2">
                   Alltag & Besonderheiten
                   <textarea
                     value={child.notes}
@@ -219,13 +302,13 @@ function ParentSignupPage() {
                     placeholder="z. B. schläft nach dem Mittag gern"
                   />
                 </label>
-                <div className="flex items-end justify-end sm:col-span-3">
+                <div className="flex items-end justify-end sm:col-span-4">
                   <button
                     type="button"
                     onClick={() => removeChild(index)}
                     className="text-xs font-semibold text-rose-600 hover:text-rose-700"
                   >
-                    Kind entfernen
+                    Eintrag entfernen
                   </button>
                 </div>
               </div>
@@ -240,8 +323,8 @@ function ParentSignupPage() {
           </div>
         </section>
         <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/80 p-6">
-          <h2 className="text-lg font-semibold text-brand-700">Profilbild (optional)</h2>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <h2 className="text-lg font-semibold text-brand-700">Foto von dir (optional)</h2>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
             <div className="h-24 w-24 overflow-hidden rounded-full border border-brand-200 bg-brand-50">
               {profileImage.preview ? (
                 <img src={profileImage.preview} alt="Profilbild" className="h-full w-full object-cover" />
@@ -249,7 +332,12 @@ function ParentSignupPage() {
                 <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">Kein Bild</div>
               )}
             </div>
-            <input type="file" accept="image/*" onChange={handleImageChange} />
+            <div className="flex flex-col gap-2">
+              <IconUploadButton label="Bild auswählen" accept="image/*" onChange={handleImageChange} />
+              <span className="text-xs text-slate-500">
+                {profileImage.fileName ? `Ausgewählt: ${profileImage.fileName}` : 'Optional: Ein freundliches Foto hilft bei der Vermittlung.'}
+              </span>
+            </div>
           </div>
         </section>
         <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">

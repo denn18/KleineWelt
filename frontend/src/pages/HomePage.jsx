@@ -1,25 +1,28 @@
 import { Link } from 'react-router-dom';
 import heroImage from '../assets/hero-family.svg';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const features = [
   {
-    title: 'Persönliche Tagespflege',
+    title: 'Kindervermittlung mit Herz',
     description:
-      'Finde liebevolle Tagespflegepersonen in deiner Nähe, die genau zu den Bedürfnissen deiner Familie passen.',
+      'Erhalte passende Vorschläge für Kindertagespflegepersonen, die freie Betreuungsplätze und dein Betreuungsmodell abdecken.',
   },
   {
-    title: 'Transparente Verfügbarkeit',
+    title: 'Transparente Kindertagespflege',
     description:
-      'Sieh sofort, wie viele freie Plätze noch verfügbar sind und welche Betreuungszeiten angeboten werden.',
+      'Vergleiche pädagogische Konzepte, freie Kindertagespflegeplätze und Altersgrenzen auf einen Blick.',
   },
   {
     title: 'Direkte Kommunikation',
     description:
-      'Nutze unseren Messenger, um schnell und sicher Fragen zu klären und Kennenlerntermine zu vereinbaren.',
+      'Nutze unseren Messenger für schnelle Absprachen, Kennenlerntermine und individuelle Fragen rund um deine Betreuung.',
   },
 ];
 
 function HomePage() {
+  const { user } = useAuth();
+
   return (
     <div className="flex flex-col gap-24">
       <section className="grid gap-12 rounded-3xl bg-white/70 p-10 shadow-lg backdrop-blur sm:grid-cols-2">
@@ -30,15 +33,18 @@ function HomePage() {
           </h1>
           <p className="text-lg text-slate-600">
             Unsere Plattform verbindet Familien mit engagierten Tagespflegepersonen. Entdecke Betreuungsmöglichkeiten,
-            koordiniere Anfragen und bleibe mit deinem Netzwerk in Kontakt – alles an einem Ort.
+            finde freie Kindertagespflegeplätze in deiner Nähe und koordiniere Kindervermittlung, Kennenlernen und
+            Betreuungsplätze in einem digitalen Familienzentrum.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              to="/anmelden"
-              className="rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:bg-brand-700"
-            >
-              Jetzt registrieren
-            </Link>
+            {!user ? (
+              <Link
+                to="/anmelden"
+                className="rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:bg-brand-700"
+              >
+                Jetzt registrieren
+              </Link>
+            ) : null}
             <Link
               to="/login"
               className="rounded-full border border-brand-200 px-6 py-3 text-center text-sm font-semibold text-brand-700 transition hover:border-brand-400 hover:text-brand-800"
@@ -46,6 +52,10 @@ function HomePage() {
               Bereits registriert? Jetzt einloggen
             </Link>
           </div>
+          <p className="text-sm leading-relaxed text-slate-500">
+            Kleine Welt macht Kindertagespflege, Kindervermittlung und die Suche nach freien Betreuungsplätzen so einfach wie
+            möglich – für Familien und Tagespflegepersonen gleichermaßen.
+          </p>
         </div>
         <div className="flex items-center justify-center">
           <img src={heroImage} alt="Familie" className="max-h-80 w-full object-contain" />

@@ -4,7 +4,7 @@ function RoleSelectionPage() {
   return (
     <section className="mx-auto flex w-full max-w-4xl flex-col gap-8 rounded-3xl bg-white/80 p-12 shadow-lg">
       <header className="flex flex-col gap-2 text-center">
-        <h1 className="text-3xl font-bold text-brand-700">Wie möchtest du Kleine Welt nutzen?</h1>
+        <h1 className="text-3xl font-bold text-brand-700">Kleine Welt in Wimmel Welt</h1>
         <p className="text-brand-600">
           Wähle deine Rolle aus, um ein persönliches Profil zu erstellen und passende Angebote zu entdecken.
         </p>
@@ -22,7 +22,7 @@ function RoleSelectionPage() {
             Teile uns mit, wie viele Kinder du betreut haben möchtest, welche Betreuungszeiten wichtig sind und welche
             Postleitzahl dein Zuhause hat.
           </p>
-          <span className="text-sm font-semibold text-brand-600">Jetzt starten →</span>
+          <span className="text-sm font-semibold text-brand-600">Familienprofil anlegen →</span>
         </Link>
         <Link
           to="/anmelden/tagespflegeperson"
