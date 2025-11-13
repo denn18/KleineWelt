@@ -418,6 +418,29 @@ function CaregiverSignupPage() {
               {experienceYears !== null ? `${experienceYears} Jahre Erfahrung` : 'Optional: Sichtbar im Profil.'}
             </span>
           </label>
+<<<<<<< Updated upstream
+=======
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            Passwort
+            <input
+              type="password"
+              value={formState.password}
+              onChange={(event) => updateField('password', event.target.value)}
+              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+              required
+            />
+          </label>
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            E-Mail-Adresse
+            <input
+              type="email"
+              value={formState.email}
+              onChange={(event) => updateField('email', event.target.value)}
+              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+              required
+            />
+          </label>
+>>>>>>> Stashed changes
         </div>
         <div className="grid gap-4 sm:grid-cols-4">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">

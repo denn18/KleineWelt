@@ -4,15 +4,9 @@ import { useAuth } from '../context/AuthContext.jsx';
 
 const features = [
   {
-<<<<<<< Updated upstream
-    title: 'Kindervermittlung mit Herz',
-    description:
-      'Erhalte passende Vorschläge für Kindertagespflegepersonen, die freie Betreuungsplätze und dein Betreuungsmodell abdecken.',
-=======
     title: 'Persönliche Kindertagespflege',
     description:
       'Finde liebevolle Kindertagespflegepersonen in deiner Nähe, die genau zu den Bedürfnissen deiner Familie passen.',
->>>>>>> Stashed changes
   },
   {
     title: 'Transparente Kindertagespflege',
@@ -38,14 +32,8 @@ function HomePage() {
             Gemeinsam schaffen wir einen sicheren Ort zum Wachsen.
           </h1>
           <p className="text-lg text-slate-600">
-<<<<<<< Updated upstream
-            Unsere Plattform verbindet Familien mit engagierten Tagespflegepersonen. Entdecke Betreuungsmöglichkeiten,
-            finde freie Kindertagespflegeplätze in deiner Nähe und koordiniere Kindervermittlung, Kennenlernen und
-            Betreuungsplätze in einem digitalen Familienzentrum.
-=======
             Unsere Plattform verbindet Familien mit engagierten Kindertagespflegepersonen. Entdecke Betreuungsmöglichkeiten,
             koordiniere Anfragen und bleibe mit deinem Netzwerk in Kontakt – alles an einem Ort.
->>>>>>> Stashed changes
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             {!user ? (
