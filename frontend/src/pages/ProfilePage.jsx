@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import IconUploadButton from '../components/IconUploadButton.jsx';
@@ -467,9 +467,9 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
       fileName: '',
     }))
   );
-  const roomGalleryRef = useRef(null);
+  const [roomGalleryOffset, setRoomGalleryOffset] = useState(0);
   const [imageState, setImageState] = useState({
-    preview: profile.profileImageUrl || '',
+    preview: profile.profileImageUrl ? assetUrl(profile.profileImageUrl) : '',
     fileData: null,
     fileName: '',
     action: 'keep',
@@ -485,15 +485,6 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
     fileData: null,
     action: 'keep',
   });
-  const [teamGallery, setTeamGallery] = useState(() =>
-    (profile.caregiverImages ?? []).map((url) => ({
-      id: url,
-      source: url,
-      preview: assetUrl(url),
-      fileData: null,
-      fileName: '',
-    }))
-  );
   const [statusMessage, setStatusMessage] = useState(null);
 
   useEffect(() => {
@@ -550,15 +541,7 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
         fileName: '',
       }))
     );
-    setTeamGallery(
-      (profile.caregiverImages ?? []).map((url) => ({
-        id: url,
-        source: url,
-        preview: assetUrl(url),
-        fileData: null,
-        fileName: '',
-      }))
-    );
+    setRoomGalleryOffset(0);
     setStatusMessage(null);
   }, [profile]);
 
@@ -675,51 +658,50 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
       }
     }
 
-    if (additions.length) {
-      setRoomGallery((current) => [...current, ...additions]);
+    if (!additions.length) {
+      return;
     }
+
+    setRoomGallery((current) => {
+      const next = [...current, ...additions];
+      setRoomGalleryOffset(() => (next.length <= 3 ? 0 : Math.max(0, next.length - 3)));
+      return next;
+    });
     event.target.value = '';
   }
 
   function handleRemoveRoomImage(imageId) {
-    setRoomGallery((current) => current.filter((image) => image.id !== imageId));
+    setRoomGallery((current) => {
+      const filtered = current.filter((image) => image.id !== imageId);
+      setRoomGalleryOffset((offset) => {
+        if (!filtered.length || filtered.length <= 3) {
+          return 0;
+        }
+        const normalized = offset % filtered.length;
+        return normalized;
+      });
+      return filtered;
+    });
   }
 
-  function scrollRoomGallery(offset) {
-    if (!roomGalleryRef.current) {
+  function showPreviousRoomImages() {
+    if (roomGallery.length <= 3) {
       return;
     }
-    roomGalleryRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+    setRoomGalleryOffset((current) => {
+      const total = roomGallery.length;
+      return (current - 1 + total) % total;
+    });
   }
 
-  async function handleCaregiverImagesChange(event) {
-    const files = Array.from(event.target.files ?? []);
-    if (!files.length) {
+  function showNextRoomImages() {
+    if (roomGallery.length <= 3) {
       return;
     }
-
-    const additions = [];
-    for (const file of files) {
-      const dataUrl = await readFileAsDataUrl(file);
-      if (dataUrl) {
-        additions.push({
-          id: generateTempId(),
-          source: null,
-          preview: dataUrl,
-          fileData: dataUrl,
-          fileName: file.name,
-        });
-      }
-    }
-
-    if (additions.length) {
-      setTeamGallery((current) => [...current, ...additions]);
-    }
-    event.target.value = '';
-  }
-
-  function handleRemoveCaregiverImage(imageId) {
-    setTeamGallery((current) => current.filter((image) => image.id !== imageId));
+    setRoomGalleryOffset((current) => {
+      const total = roomGallery.length;
+      return (current + 1) % total;
+    });
   }
 
   function deriveAge(value) {
@@ -760,6 +742,11 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
 
   const computedAge = deriveAge(formState.birthDate);
   const experienceYears = deriveYears(formState.caregiverSince);
+  const visibleRoomImages =
+    roomGallery.length <= 3
+      ? roomGallery
+      : Array.from({ length: 3 }, (_, index) => roomGallery[(roomGalleryOffset + index) % roomGallery.length]);
+  const showRoomNavigation = roomGallery.length > 3;
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -788,11 +775,6 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
       dailySchedule,
       closedDays,
       roomImages: roomGallery
-        .map((image) =>
-          image.fileData ? { dataUrl: image.fileData, fileName: image.fileName } : image.source
-        )
-        .filter(Boolean),
-      caregiverImages: teamGallery
         .map((image) =>
           image.fileData ? { dataUrl: image.fileData, fileName: image.fileName } : image.source
         )
@@ -1389,62 +1371,32 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
             </div>
           </div>
         </div>
-        <div className="grid gap-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-brand-700">Fotos der Betreuungsperson(en)</h3>
-            <IconUploadButton
-              label="Teamfotos hinzufügen"
-              accept="image/*"
-              multiple
-              onChange={handleCaregiverImagesChange}
-            />
-          </div>
-          {teamGallery.length ? (
-            <div className="flex flex-wrap gap-4">
-              {teamGallery.map((image) => (
-                <div
-                  key={image.id}
-                  className="relative h-28 w-28 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50"
-                >
-                  <img src={image.preview} alt="Teamfoto" className="h-full w-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveCaregiverImage(image.id)}
-                    className="absolute right-1 top-1 rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-semibold text-rose-600 shadow hover:bg-white"
-                  >
-                    Entfernen
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs text-slate-500">Zeige dich und dein Team mit sympathischen Fotos.</p>
-          )}
-        </div>
       </section>
 
-      <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
+      <section className="grid gap-5 rounded-3xl bg-white/80 p-6 shadow">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-brand-700">Räumlichkeiten</h2>
-            <p className="text-xs text-slate-500">Lade Bilder hoch, um Familien einen Eindruck deiner Räume zu geben.</p>
+            <p className="text-xs text-slate-500">
+              Zeige Familien bis zu drei Räume gleichzeitig. Weitere Bilder kannst du über die Pfeile anzeigen lassen.
+            </p>
           </div>
           <div className="flex items-center gap-3">
-            {roomGallery.length ? (
-              <div className="flex items-center gap-2">
+            {showRoomNavigation ? (
+              <div className="hidden items-center gap-2 sm:flex">
                 <button
                   type="button"
-                  onClick={() => scrollRoomGallery(-240)}
-                  className="rounded-full border border-brand-200 px-2 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
-                  aria-label="Räumlichkeiten nach links scrollen"
+                  onClick={showPreviousRoomImages}
+                  className="rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                  aria-label="Vorherige Raumbilder anzeigen"
                 >
                   ←
                 </button>
                 <button
                   type="button"
-                  onClick={() => scrollRoomGallery(240)}
-                  className="rounded-full border border-brand-200 px-2 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
-                  aria-label="Räumlichkeiten nach rechts scrollen"
+                  onClick={showNextRoomImages}
+                  className="rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                  aria-label="Nächste Raumbilder anzeigen"
                 >
                   →
                 </button>
@@ -1459,27 +1411,50 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
           </div>
         </div>
         {roomGallery.length ? (
-          <div className="relative">
-            <div ref={roomGalleryRef} className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-              {roomGallery.map((image) => (
+          <div className="flex flex-col gap-4">
+            <div className="grid gap-4 sm:grid-cols-3">
+              {visibleRoomImages.map((image) => (
                 <div
                   key={image.id}
-                  className="relative h-32 w-48 flex-shrink-0 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50"
+                  className="relative h-40 w-full overflow-hidden rounded-3xl border border-brand-100 bg-brand-50"
                 >
                   <img src={image.preview} alt="Räumlichkeit" className="h-full w-full object-cover" />
                   <button
                     type="button"
                     onClick={() => handleRemoveRoomImage(image.id)}
-                    className="absolute right-2 top-2 rounded-full bg-white/80 px-2 py-1 text-[10px] font-semibold text-rose-600 shadow hover:bg-white"
+                    className="absolute right-2 top-2 rounded-full bg-white/85 px-2 py-1 text-[10px] font-semibold text-rose-600 shadow hover:bg-white"
                   >
                     Entfernen
                   </button>
                 </div>
               ))}
             </div>
+            {showRoomNavigation ? (
+              <div className="flex items-center justify-center gap-3 sm:hidden">
+                <button
+                  type="button"
+                  onClick={showPreviousRoomImages}
+                  className="rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                  aria-label="Vorherige Raumbilder anzeigen"
+                >
+                  ←
+                </button>
+                <span className="text-xs text-slate-500">Weitere Bilder mit den Pfeilen ansehen.</span>
+                <button
+                  type="button"
+                  onClick={showNextRoomImages}
+                  className="rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                  aria-label="Nächste Raumbilder anzeigen"
+                >
+                  →
+                </button>
+              </div>
+            ) : null}
           </div>
         ) : (
-          <p className="text-xs text-slate-500">Noch keine Bilder ausgewählt. Lade Fotos deiner Räume hoch.</p>
+          <p className="rounded-2xl border border-dashed border-brand-200 bg-white/60 px-4 py-6 text-sm text-slate-500">
+            Noch keine Bilder ausgewählt. Lade Fotos deiner Räume hoch.
+          </p>
         )}
       </section>
 

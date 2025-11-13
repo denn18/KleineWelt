@@ -5,6 +5,42 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import { assetUrl } from '../utils/file.js';
 
+function calculateAge(value) {
+  if (!value) {
+    return null;
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) {
+    return null;
+  }
+  const now = new Date();
+  let age = now.getFullYear() - date.getFullYear();
+  const hasBirthdayPassed =
+    now.getMonth() > date.getMonth() || (now.getMonth() === date.getMonth() && now.getDate() >= date.getDate());
+  if (!hasBirthdayPassed) {
+    age -= 1;
+  }
+  return age >= 0 ? age : null;
+}
+
+function calculateYearsSince(value) {
+  if (!value) {
+    return null;
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) {
+    return null;
+  }
+  const now = new Date();
+  let years = now.getFullYear() - date.getFullYear();
+  const hasAnniversaryPassed =
+    now.getMonth() > date.getMonth() || (now.getMonth() === date.getMonth() && now.getDate() >= date.getDate());
+  if (!hasAnniversaryPassed) {
+    years -= 1;
+  }
+  return years >= 0 ? years : null;
+}
+
 function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({ postalCode: '', city: '', search: '' });
@@ -285,11 +321,6 @@ function DashboardPage() {
                   ? (roomImageIndexes[caregiver.id] ?? 0) % roomImages.length
                   : 0;
                 const currentRoomImage = roomImages.length ? roomImages[currentRoomIndex] : '';
-                const truncatedDescription = caregiver.shortDescription
-                  ? caregiver.shortDescription.length > 140
-                    ? `${caregiver.shortDescription.slice(0, 137)}…`
-                    : caregiver.shortDescription
-                  : '';
                 const sinceDate = caregiver.caregiverSince
                   ? new Date(caregiver.caregiverSince)
                   : null;
@@ -299,15 +330,54 @@ function DashboardPage() {
                 const availabilityMessage = caregiver.hasAvailability
                   ? 'Plätze verfügbar'
                   : 'Zurzeit ausgebucht';
+                const caregiverAge =
+                  caregiver.age ?? calculateAge(caregiver.birthDate);
+                const yearsOfExperience =
+                  caregiver.yearsOfExperience ?? calculateYearsSince(caregiver.caregiverSince);
+                const experienceText = yearsOfExperience !== null
+                  ? yearsOfExperience === 0
+                    ? 'Seit diesem Jahr Tagespflegeperson'
+                    : `Seit ${yearsOfExperience} ${yearsOfExperience === 1 ? 'Jahr' : 'Jahren'} Tagespflegeperson`
+                  : sinceYear
+                    ? `Seit ${sinceYear} aktiv`
+                    : null;
+                const caregiverFullName = [caregiver.firstName, caregiver.lastName]
+                  .filter(Boolean)
+                  .join(' ')
+                  .trim();
+                const personInfoParts = [];
+                if (caregiverFullName) {
+                  personInfoParts.push(`Tagespflegeperson: ${caregiverFullName}`);
+                } else if (caregiver.name) {
+                  personInfoParts.push(`Tagespflegeperson: ${caregiver.name}`);
+                }
+                if (caregiverAge !== null) {
+                  personInfoParts.push(
+                    `${caregiverAge} ${caregiverAge === 1 ? 'Jahr' : 'Jahre'} alt`
+                  );
+                }
+                if (experienceText) {
+                  personInfoParts.push(experienceText);
+                }
+                const personInfo = personInfoParts.join(' · ');
 
                 return (
                   <article
                     key={caregiver.id}
-                    className={`flex flex-col gap-4 rounded-2xl border px-5 py-4 transition hover:border-brand-300 hover:shadow-lg ${
+                    className={`flex flex-col gap-4 rounded-2xl border px-5 py-4 transition hover:border-brand-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 cursor-pointer ${
                       selectedCaregiver?.id === caregiver.id
                         ? 'border-brand-400 bg-brand-50/80'
                         : 'border-brand-100 bg-white'
                     }`}
+                    onClick={() => setSelectedCaregiver(caregiver)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setSelectedCaregiver(caregiver);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
                   >
                     <div className="flex flex-col gap-3">
                       <div className="flex items-start gap-4">
@@ -323,15 +393,11 @@ function DashboardPage() {
                           )}
                         </div>
                         <div className="flex flex-1 flex-col gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedCaregiver(caregiver)}
-                            className="text-left text-base font-semibold text-brand-700"
-                          >
+                          <h3 className="text-base font-semibold text-brand-700">
                             {caregiver.daycareName || caregiver.name}
-                          </button>
-                          {truncatedDescription ? (
-                            <p className="text-sm text-slate-600">{truncatedDescription}</p>
+                          </h3>
+                          {personInfo ? (
+                            <p className="text-sm text-slate-600">{personInfo}</p>
                           ) : null}
                           <div className="flex flex-wrap gap-2 text-xs text-slate-500">
                             <span className="rounded-full bg-brand-50 px-3 py-1">
@@ -364,7 +430,10 @@ function DashboardPage() {
                             <>
                               <button
                                 type="button"
-                                onClick={() => handleCycleRoomImage(caregiver.id, -1)}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleCycleRoomImage(caregiver.id, -1);
+                                }}
                                 className="absolute left-1 top-1/2 -translate-y-1/2 rounded-full bg-white/80 px-2 py-1 text-[10px] font-semibold text-brand-600 shadow hover:bg-white"
                                 aria-label="Vorheriges Raumbild anzeigen"
                               >
@@ -372,7 +441,10 @@ function DashboardPage() {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleCycleRoomImage(caregiver.id, 1)}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleCycleRoomImage(caregiver.id, 1);
+                                }}
                                 className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-white/80 px-2 py-1 text-[10px] font-semibold text-brand-600 shadow hover:bg-white"
                                 aria-label="Nächstes Raumbild anzeigen"
                               >
@@ -386,7 +458,10 @@ function DashboardPage() {
                         <span>{availabilityMessage}</span>
                         <button
                           type="button"
-                          onClick={() => toggleCard(caregiver.id)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            toggleCard(caregiver.id);
+                          }}
                           className="text-xs font-semibold text-brand-600 hover:text-brand-700"
                         >
                           {collapsed ? 'Details anzeigen' : 'Details schließen'}
@@ -414,12 +489,6 @@ function DashboardPage() {
                           ) : null}
                         </div>
                         <div className="flex flex-col gap-3 text-sm text-slate-600">
-                          {caregiver.shortDescription ? (
-                            <div className="flex flex-col gap-1">
-                              <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Kurzbeschreibung</h3>
-                              <p>{caregiver.shortDescription}</p>
-                            </div>
-                          ) : null}
                           {caregiver.bio ? (
                             <div className="flex flex-col gap-1">
                               <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Über dich</h3>
@@ -440,22 +509,19 @@ function DashboardPage() {
                             ) : null}
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setSelectedCaregiver(caregiver)}
-                              className="rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
-                            >
-                              Details öffnen
-                            </button>
                             <Link
                               to={`/kindertagespflege/${caregiver.id}`}
+                              onClick={(event) => event.stopPropagation()}
                               className="rounded-full border border-brand-600 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:bg-brand-600 hover:text-white"
                             >
                               Kindertagespflege kennenlernen
                             </Link>
                             <button
                               type="button"
-                              onClick={() => handleOpenMessenger(caregiver)}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleOpenMessenger(caregiver);
+                              }}
                               className="rounded-full bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700"
                             >
                               Nachricht schreiben
