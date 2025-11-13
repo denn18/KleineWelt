@@ -347,7 +347,7 @@ function ParentSignupPage() {
             onChange={(event) => updateField('notes', event.target.value)}
             rows={4}
             className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-            placeholder="Gibt es Besonderheiten oder Wünsche, die wir berücksichtigen sollten?"
+            placeholder="Gibt es Besonderheiten oder Wünsche, die wir berücksichtigen sollten, zb. Allergene etc?"
           />
         </label>
         <button

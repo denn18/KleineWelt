@@ -404,6 +404,7 @@ function CaregiverSignupPage() {
               {experienceYears !== null ? `${experienceYears} Jahre Erfahrung` : 'Optional: Sichtbar im Profil.'}
             </span>
           </label>
+<<<<<<< Updated upstream
           </div>
           <div className="grid gap-4 sm:grid-cols-4">
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
@@ -411,6 +412,82 @@ function CaregiverSignupPage() {
               <input
                 type="number"
                 min="0"
+=======
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            Passwort
+            <input
+              type="password"
+              value={formState.password}
+              onChange={(event) => updateField('password', event.target.value)}
+              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+              required
+            />
+          </label>
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            E-Mail-Adresse
+            <input
+              type="email"
+              value={formState.email}
+              onChange={(event) => updateField('email', event.target.value)}
+              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+              required
+            />
+          </label>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700 sm:col-span-2">
+            Adresse
+            <input
+              value={formState.address}
+              onChange={(event) => updateField('address', event.target.value)}
+              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+              required
+            />
+          </label>
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            Postleitzahl
+            <input
+              value={formState.postalCode}
+              onChange={(event) => updateField('postalCode', event.target.value)}
+              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+              required
+            />
+          </label>
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            Ort
+            <input
+              value={formState.city}
+              onChange={(event) => updateField('city', event.target.value)}
+              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+              required
+            />
+          </label>
+            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            Phone
+            <input
+              value={formState.phone}
+              onChange={(event) => updateField('phone', event.target.value)}
+              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+              required
+            />
+          </label>
+        </div>
+        <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+          Name deiner Kindertagespflege
+          <input
+            value={formState.daycareName}
+            onChange={(event) => updateField('daycareName', event.target.value)}
+            className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+            required
+          />
+        </label>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            Aktuell betreute Kinder
+            <input
+              type="number"
+              min="0"
+>>>>>>> Stashed changes
               value={formState.childrenCount}
               onChange={(event) => updateField('childrenCount', event.target.value)}
               className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"

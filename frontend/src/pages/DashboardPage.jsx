@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import MapView from '../components/MapView.jsx';
+// import MapView from '../components/MapView.jsx'; Google Maps API später einrichten, kostet Geld
 import { useAuth } from '../context/AuthContext.jsx';
 import { assetUrl } from '../utils/file.js';
 
@@ -218,7 +218,8 @@ function DashboardPage() {
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               onFocus={() => setSuggestionsOpen(true)}
-              placeholder="z. B. 10115 Berlin oder Prenzlauer Berg"
+              //Später wieder in PLZ eingeben ändern!!!!!
+              placeholder="aktuell nur 33332, Gütersloh :)"
               className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
             />
           </label>
@@ -474,6 +475,7 @@ function DashboardPage() {
               ) : null}
             </div>
           </div>
+          {/*  Google Maps API hier später vernünftig einrichten, kostet Geld
           <div className="rounded-3xl bg-white/80 p-6 shadow">
             <h2 className="text-xl font-semibold text-brand-700">Live-Karte</h2>
             <p className="mb-4 text-xs text-slate-500">
@@ -481,7 +483,7 @@ function DashboardPage() {
               später API-Schlüssel für deinen Lieblingskartenanbieter hinterlegen.
             </p>
             <MapView caregivers={caregiversForMap} />
-          </div>
+          </div> */}
         </div>
 
         <aside className="flex flex-col gap-4 rounded-3xl bg-white/80 p-6 shadow">
