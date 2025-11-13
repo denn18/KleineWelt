@@ -21,6 +21,71 @@ function normalizeScheduleEntries(entries) {
     .filter((entry) => entry.startTime && entry.endTime && entry.activity);
 }
 
+function parseDateInput(value) {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.valueOf()) ? null : value;
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.valueOf()) ? null : parsed;
+}
+
+function calculateAge(dateValue) {
+  if (!dateValue) {
+    return null;
+  }
+
+  const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  if (Number.isNaN(date.valueOf())) {
+    return null;
+  }
+
+  const now = new Date();
+  let age = now.getFullYear() - date.getFullYear();
+  const hasHadBirthdayThisYear =
+    now.getMonth() > date.getMonth() || (now.getMonth() === date.getMonth() && now.getDate() >= date.getDate());
+  if (!hasHadBirthdayThisYear) {
+    age -= 1;
+  }
+
+  return age >= 0 ? age : null;
+}
+
+function calculateYearsSince(dateValue) {
+  if (!dateValue) {
+    return null;
+  }
+
+  const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  if (Number.isNaN(date.valueOf())) {
+    return null;
+  }
+
+  const now = new Date();
+  let years = now.getFullYear() - date.getFullYear();
+  const hasReachedAnniversary =
+    now.getMonth() > date.getMonth() || (now.getMonth() === date.getMonth() && now.getDate() >= date.getDate());
+  if (!hasReachedAnniversary) {
+    years -= 1;
+  }
+
+  return years >= 0 ? years : null;
+}
+
+function normalizeImageArray(input) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .map((entry) => (typeof entry === 'string' ? entry : entry?.url ?? null))
+    .filter((url) => typeof url === 'string' && url.trim().length > 0);
+}
+
 export function serializeCaregiver(document) {
   if (!document) {
     return null;
@@ -30,6 +95,29 @@ export function serializeCaregiver(document) {
   if (Object.prototype.hasOwnProperty.call(rest, 'password')) {
     delete rest.password;
   }
+
+  if (rest.birthDate instanceof Date) {
+    rest.birthDate = rest.birthDate.toISOString();
+  }
+
+  if (rest.caregiverSince instanceof Date) {
+    rest.caregiverSince = rest.caregiverSince.toISOString();
+  }
+
+  if (rest.birthDate) {
+    const calculatedAge = calculateAge(rest.birthDate);
+    if (calculatedAge !== null) {
+      rest.age = calculatedAge;
+    }
+  }
+
+  if (rest.caregiverSince) {
+    const years = calculateYearsSince(rest.caregiverSince);
+    if (years !== null) {
+      rest.yearsOfExperience = years;
+    }
+  }
+
   return {
     id: _id.toString(),
     ...rest,
@@ -59,12 +147,22 @@ export function buildCaregiverDocument(data) {
     typeof data.childrenCount === 'number'
       ? data.childrenCount
       : Number.parseInt(data.childrenCount ?? '0', 10) || 0;
-  const age =
-    typeof data.age === 'number' ? data.age : Number.parseInt(data.age ?? '0', 10) || null;
+  const birthDate = parseDateInput(data.birthDate);
+  const caregiverSince = parseDateInput(data.caregiverSince);
+  const age = birthDate
+    ? calculateAge(birthDate)
+    : typeof data.age === 'number'
+      ? data.age
+      : Number.parseInt(data.age ?? '0', 10) || null;
+  const maxChildAge =
+    typeof data.maxChildAge === 'number'
+      ? data.maxChildAge
+      : Number.parseInt(data.maxChildAge ?? '0', 10) || null;
   const careTimes = normalizeScheduleEntries(data.careTimes);
   const dailySchedule = normalizeScheduleEntries(data.dailySchedule);
   const mealPlan = data.mealPlan?.trim() || null;
-  const roomImages = Array.isArray(data.roomImages) ? data.roomImages.filter(Boolean) : [];
+  const roomImages = normalizeImageArray(data.roomImages);
+  const caregiverImages = normalizeImageArray(data.caregiverImages);
   const closedDays = Array.isArray(data.closedDays)
     ? data.closedDays.map((day) => day?.trim()).filter(Boolean)
     : [];
@@ -82,6 +180,9 @@ export function buildCaregiverDocument(data) {
     availableSpots,
     childrenCount,
     age,
+    birthDate: birthDate ?? null,
+    caregiverSince: caregiverSince ?? null,
+    maxChildAge,
     hasAvailability:
       typeof data.hasAvailability === 'string'
         ? data.hasAvailability.toLowerCase() === 'true'
@@ -93,10 +194,12 @@ export function buildCaregiverDocument(data) {
     dailySchedule,
     mealPlan,
     roomImages,
+    caregiverImages,
     closedDays,
     username: data.username?.trim() || data.email?.trim(),
     password: data.password,
     profileImageUrl: data.profileImageUrl || null,
+    logoImageUrl: data.logoImageUrl || null,
     conceptUrl: data.conceptUrl || null,
     role: 'caregiver',
     createdAt: now,
@@ -152,6 +255,20 @@ export function buildCaregiverUpdate(data) {
   if (data.age !== undefined) {
     update.age = typeof data.age === 'number' ? data.age : Number.parseInt(data.age ?? '0', 10) || null;
   }
+  if (data.birthDate !== undefined) {
+    const birthDate = parseDateInput(data.birthDate);
+    update.birthDate = birthDate;
+    update.age = birthDate ? calculateAge(birthDate) : update.age ?? null;
+  }
+  if (data.caregiverSince !== undefined) {
+    update.caregiverSince = parseDateInput(data.caregiverSince);
+  }
+  if (data.maxChildAge !== undefined) {
+    update.maxChildAge =
+      typeof data.maxChildAge === 'number'
+        ? data.maxChildAge
+        : Number.parseInt(data.maxChildAge ?? '0', 10) || null;
+  }
   if (data.hasAvailability !== undefined) {
     update.hasAvailability =
       typeof data.hasAvailability === 'string'
@@ -177,7 +294,10 @@ export function buildCaregiverUpdate(data) {
     update.mealPlan = data.mealPlan?.trim() || null;
   }
   if (data.roomImages !== undefined) {
-    update.roomImages = Array.isArray(data.roomImages) ? data.roomImages.filter(Boolean) : [];
+    update.roomImages = normalizeImageArray(data.roomImages);
+  }
+  if (data.caregiverImages !== undefined) {
+    update.caregiverImages = normalizeImageArray(data.caregiverImages);
   }
   if (data.closedDays !== undefined) {
     update.closedDays = Array.isArray(data.closedDays)
@@ -192,6 +312,9 @@ export function buildCaregiverUpdate(data) {
   }
   if (data.profileImageUrl !== undefined) {
     update.profileImageUrl = data.profileImageUrl;
+  }
+  if (data.logoImageUrl !== undefined) {
+    update.logoImageUrl = data.logoImageUrl;
   }
   if (data.conceptUrl !== undefined) {
     update.conceptUrl = data.conceptUrl;

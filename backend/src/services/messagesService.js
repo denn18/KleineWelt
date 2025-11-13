@@ -1,4 +1,5 @@
 import { buildMessageDocument, messagesCollection, serializeMessage } from '../models/Message.js';
+import { notifyRecipientOfMessage } from './notificationService.js';
 
 let messagesCollectionOverride = null;
 
@@ -33,7 +34,18 @@ export async function sendMessage({ conversationId, senderId, recipientId, body 
   const document = buildMessageDocument({ conversationId, senderId, recipientId, body });
   const result = await getMessagesCollection().insertOne(document);
 
-  return serializeMessage({ _id: result.insertedId, ...document });
+  const serialized = serializeMessage({ _id: result.insertedId, ...document });
+
+  notifyRecipientOfMessage({
+    recipientId,
+    senderId,
+    messageBody: body,
+    conversationId,
+  }).catch((error) => {
+    console.error('Konnte Empfänger nicht benachrichtigen:', error);
+  });
+
+  return serialized;
 }
 
 export async function listConversationsForUser(participantId) {

@@ -40,6 +40,13 @@ export async function postCaregiver(req, res) {
       fallbackExtension: 'png',
     });
 
+    const logoImageUrl = await storeBase64File({
+      base64: req.body.logoImage && req.body.logoImage !== 'null' ? req.body.logoImage : null,
+      originalName: req.body.logoImageName,
+      folder: 'caregivers/logos',
+      fallbackExtension: 'png',
+    });
+
     const conceptUrl = await storeBase64File({
       base64: req.body.conceptFile && req.body.conceptFile !== 'null' ? req.body.conceptFile : null,
       originalName: req.body.conceptFileName,
@@ -59,11 +66,25 @@ export async function postCaregiver(req, res) {
       )
     );
 
+    const rawCaregiverImages = Array.isArray(req.body.caregiverImages) ? req.body.caregiverImages : [];
+    const storedCaregiverImages = await Promise.all(
+      rawCaregiverImages.map(async (image) =>
+        storeBase64File({
+          base64: image?.dataUrl ?? null,
+          originalName: image?.fileName,
+          folder: 'caregivers/team-gallery',
+          fallbackExtension: 'png',
+        })
+      )
+    );
+
     const caregiver = await createCaregiver({
       ...req.body,
       profileImageUrl,
       conceptUrl,
       roomImages: storedRoomImages.filter(Boolean),
+      caregiverImages: storedCaregiverImages.filter(Boolean),
+      logoImageUrl,
     });
     res.status(201).json(caregiver);
   } catch (error) {
@@ -112,6 +133,22 @@ export async function patchCaregiver(req, res) {
       });
     }
 
+    let logoImageUrl = existing.logoImageUrl ?? null;
+    const removeLogo = req.body.logoImage === null || req.body.logoImage === 'null';
+    const hasNewLogo = typeof req.body.logoImage === 'string' && req.body.logoImage !== 'null';
+    if (removeLogo) {
+      await removeStoredFile(existing.logoImageUrl);
+      logoImageUrl = null;
+    } else if (hasNewLogo) {
+      await removeStoredFile(existing.logoImageUrl);
+      logoImageUrl = await storeBase64File({
+        base64: req.body.logoImage,
+        originalName: req.body.logoImageName,
+        folder: 'caregivers/logos',
+        fallbackExtension: 'png',
+      });
+    }
+
     let conceptUrl = existing.conceptUrl;
     const removeConcept = req.body.conceptFile === null || req.body.conceptFile === 'null';
     const hasNewConcept = typeof req.body.conceptFile === 'string' && req.body.conceptFile !== 'null';
@@ -154,11 +191,39 @@ export async function patchCaregiver(req, res) {
       roomImages = normalizedImages;
     }
 
+    let caregiverImages = existing.caregiverImages ?? [];
+    if (req.body.caregiverImages !== undefined) {
+      const requestedImages = Array.isArray(req.body.caregiverImages) ? req.body.caregiverImages : [];
+      const normalizedCaregiverImages = [];
+
+      for (const image of requestedImages) {
+        if (typeof image === 'string') {
+          normalizedCaregiverImages.push(image);
+        } else if (image?.dataUrl) {
+          const storedUrl = await storeBase64File({
+            base64: image.dataUrl,
+            originalName: image.fileName,
+            folder: 'caregivers/team-gallery',
+            fallbackExtension: 'png',
+          });
+          if (storedUrl) {
+            normalizedCaregiverImages.push(storedUrl);
+          }
+        }
+      }
+
+      const removedImages = caregiverImages.filter((url) => !normalizedCaregiverImages.includes(url));
+      await Promise.all(removedImages.map((url) => removeStoredFile(url)));
+      caregiverImages = normalizedCaregiverImages;
+    }
+
     const caregiver = await updateCaregiver(caregiverId, {
       ...req.body,
       profileImageUrl,
       conceptUrl,
       roomImages,
+      caregiverImages,
+      logoImageUrl,
     });
 
     res.json(caregiver);

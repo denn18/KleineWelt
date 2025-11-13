@@ -34,6 +34,8 @@ export function toObjectId(id) {
   }
 }
 
+const ALLOWED_GENDERS = new Set(['male', 'female', 'diverse']);
+
 function sanitizeChildren(childrenInput) {
   if (!Array.isArray(childrenInput)) {
     return [];
@@ -43,6 +45,7 @@ function sanitizeChildren(childrenInput) {
     .map((child) => ({
       name: child?.name?.trim(),
       age: child?.age?.trim() || null,
+      gender: ALLOWED_GENDERS.has(child?.gender) ? child.gender : null,
       notes: child?.notes?.trim() || null,
     }))
     .filter((child) => child.name);

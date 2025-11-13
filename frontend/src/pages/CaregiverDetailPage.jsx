@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
+import { assetUrl } from '../utils/file.js';
 
 function SectionHeading({ title, description }) {
   return (
@@ -40,7 +41,8 @@ function CaregiverDetailPage() {
   const { id } = useParams();
   const [caregiver, setCaregiver] = useState(null);
   const [status, setStatus] = useState({ loading: true, error: null });
-  const galleryRef = useRef(null);
+  const [roomIndex, setRoomIndex] = useState(0);
+  const [lightboxImage, setLightboxImage] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
@@ -92,11 +94,52 @@ function CaregiverDetailPage() {
     });
   }
 
-  function scrollGallery(offset) {
-    if (!galleryRef.current) {
+  useEffect(() => {
+    if (caregiver?.id) {
+      setRoomIndex(0);
+      setLightboxImage(null);
+    }
+  }, [caregiver?.id]);
+
+  const roomImages = useMemo(
+    () => (caregiver?.roomImages ?? []).map((imageUrl) => assetUrl(imageUrl)),
+    [caregiver],
+  );
+
+  const visibleRoomImages = useMemo(() => {
+    if (!roomImages.length) {
+      return [];
+    }
+    const count = Math.min(3, roomImages.length);
+    const images = [];
+    for (let offset = 0; offset < count; offset += 1) {
+      images.push(roomImages[(roomIndex + offset) % roomImages.length]);
+    }
+    return images;
+  }, [roomImages, roomIndex]);
+
+  const hasMultipleRooms = roomImages.length > 1;
+
+  function handleRoomPrev() {
+    if (!roomImages.length) {
       return;
     }
-    galleryRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+    setRoomIndex((current) => (current - 1 + roomImages.length) % roomImages.length);
+  }
+
+  function handleRoomNext() {
+    if (!roomImages.length) {
+      return;
+    }
+    setRoomIndex((current) => (current + 1) % roomImages.length);
+  }
+
+  function openLightbox(image) {
+    setLightboxImage(image);
+  }
+
+  function closeLightbox() {
+    setLightboxImage(null);
   }
 
   if (status.loading) {
@@ -123,13 +166,33 @@ function CaregiverDetailPage() {
     return null;
   }
 
-  const roomImages = caregiver.roomImages ?? [];
   const closedDays = caregiver.closedDays ?? [];
+  const profileImageUrl = caregiver.profileImageUrl ? assetUrl(caregiver.profileImageUrl) : '';
+  const logoUrl = caregiver.logoImageUrl ? assetUrl(caregiver.logoImageUrl) : '';
+  const conceptUrl = caregiver.conceptUrl ? assetUrl(caregiver.conceptUrl) : '';
+  const availabilityStyles = caregiver.hasAvailability
+    ? 'bg-emerald-50 text-emerald-700'
+    : 'bg-amber-50 text-amber-600';
+  const sinceDate = caregiver.caregiverSince ? new Date(caregiver.caregiverSince) : null;
+  const sinceYear = sinceDate && !Number.isNaN(sinceDate.valueOf()) ? sinceDate.getFullYear() : null;
+  const experienceYears = sinceDate && !Number.isNaN(sinceDate.valueOf())
+    ? (() => {
+        const now = new Date();
+        let years = now.getFullYear() - sinceDate.getFullYear();
+        const anniversaryPassed =
+          now.getMonth() > sinceDate.getMonth() ||
+          (now.getMonth() === sinceDate.getMonth() && now.getDate() >= sinceDate.getDate());
+        if (!anniversaryPassed) {
+          years -= 1;
+        }
+        return years >= 0 ? years : null;
+      })()
+    : null;
 
   return (
     <section className="mx-auto mt-12 flex w-full max-w-5xl flex-col gap-10 rounded-3xl bg-white/85 p-10 shadow-xl">
       <header className="flex flex-col gap-6 md:flex-row md:justify-between">
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           <button
             type="button"
             onClick={() => navigate(-1)}
@@ -137,27 +200,35 @@ function CaregiverDetailPage() {
           >
             ← Zurück zur Übersicht
           </button>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-semibold text-brand-700">{caregiver.daycareName || caregiver.name}</h1>
             {formattedAddress ? <p className="text-sm text-slate-600">{formattedAddress}</p> : null}
-            <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+            <div className="flex flex-wrap gap-2 text-xs font-semibold text-brand-700">
+              <span className={`rounded-full px-3 py-1 ${availabilityStyles}`}>
+                {caregiver.hasAvailability ? 'Plätze verfügbar' : 'Derzeit ausgebucht'}
+              </span>
               <span className="rounded-full bg-brand-50 px-3 py-1">
                 {caregiver.availableSpots ?? 0} freie Plätze
               </span>
               <span className="rounded-full bg-brand-50 px-3 py-1">
-                {caregiver.childrenCount ?? 0} Kinder in Betreuung
+                {caregiver.childrenCount ?? 0} betreute Kinder
               </span>
-              {caregiver.hasAvailability ? (
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-600">Plätze verfügbar</span>
-              ) : (
-                <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-600">Derzeit ausgebucht</span>
-              )}
+              {caregiver.maxChildAge ? (
+                <span className="rounded-full bg-brand-50 px-3 py-1">
+                  Aufnahme bis {caregiver.maxChildAge} Jahre
+                </span>
+              ) : null}
+              {experienceYears !== null ? (
+                <span className="rounded-full bg-brand-50 px-3 py-1">{experienceYears} Jahre Erfahrung</span>
+              ) : sinceYear ? (
+                <span className="rounded-full bg-brand-50 px-3 py-1">Seit {sinceYear} aktiv</span>
+              ) : null}
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {caregiver.conceptUrl ? (
+            {conceptUrl ? (
               <a
-                href={caregiver.conceptUrl}
+                href={conceptUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
@@ -174,12 +245,17 @@ function CaregiverDetailPage() {
             </button>
           </div>
         </div>
-        <div className="flex justify-center md:justify-end">
-          {caregiver.profileImageUrl ? (
+        <div className="flex flex-col items-center gap-4 md:flex-row md:items-start md:justify-end">
+          {logoUrl ? (
+            <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border border-brand-100 bg-brand-50">
+              <img src={logoUrl} alt={`Logo von ${caregiver.daycareName || caregiver.name}`} className="h-full w-full object-contain" />
+            </div>
+          ) : null}
+          {profileImageUrl ? (
             <img
-              src={caregiver.profileImageUrl}
+              src={profileImageUrl}
               alt={caregiver.daycareName || caregiver.name}
-              className="h-40 w-40 rounded-3xl bg-brand-50 object-contain"
+              className="h-40 w-40 rounded-3xl border border-brand-100 bg-brand-50 object-cover"
             />
           ) : (
             <div className="flex h-40 w-40 items-center justify-center rounded-3xl border border-dashed border-brand-200 bg-brand-50 text-sm text-slate-400">
@@ -255,35 +331,56 @@ function CaregiverDetailPage() {
 
       <section className="grid gap-4">
         <SectionHeading title="Räumlichkeiten" description="Ein Blick in die Betreuungsräume." />
-        {roomImages.length ? (
-          <div className="flex flex-col gap-3">
-            <div className="flex gap-2 self-end">
-              <button
-                type="button"
-                onClick={() => scrollGallery(-240)}
-                className="rounded-full border border-brand-200 px-3 py-1 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
-                aria-label="Räumlichkeiten nach links scrollen"
-              >
-                ←
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollGallery(240)}
-                className="rounded-full border border-brand-200 px-3 py-1 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
-                aria-label="Räumlichkeiten nach rechts scrollen"
-              >
-                →
-              </button>
+        {visibleRoomImages.length ? (
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              {hasMultipleRooms ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleRoomPrev}
+                    className="rounded-full border border-brand-200 px-3 py-1 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                    aria-label="Vorherige Räumlichkeit anzeigen"
+                  >
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRoomNext}
+                    className="rounded-full border border-brand-200 px-3 py-1 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                    aria-label="Nächste Räumlichkeit anzeigen"
+                  >
+                    →
+                  </button>
+                </div>
+              ) : <span />}
+              <span className="text-xs text-slate-500">
+                Bild {roomIndex + 1} von {roomImages.length}
+              </span>
             </div>
-            <div ref={galleryRef} className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-              {roomImages.map((imageUrl, index) => (
-                <img
-                  key={`${imageUrl}-${index}`}
-                  src={imageUrl}
-                  alt={`Räumlichkeit ${index + 1}`}
-                  className="h-40 w-64 flex-shrink-0 rounded-3xl object-cover shadow"
-                />
-              ))}
+            <div className="grid gap-4 md:grid-cols-3">
+              {visibleRoomImages.map((imageUrl, index) => {
+                const imagePosition = roomImages.length
+                  ? (roomIndex + index) % roomImages.length
+                  : index;
+                return (
+                  <button
+                    key={`${imageUrl}-${index}`}
+                    type="button"
+                    onClick={() => openLightbox(imageUrl)}
+                    className="group relative h-48 w-full overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 shadow transition hover:shadow-lg"
+                  >
+                    <img
+                      src={imageUrl}
+                      alt={`Räumlichkeit ${imagePosition + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                    <span className="absolute inset-x-0 bottom-0 hidden bg-black/40 py-1 text-[10px] font-semibold text-white group-hover:block">
+                      Zum Vergrößern klicken
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         ) : (
@@ -299,6 +396,29 @@ function CaregiverDetailPage() {
           {formattedAddress ? <p>Adresse: {formattedAddress}</p> : null}
         </div>
       </section>
+      {lightboxImage ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Vergrößerte Ansicht der Räumlichkeiten"
+        >
+          <div className="relative w-full max-w-4xl">
+            <button
+              type="button"
+              onClick={closeLightbox}
+              className="absolute right-4 top-4 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-brand-700 shadow transition hover:bg-white"
+            >
+              Schließen
+            </button>
+            <img
+              src={lightboxImage}
+              alt="Vergrößerte Aufnahme der Räumlichkeiten"
+              className="max-h-[80vh] w-full rounded-3xl object-contain"
+            />
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
