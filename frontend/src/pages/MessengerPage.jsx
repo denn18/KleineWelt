@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
+import ImageLightbox from '../components/ImageLightbox.jsx';
+import { assetUrl } from '../utils/file.js';
 
 function formatTime(value) {
   if (!value) {
@@ -25,6 +27,7 @@ function MessengerPage() {
   const [messageBody, setMessageBody] = useState('');
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [sending, setSending] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   const conversationId = useMemo(() => {
     if (!user) {
@@ -88,6 +91,17 @@ function MessengerPage() {
     }
   }
 
+  function openLightbox(url, alt = 'Vergrößerte Ansicht') {
+    if (!url) {
+      return;
+    }
+    setLightboxImage({ url, alt });
+  }
+
+  function closeLightbox() {
+    setLightboxImage(null);
+  }
+
   if (!user) {
     return null;
   }
@@ -96,41 +110,92 @@ function MessengerPage() {
   const partnerName = isPartnerCaregiver
     ? partner.daycareName || `${partner.firstName ?? ''} ${partner.lastName ?? ''}`.trim()
     : partner?.name || `${partner?.firstName ?? ''} ${partner?.lastName ?? ''}`.trim() || 'Kontakt';
+  const partnerLogoUrl = partner?.logoImageUrl ? assetUrl(partner.logoImageUrl) : '';
+  const partnerProfileUrl = partner?.profileImageUrl ? assetUrl(partner.profileImageUrl) : '';
+  const partnerAddress = partner
+    ? [partner.address, [partner.postalCode, partner.city].filter(Boolean).join(' ')].filter(Boolean).join(', ')
+    : '';
+  const partnerSinceYear = partner?.caregiverSince
+    ? (() => {
+        const date = new Date(partner.caregiverSince);
+        return Number.isNaN(date.valueOf()) ? null : date.getFullYear();
+      })()
+    : null;
+  const partnerExperienceYears = typeof partner?.yearsOfExperience === 'number' ? partner.yearsOfExperience : null;
+  const experienceBadge = partnerExperienceYears !== null
+    ? partnerExperienceYears === 0
+      ? 'Seit diesem Jahr aktiv'
+      : `${partnerExperienceYears} ${partnerExperienceYears === 1 ? 'Jahr' : 'Jahren'} Erfahrung`
+    : partnerSinceYear
+      ? `Seit ${partnerSinceYear} aktiv`
+      : null;
+  const childrenCount = partner ? partner.childrenCount ?? 0 : null;
+  const childrenBadge = childrenCount !== null ? `${childrenCount} betreute Kinder in Betreuung` : null;
+  const availableSpots = partner
+    ? typeof partner.availableSpots === 'number'
+      ? partner.availableSpots
+      : partner.availableSpots ?? 0
+    : null;
+  const availabilityBadge = availableSpots !== null ? `${availableSpots} freie Plätze` : null;
+  const ageBadge = typeof partner?.age === 'number' ? `Alter: ${partner.age} Jahre` : null;
+  const partnerConceptUrl = partner?.conceptUrl ? assetUrl(partner.conceptUrl) : '';
 
   return (
     <section className="mx-auto grid w-full max-w-6xl gap-8 rounded-3xl bg-white/85 p-10 shadow-lg lg:grid-cols-[2fr,3fr]">
       <aside className="flex flex-col gap-4 rounded-3xl border border-brand-100 bg-white/80 p-6 shadow">
         <h1 className="text-2xl font-semibold text-brand-700">{partnerName || 'Nachricht'}</h1>
         {isPartnerCaregiver ? (
-          <div className="flex flex-col gap-3 text-sm text-slate-600">
-            {partner.profileImageUrl ? (
-              <img
-                src={partner.profileImageUrl}
-                alt={partnerName}
-                className="h-32 w-32 rounded-2xl object-cover"
-              />
-            ) : null}
-            <p>
-              <span className="font-semibold text-brand-700">Adresse:</span> {partner.address}, {partner.postalCode}
-            </p>
-            {partner.age ? (
-              <p>
-                <span className="font-semibold text-brand-700">Alter:</span> {partner.age} Jahre
-              </p>
-            ) : null}
-            <p>
-              <span className="font-semibold text-brand-700">Betreute Kinder:</span> {partner.childrenCount ?? 0}
-            </p>
-            {typeof partner.availableSpots === 'number' ? (
-              <p>
-                <span className="font-semibold text-brand-700">Freie Plätze:</span> {partner.availableSpots}
-              </p>
-            ) : null}
+          <div className="flex flex-col gap-4 text-sm text-slate-600">
+            <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
+              {partnerLogoUrl ? (
+                <button
+                  type="button"
+                  onClick={() => openLightbox(partnerLogoUrl, `Logo von ${partnerName}`)}
+                  className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
+                >
+                  <img src={partnerLogoUrl} alt={`Logo von ${partnerName}`} className="h-full w-full object-contain" />
+                </button>
+              ) : (
+                <div className="flex h-24 w-24 items-center justify-center rounded-3xl border border-dashed border-brand-200 bg-brand-50 text-xs font-semibold text-slate-400">
+                  Logo folgt
+                </div>
+              )}
+              {partnerProfileUrl ? (
+                <button
+                  type="button"
+                  onClick={() => openLightbox(partnerProfileUrl, partnerName)}
+                  className="h-32 w-32 overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
+                >
+                  <img src={partnerProfileUrl} alt={partnerName} className="h-full w-full object-cover" />
+                </button>
+              ) : (
+                <div className="flex h-32 w-32 items-center justify-center rounded-3xl border border-dashed border-brand-200 bg-brand-50 text-xs font-semibold text-slate-400">
+                  Kein Bild
+                </div>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs font-semibold text-brand-700">
+              {partnerAddress ? (
+                <span className="rounded-full bg-brand-50 px-3 py-1">Adresse: {partnerAddress}</span>
+              ) : null}
+              {ageBadge ? <span className="rounded-full bg-brand-50 px-3 py-1">{ageBadge}</span> : null}
+              {childrenBadge ? <span className="rounded-full bg-brand-50 px-3 py-1">{childrenBadge}</span> : null}
+              {availabilityBadge ? (
+                <span
+                  className={`rounded-full px-3 py-1 ${availableSpots > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-brand-50'}`}
+                >
+                  {availabilityBadge}
+                </span>
+              ) : null}
+              {experienceBadge ? (
+                <span className="rounded-full bg-brand-50 px-3 py-1">{experienceBadge}</span>
+              ) : null}
+            </div>
             {partner.shortDescription ? <p>{partner.shortDescription}</p> : null}
             {partner.bio ? <p className="text-sm leading-relaxed">{partner.bio}</p> : null}
-            {partner.conceptUrl ? (
+            {partnerConceptUrl ? (
               <a
-                href={partner.conceptUrl}
+                href={partnerConceptUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex w-fit items-center gap-2 rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
@@ -223,6 +288,7 @@ function MessengerPage() {
           </button>
         </form>
       </div>
+      {lightboxImage ? <ImageLightbox image={lightboxImage} onClose={closeLightbox} /> : null}
     </section>
   );
 }
