@@ -13,8 +13,9 @@ import documentsRouter from './routes/documents.js';
 const app = express();
 
 app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+//Limit für Daten die Hochgeladen werden können muss mehr als 30Mb wegen Konzeption etc.
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const uploadsDir = path.resolve(currentDir, '../uploads');
