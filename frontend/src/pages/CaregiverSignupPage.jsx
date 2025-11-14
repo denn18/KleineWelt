@@ -418,8 +418,6 @@ function CaregiverSignupPage() {
               {experienceYears !== null ? `${experienceYears} Jahre Erfahrung` : 'Optional: Sichtbar im Profil.'}
             </span>
           </label>
-<<<<<<< Updated upstream
-=======
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
             Passwort
             <input
@@ -440,7 +438,6 @@ function CaregiverSignupPage() {
               required
             />
           </label>
->>>>>>> Stashed changes
         </div>
         <div className="grid gap-4 sm:grid-cols-4">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
