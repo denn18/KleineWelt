@@ -625,6 +625,24 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
     setImageState({ preview: '', fileData: null, fileName: '', action: 'remove' });
   }
 
+  async function handleLogoChange(event) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    const dataUrl = await readFileAsDataUrl(file);
+    setLogoState({ preview: dataUrl, fileData: dataUrl, fileName: file.name, action: 'replace' });
+  }
+
+  function handleRemoveLogo() {
+    setLogoState({
+      preview: '',
+      fileData: null,
+      fileName: '',
+      action: profile.logoImageUrl ? 'remove' : 'keep',
+    });
+  }
+
   async function handleConceptChange(event) {
     const file = event.target.files?.[0];
     if (!file) {
