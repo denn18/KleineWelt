@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
+import ImageLightbox from '../components/ImageLightbox.jsx';
 import { assetUrl } from '../utils/file.js';
 
 function SectionHeading({ title, description }) {
@@ -134,8 +135,11 @@ function CaregiverDetailPage() {
     setRoomIndex((current) => (current + 1) % roomImages.length);
   }
 
-  function openLightbox(image) {
-    setLightboxImage(image);
+  function openLightbox(image, alt = 'Vergrößerte Ansicht') {
+    if (!image) {
+      return;
+    }
+    setLightboxImage({ url: image, alt });
   }
 
   function closeLightbox() {
@@ -247,16 +251,26 @@ function CaregiverDetailPage() {
         </div>
         <div className="flex flex-col items-center gap-4 md:flex-row md:items-start md:justify-end">
           {logoUrl ? (
-            <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border border-brand-100 bg-brand-50">
+            <button
+              type="button"
+              onClick={() => openLightbox(logoUrl, `Logo von ${caregiver.daycareName || caregiver.name}`)}
+              className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
+            >
               <img src={logoUrl} alt={`Logo von ${caregiver.daycareName || caregiver.name}`} className="h-full w-full object-contain" />
-            </div>
+            </button>
           ) : null}
           {profileImageUrl ? (
-            <img
-              src={profileImageUrl}
-              alt={caregiver.daycareName || caregiver.name}
-              className="h-40 w-40 rounded-3xl border border-brand-100 bg-brand-50 object-cover"
-            />
+            <button
+              type="button"
+              onClick={() => openLightbox(profileImageUrl, caregiver.daycareName || caregiver.name)}
+              className="h-40 w-40 overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
+            >
+              <img
+                src={profileImageUrl}
+                alt={caregiver.daycareName || caregiver.name}
+                className="h-full w-full object-cover"
+              />
+            </button>
           ) : (
             <div className="flex h-40 w-40 items-center justify-center rounded-3xl border border-dashed border-brand-200 bg-brand-50 text-sm text-slate-400">
               Kein Bild
@@ -363,11 +377,12 @@ function CaregiverDetailPage() {
                 const imagePosition = roomImages.length
                   ? (roomIndex + index) % roomImages.length
                   : index;
+                const roomAlt = `Räumlichkeit ${imagePosition + 1} von ${caregiver.daycareName || caregiver.name}`;
                 return (
                   <button
                     key={`${imageUrl}-${index}`}
                     type="button"
-                    onClick={() => openLightbox(imageUrl)}
+                    onClick={() => openLightbox(imageUrl, roomAlt)}
                     className="group relative h-48 w-full overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 shadow transition hover:shadow-lg"
                   >
                     <img
@@ -396,29 +411,7 @@ function CaregiverDetailPage() {
           {formattedAddress ? <p>Adresse: {formattedAddress}</p> : null}
         </div>
       </section>
-      {lightboxImage ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Vergrößerte Ansicht der Räumlichkeiten"
-        >
-          <div className="relative w-full max-w-4xl">
-            <button
-              type="button"
-              onClick={closeLightbox}
-              className="absolute right-4 top-4 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-brand-700 shadow transition hover:bg-white"
-            >
-              Schließen
-            </button>
-            <img
-              src={lightboxImage}
-              alt="Vergrößerte Aufnahme der Räumlichkeiten"
-              className="max-h-[80vh] w-full rounded-3xl object-contain"
-            />
-          </div>
-        </div>
-      ) : null}
+      {lightboxImage ? <ImageLightbox image={lightboxImage} onClose={closeLightbox} /> : null}
     </section>
   );
 }

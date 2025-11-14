@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 // import MapView from '../components/MapView.jsx'; Google Maps API später einrichten, kostet Geld
 import { useAuth } from '../context/AuthContext.jsx';
+import ImageLightbox from '../components/ImageLightbox.jsx';
 import { assetUrl } from '../utils/file.js';
 
 function calculateAge(value) {
@@ -51,6 +52,7 @@ function DashboardPage() {
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState(null);
   const suggestionsRef = useRef(null);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -196,6 +198,17 @@ function DashboardPage() {
     });
   }
 
+  function openLightbox(url, alt) {
+    if (!url) {
+      return;
+    }
+    setLightboxImage({ url, alt });
+  }
+
+  function closeLightbox() {
+    setLightboxImage(null);
+  }
+
   function handleOpenMessenger(caregiver) {
     if (!user) {
       navigate('/login', { state: { from: location.pathname } });
@@ -317,6 +330,7 @@ function DashboardPage() {
                 const locationLabel = [caregiver.postalCode, caregiver.city].filter(Boolean).join(' ');
                 const logoUrl = caregiver.logoImageUrl ? assetUrl(caregiver.logoImageUrl) : '';
                 const roomImages = (caregiver.roomImages ?? []).map((imageUrl) => assetUrl(imageUrl));
+                const profileImageUrl = caregiver.profileImageUrl ? assetUrl(caregiver.profileImageUrl) : '';
                 const currentRoomIndex = roomImages.length
                   ? (roomImageIndexes[caregiver.id] ?? 0) % roomImages.length
                   : 0;
@@ -380,8 +394,21 @@ function DashboardPage() {
                     tabIndex={0}
                   >
                     <div className="flex flex-col gap-3">
-                      <div className="flex items-start gap-4">
-                        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
+                    <div className="flex items-start gap-4">
+                      <div className="flex w-16 flex-col items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openLightbox(logoUrl, `Logo von ${caregiver.daycareName || caregiver.name}`);
+                          }}
+                          disabled={!logoUrl}
+                          className={`flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border ${
+                            logoUrl
+                              ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
+                              : 'border-dashed border-brand-200 bg-brand-50'
+                          }`}
+                        >
                           {logoUrl ? (
                             <img
                               src={logoUrl}
@@ -391,10 +418,37 @@ function DashboardPage() {
                           ) : (
                             <span className="text-[10px] font-semibold text-slate-400">Logo folgt</span>
                           )}
-                        </div>
-                        <div className="flex flex-1 flex-col gap-2">
-                          <h3 className="text-base font-semibold text-brand-700">
-                            {caregiver.daycareName || caregiver.name}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openLightbox(profileImageUrl, caregiver.daycareName || caregiver.name);
+                          }}
+                          disabled={!profileImageUrl}
+                          className={`h-14 w-14 overflow-hidden rounded-2xl border ${
+                            profileImageUrl
+                              ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
+                              : 'border-dashed border-brand-200 bg-brand-50'
+                          }`}
+                          aria-label="Profilbild vergrößern"
+                        >
+                          {profileImageUrl ? (
+                            <img
+                              src={profileImageUrl}
+                              alt={caregiver.daycareName || caregiver.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-slate-400">
+                              Kein Bild
+                            </div>
+                          )}
+                        </button>
+                      </div>
+                      <div className="flex flex-1 flex-col gap-2">
+                        <h3 className="text-base font-semibold text-brand-700">
+                          {caregiver.daycareName || caregiver.name}
                           </h3>
                           {personInfo ? (
                             <p className="text-sm text-slate-600">{personInfo}</p>
@@ -471,17 +525,29 @@ function DashboardPage() {
                     {!collapsed ? (
                       <div className="grid gap-4 border-t border-brand-100 pt-4 sm:grid-cols-[auto,1fr]">
                         <div className="flex flex-col items-center gap-2">
-                          <div className="h-24 w-24 overflow-hidden rounded-3xl border border-brand-100 bg-brand-50">
-                            {caregiver.profileImageUrl ? (
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openLightbox(profileImageUrl, caregiver.daycareName || caregiver.name);
+                            }}
+                            disabled={!profileImageUrl}
+                            className={`h-24 w-24 overflow-hidden rounded-3xl border ${
+                              profileImageUrl
+                                ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
+                                : 'border-dashed border-brand-200 bg-brand-50'
+                            }`}
+                          >
+                            {profileImageUrl ? (
                               <img
-                                src={assetUrl(caregiver.profileImageUrl)}
+                                src={profileImageUrl}
                                 alt={caregiver.daycareName || caregiver.name}
                                 className="h-full w-full object-cover"
                               />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">Kein Bild</div>
                             )}
-                          </div>
+                          </button>
                           {sinceYear ? (
                             <span className="text-[11px] font-semibold text-brand-600">
                               Seit {sinceYear} aktiv
@@ -568,22 +634,35 @@ function DashboardPage() {
               </header>
               <div className="flex flex-wrap items-center gap-4">
                 {selectedLogo ? (
-                  <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openLightbox(
+                        selectedLogo,
+                        `Logo von ${selectedCaregiver.daycareName || selectedCaregiver.name}`,
+                      )
+                    }
+                    className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
+                  >
                     <img
                       src={selectedLogo}
                       alt={`Logo von ${selectedCaregiver.daycareName || selectedCaregiver.name}`}
                       className="h-full w-full object-contain"
                     />
-                  </div>
+                  </button>
                 ) : null}
                 {selectedProfileImage ? (
-                  <div className="h-16 w-16 overflow-hidden rounded-full border border-brand-100 bg-brand-50">
+                  <button
+                    type="button"
+                    onClick={() => openLightbox(selectedProfileImage, selectedCaregiver.daycareName || selectedCaregiver.name)}
+                    className="h-16 w-16 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
+                  >
                     <img
                       src={selectedProfileImage}
                       alt={selectedCaregiver.daycareName || selectedCaregiver.name}
                       className="h-full w-full object-cover"
                     />
-                  </div>
+                  </button>
                 ) : null}
                 <div className="flex flex-1 flex-wrap gap-2 text-xs font-semibold text-brand-700">
                   <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
@@ -671,6 +750,7 @@ function DashboardPage() {
           )}
         </aside>
       </div>
+      {lightboxImage ? <ImageLightbox image={lightboxImage} onClose={closeLightbox} /> : null}
     </section>
   );
 }
