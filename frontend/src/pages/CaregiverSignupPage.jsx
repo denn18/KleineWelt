@@ -335,7 +335,7 @@ function CaregiverSignupPage() {
   return (
     <section className="mx-auto flex w-full max-w-4xl flex-col gap-8 rounded-3xl bg-white/90 p-12 shadow-xl">
       <header className="text-center">
-        <h1 className="text-3xl font-semibold text-brand-700">Profil für Tagespflegepersonen</h1>
+        <h1 className="text-3xl font-semibold text-brand-700">Profil für Kindertagespflegepersonen</h1>
         <p className="mt-2 text-sm text-slate-600">
           Erzähl Familien, welche Betreuung du anbietest und wo sie dich finden können.
         </p>
@@ -474,7 +474,7 @@ function CaregiverSignupPage() {
             </select>
           </label>
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Maximales Alter der Kinder
+            Max. Alter der Kinder
             <input
               type="number"
               min="0"
@@ -598,14 +598,14 @@ function CaregiverSignupPage() {
 
         <section className="grid gap-6 rounded-3xl bg-white/80 p-6 shadow">
           <div className="flex flex-col gap-1">
-            <h2 className="text-lg font-semibold text-brand-700">Profil, Logo & Unterlagen</h2>
+            <h2 className="text-lg font-semibold text-brand-700">Profilbild, Logo & Unterlagen</h2>
             <p className="text-xs text-slate-500">
               Lade ein freundliches Profilfoto, dein Logo und deine pädagogische Konzeption hoch.
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-2">
             <div className="flex items-center gap-4 rounded-2xl border border-brand-100 bg-white/70 p-4">
-              <div className="h-28 w-28 overflow-hidden rounded-full border border-brand-200 bg-brand-50">
+              <div className="h-28 w-28 overflow-hidden rounded-2xl border border-brand-200 bg-brand-50">
                 {profileImage.preview ? (
                   <img src={profileImage.preview} alt="Profilbild" className="h-full w-full object-cover" />
                 ) : (
@@ -614,11 +614,11 @@ function CaregiverSignupPage() {
               </div>
               <div className="flex flex-1 flex-col gap-1">
                 <p className="text-sm font-semibold text-brand-700">Profilbild</p>
-                <IconUploadButton label="Profilbild wählen" accept="image/*" onChange={handleImageChange} />
+                <IconUploadButton label="Profilbild hochladen" accept="image/*" onChange={handleImageChange} />
                 <span className="text-xs text-slate-500">
                   {profileImage.fileName
                     ? `Ausgewählt: ${profileImage.fileName}`
-                    : 'Pflichtfeld für die Profilansicht deiner Tagespflege.'}
+                    : 'Optional'}
                 </span>
               </div>
             </div>
@@ -636,7 +636,7 @@ function CaregiverSignupPage() {
                 <span className="text-xs text-slate-500">
                   {logoImage.fileName
                     ? `Ausgewählt: ${logoImage.fileName}`
-                    : 'Optional, sorgt für Wiedererkennung bei Familien.'}
+                    : 'Optional'}
                 </span>
               </div>
             </div>
@@ -647,7 +647,7 @@ function CaregiverSignupPage() {
               Teile Familien deine pädagogische Ausrichtung und Schwerpunkte mit.
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
-              <IconUploadButton label="PDF auswählen" accept="application/pdf" onChange={handleConceptChange} />
+              <IconUploadButton label="PDF hochladen" accept="application/pdf" onChange={handleConceptChange} />
               <span className="text-xs text-slate-500 sm:ml-3">
                 {conceptFile.fileName
                   ? `Ausgewählt: ${conceptFile.fileName}`
@@ -706,6 +706,8 @@ function CaregiverSignupPage() {
             )}
           </div>
         </section>
+        
+        
         <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/80 p-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>

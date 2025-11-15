@@ -254,7 +254,7 @@ function CaregiverDetailPage() {
             <button
               type="button"
               onClick={() => openLightbox(logoUrl, `Logo von ${caregiver.daycareName || caregiver.name}`)}
-              className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
+              className="flex h-40 w-40 items-center justify-center overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
             >
               <img src={logoUrl} alt={`Logo von ${caregiver.daycareName || caregiver.name}`} className="h-full w-full object-contain" />
             </button>
@@ -272,7 +272,7 @@ function CaregiverDetailPage() {
               />
             </button>
           ) : (
-            <div className="flex h-40 w-40 items-center justify-center rounded-3xl border border-dashed border-brand-200 bg-brand-50 text-sm text-slate-400">
+            <div className="flex h-24 w-24 items-center justify-center rounded-3xl border border-dashed border-brand-200 bg-brand-50 text-sm text-slate-400">
               Kein Bild
             </div>
           )}

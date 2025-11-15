@@ -128,7 +128,7 @@ function ParentSignupPage() {
   return (
     <section className="mx-auto flex w-full max-w-3xl flex-col gap-8 rounded-3xl bg-white/85 p-10 shadow-lg">
       <header className="text-center">
-        <h1 className="text-3xl font-semibold text-brand-700">Familienkonto erstellen</h1>
+        <h1 className="text-3xl font-semibold text-brand-700">Profil für Eltern</h1>
         <p className="mt-2 text-sm text-slate-600">
           Teile uns mit, wie wir dich erreichen können und welche Betreuung dein Kind benötigt.
         </p>

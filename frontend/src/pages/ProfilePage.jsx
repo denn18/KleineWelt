@@ -60,7 +60,7 @@ const WEEKDAY_SUGGESTIONS = [
   'Dienstag',
   'Mittwoch',
   'Donnerstag',
-  'Freitag',
+  'Freitag',  
   'Samstag',
   'Sonntag',
 ];
@@ -1535,9 +1535,9 @@ function ProfilePage() {
 
   const title = useMemo(() => {
     if (user?.role === 'caregiver') {
-      return 'Profil für Tagespflegepersonen bearbeiten';
+      return 'Profil für Kindertagespflegepersonen bearbeiten';
     }
-    return 'Familienprofil bearbeiten';
+    return 'Profil für Eltern bearbeiten';
   }, [user]);
 
   if (!user) {

@@ -317,7 +317,7 @@ function DashboardPage() {
           <div className="rounded-3xl bg-white/80 p-6 shadow">
             <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-brand-700">Gefundene Tagespflegepersonen</h2>
+                <h2 className="text-xl font-semibold text-brand-700">Gefundene Kindertagespflegepersonen</h2>
                 <p className="text-xs text-slate-500">
                   Scroll durch die Kacheln, vergleiche Angebote und öffne Details mit einem Klick.
                 </p>
@@ -426,7 +426,7 @@ function DashboardPage() {
                             openLightbox(profileImageUrl, caregiver.daycareName || caregiver.name);
                           }}
                           disabled={!profileImageUrl}
-                          className={`h-14 w-14 overflow-hidden rounded-2xl border ${
+                          className={`h-16 w-16 overflow-hidden rounded-2xl border ${
                             profileImageUrl
                               ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
                               : 'border-dashed border-brand-200 bg-brand-50'
@@ -516,13 +516,15 @@ function DashboardPage() {
                             event.stopPropagation();
                             toggleCard(caregiver.id);
                           }}
-                          className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                          //className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                          //Hier war Detail Ansicht für die Kacheln, ist erstmal weg sonst hat man doppelte Info mit dem rechten Steckbrief
                         >
-                          {collapsed ? 'Details anzeigen' : 'Details schließen'}
+                          {/* {collapsed ? 'Details anzeigen' : 'Details schließen'} */}
                         </button>
                       </div>
                     </div>
-                    {!collapsed ? (
+                    
+                    {/* {!collapsed ? (
                       <div className="grid gap-4 border-t border-brand-100 pt-4 sm:grid-cols-[auto,1fr]">
                         <div className="flex flex-col items-center gap-2">
                           <button
@@ -595,7 +597,7 @@ function DashboardPage() {
                           </div>
                         </div>
                       </div>
-                    ) : null}
+                    ) : null} */}
                   </article>
                 );
               })}

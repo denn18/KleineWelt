@@ -125,7 +125,7 @@ function MessengerPage() {
   const experienceBadge = partnerExperienceYears !== null
     ? partnerExperienceYears === 0
       ? 'Seit diesem Jahr aktiv'
-      : `${partnerExperienceYears} ${partnerExperienceYears === 1 ? 'Jahr' : 'Jahren'} Erfahrung`
+      : `${partnerExperienceYears} ${partnerExperienceYears === 1 ? 'Jahr' : 'Jahre'} Erfahrung`
     : partnerSinceYear
       ? `Seit ${partnerSinceYear} aktiv`
       : null;
@@ -151,15 +151,15 @@ function MessengerPage() {
                 <button
                   type="button"
                   onClick={() => openLightbox(partnerLogoUrl, `Logo von ${partnerName}`)}
-                  className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
+                  className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-3xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
                 >
                   <img src={partnerLogoUrl} alt={`Logo von ${partnerName}`} className="h-full w-full object-contain" />
                 </button>
               ) : (
-                <div className="flex h-24 w-24 items-center justify-center rounded-3xl border border-dashed border-brand-200 bg-brand-50 text-xs font-semibold text-slate-400">
+                <div className="flex h-32 w-32 items-center justify-center rounded-3xl border border-dashed border-brand-200 bg-brand-50 text-xs font-semibold text-slate-400">
                   Logo folgt
                 </div>
-              )}
+              )}  
               {partnerProfileUrl ? (
                 <button
                   type="button"
