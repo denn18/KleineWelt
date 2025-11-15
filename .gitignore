@@ -24,4 +24,4 @@ logs/
 .DS_Store
 quick-db-*.mjs
 backend/quick-db-check.mjs
-backend/uploads/
+
