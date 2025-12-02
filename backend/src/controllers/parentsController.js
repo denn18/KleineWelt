@@ -1,5 +1,5 @@
 import { createParent, findParentById, listParents, updateParent } from '../services/parentsService.js';
-import { removeStoredFile, storeBase64File } from '../utils/fileStorage.js';
+import { normalizeFileReference, removeStoredFile, storeBase64File } from '../utils/fileStorage.js';
 
 function parseChildrenPayload(children) {
   if (!children) {
@@ -19,6 +19,18 @@ function parseChildrenPayload(children) {
   return Array.isArray(children) ? children : [];
 }
 
+async function maybeStoreBase64({ value, originalName, folder, fallbackExtension }) {
+  if (!value || value === 'null') {
+    return null;
+  }
+
+  return storeBase64File({ base64: value, originalName, folder, fallbackExtension });
+}
+
+function reuseFileReference(value) {
+  return normalizeFileReference(value);
+}
+
 export async function getParents(_req, res) {
   try {
     const parents = await listParents();
@@ -33,8 +45,8 @@ export async function postParent(req, res) {
   try {
     const children = parseChildrenPayload(req.body.children);
 
-    const profileImageUrl = await storeBase64File({
-      base64: req.body.profileImage && req.body.profileImage !== 'null' ? req.body.profileImage : null,
+    const profileImageUrl = await maybeStoreBase64({
+      value: req.body.profileImage,
       originalName: req.body.profileImageName,
       folder: 'parents/profile-images',
       fallbackExtension: 'png',
@@ -77,7 +89,7 @@ export async function patchParent(req, res) {
 
     const children = parseChildrenPayload(req.body.children);
 
-    let profileImageUrl = existing.profileImageUrl;
+    let profileImageUrl = existing.profileImageUrl ? reuseFileReference(existing.profileImageUrl) : null;
     const removeImage = req.body.profileImage === null || req.body.profileImage === 'null';
     const hasNewImage = typeof req.body.profileImage === 'string' && req.body.profileImage !== 'null';
 

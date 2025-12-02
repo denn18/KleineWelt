@@ -1,15 +1,12 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { downloadFileByKey } from './filesController.js';
+
+const DEFAULT_INVOICE_NAME = 'Kleine-Welt-Mitgliedsbeitrag.pdf';
 
 export function downloadMembershipInvoice(_req, res) {
-  const currentDir = path.dirname(fileURLToPath(import.meta.url));
-  const invoicePath = path.resolve(currentDir, '../public/documents/membership-invoice.pdf');
-  res.download(invoicePath, 'Kleine-Welt-Mitgliedsbeitrag.pdf', (error) => {
-    if (error) {
-      console.error('Failed to download membership invoice', error);
-      if (!res.headersSent) {
-        res.status(500).json({ message: 'Die Quittung konnte nicht bereitgestellt werden.' });
-      }
-    }
-  });
+  const key = process.env.MEMBERSHIP_INVOICE_S3_KEY;
+  if (!key) {
+    return res.status(404).json({ message: 'Die Quittung ist derzeit nicht verfügbar.' });
+  }
+
+  return downloadFileByKey(key, res, DEFAULT_INVOICE_NAME);
 }
