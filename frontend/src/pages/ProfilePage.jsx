@@ -72,6 +72,20 @@ function generateTempId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function buildRoomGalleryItem(imageRef) {
+  if (!imageRef) return null;
+
+  const preview = assetUrl(imageRef);
+  const idSource = typeof imageRef === 'string' ? imageRef : imageRef.key || imageRef.url;
+  return {
+    id: idSource || generateTempId(),
+    source: imageRef,
+    preview,
+    fileData: null,
+    fileName: '',
+  };
+}
+
 function ChildrenEditor({ childrenList, onChange }) {
   function updateChild(index, field, value) {
     const updated = childrenList.map((child, childIndex) =>
@@ -459,13 +473,9 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
   );
   const [closedDayInput, setClosedDayInput] = useState('');
   const [roomGallery, setRoomGallery] = useState(() =>
-    (profile.roomImages ?? []).map((url) => ({
-      id: url,
-      source: url,
-      preview: assetUrl(url),
-      fileData: null,
-      fileName: '',
-    }))
+    (profile.roomImages ?? [])
+      .map((imageRef) => buildRoomGalleryItem(imageRef))
+      .filter(Boolean)
   );
   const [roomGalleryOffset, setRoomGalleryOffset] = useState(0);
   const [imageState, setImageState] = useState({
@@ -533,13 +543,9 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
     });
     setConceptState({ fileName: '', fileData: null, action: 'keep' });
     setRoomGallery(
-      (profile.roomImages ?? []).map((url) => ({
-        id: url,
-        source: url,
-        preview: assetUrl(url),
-        fileData: null,
-        fileName: '',
-      }))
+      (profile.roomImages ?? [])
+        .map((imageRef) => buildRoomGalleryItem(imageRef))
+        .filter(Boolean)
     );
     setRoomGalleryOffset(0);
     setStatusMessage(null);

@@ -39,7 +39,7 @@ function getLocalUploadDir() {
   }
 
   const currentDir = path.dirname(fileURLToPath(import.meta.url));
-  return path.resolve(currentDir, '../../backend/uploads');
+  return path.resolve(currentDir, '../../uploads');
 }
 
 function buildFileUrl(key) {
