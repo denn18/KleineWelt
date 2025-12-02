@@ -117,6 +117,16 @@ export function serializeCaregiver(document) {
     }
   }
 
+  rest.profileImageUrl = normalizeFileReference(rest.profileImageUrl);
+  rest.logoImageUrl = normalizeFileReference(rest.logoImageUrl);
+  rest.conceptUrl = normalizeFileReference(rest.conceptUrl);
+  rest.roomImages = Array.isArray(rest.roomImages)
+    ? rest.roomImages.map((entry) => normalizeFileReference(entry)).filter(Boolean)
+    : [];
+  rest.caregiverImages = Array.isArray(rest.caregiverImages)
+    ? rest.caregiverImages.map((entry) => normalizeFileReference(entry)).filter(Boolean)
+    : [];
+
   return {
     id: _id.toString(),
     ...rest,
