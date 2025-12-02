@@ -20,9 +20,9 @@ Dieses Repository enthält den Grundstein für die Plattform "Kleine Welt" mit g
 - Die `.env`-Datei kann entweder im Projekt-Root oder in `backend/.env` liegen. Beim Start des Servers werden beide Pfade automatisch berücksichtigt, sodass bestehende Deployments unverändert bleiben.
 - In-Memory-Speicher ersetzt die Datenbank, bis die Persistenz fertiggestellt ist.
 - REST-Endpunkte für Tagespflegepersonen, Eltern, Matches und Nachrichten.
-- Datei-Uploads landen ausschließlich in Amazon S3. Die dafür nötigen Umgebungsvariablen sind:
+- Datei-Uploads landen standardmäßig in Amazon S3. Setze `FILE_STORAGE_MODE=local`, wenn du für lokale Entwicklung das Dateisystem verwenden möchtest. Die dafür nötigen Umgebungsvariablen sind:
   - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`
-  - `AWS_S3_BUCKET` (Ziel-Bucket)
+  - `AWS_S3_BUCKET` (Ziel-Bucket, erforderlich im S3-Modus)
   - `MEMBERSHIP_INVOICE_S3_KEY` (S3-Key der Quittungs-PDF für `/api/documents/membership-invoice`)
   - `FILE_UPLOAD_MAX_BYTES` (optional, Standard 25 MB)
   Die API generiert abrufbare URLs unter `/api/files/<S3-Key>` und speichert nur Metadaten/Referenzen in MongoDB.
