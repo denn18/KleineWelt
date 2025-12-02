@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-function ImageLightbox({ image, onClose }) {
+function ImageLightbox({ image = null, onClose }) {
   if (!image?.url) {
     return null;
   }
@@ -33,10 +33,6 @@ ImageLightbox.propTypes = {
     alt: PropTypes.string,
   }),
   onClose: PropTypes.func.isRequired,
-};
-
-ImageLightbox.defaultProps = {
-  image: null,
 };
 
 export default ImageLightbox;

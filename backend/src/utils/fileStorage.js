@@ -14,6 +14,7 @@ import { getS3Client, setS3ClientForTests } from './s3Client.js';
 
 const MAX_FILE_SIZE_BYTES = Number.parseInt(process.env.FILE_UPLOAD_MAX_BYTES ?? `${25 * 1024 * 1024}`, 10);
 const LOCAL_UPLOAD_DIR = process.env.LOCAL_UPLOAD_DIR;
+const DEFAULT_STORAGE_MODE = (process.env.FILE_STORAGE_MODE || 's3').toLowerCase();
 const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
   'application/msword',
@@ -30,7 +31,20 @@ function getBucketName() {
 }
 
 function getStorageMode() {
-  return getBucketName() ? 's3' : 'local';
+  if (DEFAULT_STORAGE_MODE === 'local') {
+    return 'local';
+  }
+
+  // Default to S3 to avoid silently falling back to local storage when S3 is intended
+  return 's3';
+}
+
+function assertBucketConfigured(storageMode) {
+  if (storageMode === 's3' && !getBucketName()) {
+    const error = new Error('S3-Bucket ist nicht konfiguriert. Bitte AWS_S3_BUCKET setzen oder FILE_STORAGE_MODE=local verwenden.');
+    error.status = 500;
+    throw error;
+  }
 }
 
 function getLocalUploadDir() {
@@ -184,11 +198,7 @@ function extractKey(fileRef) {
 export async function storeBase64File({ base64, originalName, folder, fallbackExtension }) {
   const bucket = getBucketName();
   const storageMode = getStorageMode();
-  if (storageMode === 's3' && !bucket) {
-    const error = new Error('Kein S3-Bucket konfiguriert.');
-    error.status = 500;
-    throw error;
-  }
+  assertBucketConfigured(storageMode);
 
   if (!base64) {
     return null;
@@ -250,10 +260,7 @@ export async function storeBase64File({ base64, originalName, folder, fallbackEx
 export async function removeStoredFile(fileRef) {
   const bucket = getBucketName();
   const storageMode = getStorageMode();
-  if (storageMode === 's3' && !bucket) {
-    console.warn('S3-Bucket ist nicht konfiguriert. Datei kann nicht gelöscht werden.');
-    return;
-  }
+  assertBucketConfigured(storageMode);
 
   const key = extractKey(fileRef);
   if (!key) {
@@ -281,6 +288,7 @@ export async function removeStoredFile(fileRef) {
 export async function fetchStoredFile(key) {
   const bucket = getBucketName();
   const storageMode = getStorageMode();
+  assertBucketConfigured(storageMode);
   if (!key) {
     return null;
   }
@@ -332,6 +340,8 @@ export async function fetchStoredFile(key) {
 
 export async function createSignedDownloadUrl(key, expiresInSeconds = 900) {
   const bucket = getBucketName();
+  const storageMode = getStorageMode();
+  assertBucketConfigured(storageMode);
   if (!bucket || !key) {
     return null;
   }
