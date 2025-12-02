@@ -1,4 +1,8 @@
 import crypto from 'crypto';
+import fs from 'fs/promises';
+import { createReadStream } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { lookup as lookupMime } from 'mime-types';
 import {
   DeleteObjectCommand,
@@ -9,6 +13,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { getS3Client, setS3ClientForTests } from './s3Client.js';
 
 const MAX_FILE_SIZE_BYTES = Number.parseInt(process.env.FILE_UPLOAD_MAX_BYTES ?? `${25 * 1024 * 1024}`, 10);
+const LOCAL_UPLOAD_DIR = process.env.LOCAL_UPLOAD_DIR;
 const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
   'application/msword',
@@ -24,9 +29,25 @@ function getBucketName() {
   return process.env.AWS_S3_BUCKET;
 }
 
+function getStorageMode() {
+  return getBucketName() ? 's3' : 'local';
+}
+
+function getLocalUploadDir() {
+  if (LOCAL_UPLOAD_DIR) {
+    return LOCAL_UPLOAD_DIR;
+  }
+
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
+  return path.resolve(currentDir, '../../backend/uploads');
+}
+
 function buildFileUrl(key) {
   if (!key) return '';
   const encodedKey = encodeURIComponent(key);
+  if (getStorageMode() === 'local') {
+    return `/uploads/${encodedKey}`;
+  }
   return `/api/files/${encodedKey}`;
 }
 
@@ -91,6 +112,18 @@ function sanitizeFolder(folder) {
     .join('/');
 }
 
+function sanitizeKey(key) {
+  const normalized = path.normalize(key).replace(/^(\.\.\\|\.\.\/)+/, '');
+  return normalized.replace(/^\/+/, '');
+}
+
+function resolveLocalPath(key) {
+  const uploadsDir = getLocalUploadDir();
+  const sanitizedKey = sanitizeKey(key);
+  const absolutePath = path.resolve(uploadsDir, sanitizedKey);
+  return { uploadsDir, sanitizedKey, absolutePath };
+}
+
 export function normalizeFileReference(input) {
   if (!input) return null;
 
@@ -150,7 +183,8 @@ function extractKey(fileRef) {
 
 export async function storeBase64File({ base64, originalName, folder, fallbackExtension }) {
   const bucket = getBucketName();
-  if (!bucket) {
+  const storageMode = getStorageMode();
+  if (storageMode === 's3' && !bucket) {
     const error = new Error('Kein S3-Bucket konfiguriert.');
     error.status = 500;
     throw error;
@@ -177,20 +211,35 @@ export async function storeBase64File({ base64, originalName, folder, fallbackEx
   const sanitizedFolder = sanitizeFolder(folder);
   const key = sanitizedFolder ? `${sanitizedFolder}/${fileName}` : fileName;
 
-  const s3Client = getS3Client();
-  const putCommand = new PutObjectCommand({
-    Bucket: bucket,
-    Key: key,
-    Body: buffer,
-    ContentType: mimeType,
-    ContentLength: buffer.length,
-  });
+  if (storageMode === 's3') {
+    const s3Client = getS3Client();
+    const putCommand = new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: buffer,
+      ContentType: mimeType,
+      ContentLength: buffer.length,
+    });
 
-  await s3Client.send(putCommand);
+    await s3Client.send(putCommand);
+
+    return {
+      key,
+      url: buildFileUrl(key),
+      fileName: originalName || fileName,
+      mimeType,
+      size: buffer.length,
+      uploadedAt: new Date().toISOString(),
+    };
+  }
+
+  const { absolutePath, sanitizedKey } = resolveLocalPath(key);
+  await fs.mkdir(path.dirname(absolutePath), { recursive: true });
+  await fs.writeFile(absolutePath, buffer);
 
   return {
-    key,
-    url: buildFileUrl(key),
+    key: sanitizedKey,
+    url: buildFileUrl(sanitizedKey),
     fileName: originalName || fileName,
     mimeType,
     size: buffer.length,
@@ -200,7 +249,8 @@ export async function storeBase64File({ base64, originalName, folder, fallbackEx
 
 export async function removeStoredFile(fileRef) {
   const bucket = getBucketName();
-  if (!bucket) {
+  const storageMode = getStorageMode();
+  if (storageMode === 's3' && !bucket) {
     console.warn('S3-Bucket ist nicht konfiguriert. Datei kann nicht gelöscht werden.');
     return;
   }
@@ -211,13 +261,18 @@ export async function removeStoredFile(fileRef) {
   }
 
   try {
-    const s3Client = getS3Client();
-    await s3Client.send(
-      new DeleteObjectCommand({
-        Bucket: bucket,
-        Key: key,
-      })
-    );
+    if (storageMode === 's3') {
+      const s3Client = getS3Client();
+      await s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: bucket,
+          Key: key,
+        })
+      );
+    } else {
+      const { absolutePath } = resolveLocalPath(key);
+      await fs.unlink(absolutePath);
+    }
   } catch (error) {
     console.warn(`Failed to remove stored file: ${key}`, error);
   }
@@ -225,7 +280,30 @@ export async function removeStoredFile(fileRef) {
 
 export async function fetchStoredFile(key) {
   const bucket = getBucketName();
-  if (!bucket || !key) {
+  const storageMode = getStorageMode();
+  if (!key) {
+    return null;
+  }
+
+  if (storageMode === 'local') {
+    const { absolutePath } = resolveLocalPath(key);
+    try {
+      const stats = await fs.stat(absolutePath);
+      return {
+        stream: createReadStream(absolutePath),
+        contentType: lookupMime(path.extname(key).slice(1)) || 'application/octet-stream',
+        contentLength: stats.size,
+        lastModified: stats.mtime,
+      };
+    } catch (error) {
+      if (error?.code === 'ENOENT') {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  if (!bucket) {
     return null;
   }
 
