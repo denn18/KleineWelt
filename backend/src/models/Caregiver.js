@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { getDatabase } from '../config/database.js';
+import { normalizeFileReference } from '../utils/fileStorage.js';
 
 const COLLECTION_NAME = 'caregivers';
 
@@ -81,9 +82,7 @@ function normalizeImageArray(input) {
     return [];
   }
 
-  return input
-    .map((entry) => (typeof entry === 'string' ? entry : entry?.url ?? null))
-    .filter((url) => typeof url === 'string' && url.trim().length > 0);
+  return input.map((entry) => normalizeFileReference(entry)).filter(Boolean);
 }
 
 export function serializeCaregiver(document) {

@@ -5,7 +5,71 @@ import {
   listCaregivers,
   updateCaregiver,
 } from '../services/caregiversService.js';
-import { removeStoredFile, storeBase64File } from '../utils/fileStorage.js';
+import {
+  fileReferencesEqual,
+  normalizeFileReference,
+  removeStoredFile,
+  storeBase64File,
+} from '../utils/fileStorage.js';
+
+async function maybeStoreBase64({ value, originalName, folder, fallbackExtension }) {
+  if (!value || value === 'null') {
+    return null;
+  }
+
+  return storeBase64File({ base64: value, originalName, folder, fallbackExtension });
+}
+
+function reuseFileReference(value) {
+  return normalizeFileReference(value);
+}
+
+function deduplicateFileList(list = []) {
+  const result = [];
+
+  for (const ref of list) {
+    if (!ref) continue;
+    if (!result.some((existing) => fileReferencesEqual(existing, ref))) {
+      result.push(ref);
+    }
+  }
+
+  return result;
+}
+
+async function buildFileListFromPayload(items, options) {
+  const normalized = [];
+
+  for (const item of items) {
+    if (typeof item === 'string') {
+      const ref = reuseFileReference(item);
+      if (ref) {
+        normalized.push(ref);
+      }
+      continue;
+    }
+
+    if (item?.dataUrl) {
+      const stored = await storeBase64File({
+        base64: item.dataUrl,
+        originalName: item.fileName,
+        folder: options.folder,
+        fallbackExtension: options.fallbackExtension,
+      });
+      if (stored) {
+        normalized.push(stored);
+      }
+      continue;
+    }
+
+    const ref = reuseFileReference(item);
+    if (ref) {
+      normalized.push(ref);
+    }
+  }
+
+  return deduplicateFileList(normalized);
+}
 
 export async function getCaregivers(req, res) {
   try {
@@ -33,57 +97,45 @@ export async function getCaregiverLocations(req, res) {
 
 export async function postCaregiver(req, res) {
   try {
-    const profileImageUrl = await storeBase64File({
-      base64: req.body.profileImage && req.body.profileImage !== 'null' ? req.body.profileImage : null,
+    const profileImageUrl = await maybeStoreBase64({
+      value: req.body.profileImage,
       originalName: req.body.profileImageName,
       folder: 'caregivers/profile-images',
       fallbackExtension: 'png',
     });
 
-    const logoImageUrl = await storeBase64File({
-      base64: req.body.logoImage && req.body.logoImage !== 'null' ? req.body.logoImage : null,
+    const logoImageUrl = await maybeStoreBase64({
+      value: req.body.logoImage,
       originalName: req.body.logoImageName,
       folder: 'caregivers/logos',
       fallbackExtension: 'png',
     });
 
-    const conceptUrl = await storeBase64File({
-      base64: req.body.conceptFile && req.body.conceptFile !== 'null' ? req.body.conceptFile : null,
+    const conceptUrl = await maybeStoreBase64({
+      value: req.body.conceptFile,
       originalName: req.body.conceptFileName,
       folder: 'caregivers/concepts',
       fallbackExtension: 'pdf',
     });
 
     const rawRoomImages = Array.isArray(req.body.roomImages) ? req.body.roomImages : [];
-    const storedRoomImages = await Promise.all(
-      rawRoomImages.map(async (image) =>
-        storeBase64File({
-          base64: image?.dataUrl ?? null,
-          originalName: image?.fileName,
-          folder: 'caregivers/room-gallery',
-          fallbackExtension: 'png',
-        })
-      )
-    );
+    const storedRoomImages = await buildFileListFromPayload(rawRoomImages, {
+      folder: 'caregivers/room-gallery',
+      fallbackExtension: 'png',
+    });
 
     const rawCaregiverImages = Array.isArray(req.body.caregiverImages) ? req.body.caregiverImages : [];
-    const storedCaregiverImages = await Promise.all(
-      rawCaregiverImages.map(async (image) =>
-        storeBase64File({
-          base64: image?.dataUrl ?? null,
-          originalName: image?.fileName,
-          folder: 'caregivers/team-gallery',
-          fallbackExtension: 'png',
-        })
-      )
-    );
+    const storedCaregiverImages = await buildFileListFromPayload(rawCaregiverImages, {
+      folder: 'caregivers/team-gallery',
+      fallbackExtension: 'png',
+    });
 
     const caregiver = await createCaregiver({
       ...req.body,
       profileImageUrl,
       conceptUrl,
-      roomImages: storedRoomImages.filter(Boolean),
-      caregiverImages: storedCaregiverImages.filter(Boolean),
+      roomImages: storedRoomImages,
+      caregiverImages: storedCaregiverImages,
       logoImageUrl,
     });
     res.status(201).json(caregiver);
@@ -117,7 +169,7 @@ export async function patchCaregiver(req, res) {
       return res.status(404).json({ message: 'Tagespflegeperson wurde nicht gefunden.' });
     }
 
-    let profileImageUrl = existing.profileImageUrl;
+    let profileImageUrl = existing.profileImageUrl ? normalizeFileReference(existing.profileImageUrl) : null;
     const removeImage = req.body.profileImage === null || req.body.profileImage === 'null';
     const hasNewImage = typeof req.body.profileImage === 'string' && req.body.profileImage !== 'null';
     if (removeImage) {
@@ -133,7 +185,7 @@ export async function patchCaregiver(req, res) {
       });
     }
 
-    let logoImageUrl = existing.logoImageUrl ?? null;
+    let logoImageUrl = existing.logoImageUrl ? normalizeFileReference(existing.logoImageUrl) : null;
     const removeLogo = req.body.logoImage === null || req.body.logoImage === 'null';
     const hasNewLogo = typeof req.body.logoImage === 'string' && req.body.logoImage !== 'null';
     if (removeLogo) {
@@ -149,7 +201,7 @@ export async function patchCaregiver(req, res) {
       });
     }
 
-    let conceptUrl = existing.conceptUrl;
+    let conceptUrl = existing.conceptUrl ? normalizeFileReference(existing.conceptUrl) : null;
     const removeConcept = req.body.conceptFile === null || req.body.conceptFile === 'null';
     const hasNewConcept = typeof req.body.conceptFile === 'string' && req.body.conceptFile !== 'null';
     if (removeConcept) {
@@ -165,56 +217,38 @@ export async function patchCaregiver(req, res) {
       });
     }
 
-    let roomImages = existing.roomImages ?? [];
+    let roomImages = Array.isArray(existing.roomImages)
+      ? existing.roomImages.map((image) => normalizeFileReference(image)).filter(Boolean)
+      : [];
     if (req.body.roomImages !== undefined) {
       const requestedImages = Array.isArray(req.body.roomImages) ? req.body.roomImages : [];
-      const normalizedImages = [];
+      const normalizedImages = await buildFileListFromPayload(requestedImages, {
+        folder: 'caregivers/room-gallery',
+        fallbackExtension: 'png',
+      });
 
-      for (const image of requestedImages) {
-        if (typeof image === 'string') {
-          normalizedImages.push(image);
-        } else if (image?.dataUrl) {
-          const storedUrl = await storeBase64File({
-            base64: image.dataUrl,
-            originalName: image.fileName,
-            folder: 'caregivers/room-gallery',
-            fallbackExtension: 'png',
-          });
-          if (storedUrl) {
-            normalizedImages.push(storedUrl);
-          }
-        }
-      }
-
-      const removedImages = roomImages.filter((url) => !normalizedImages.includes(url));
-      await Promise.all(removedImages.map((url) => removeStoredFile(url)));
-      roomImages = normalizedImages;
+      const removedImages = roomImages.filter(
+        (existingImage) => !normalizedImages.some((image) => fileReferencesEqual(image, existingImage))
+      );
+      await Promise.all(removedImages.map((image) => removeStoredFile(image)));
+      roomImages = deduplicateFileList(normalizedImages);
     }
 
-    let caregiverImages = existing.caregiverImages ?? [];
+    let caregiverImages = Array.isArray(existing.caregiverImages)
+      ? existing.caregiverImages.map((image) => normalizeFileReference(image)).filter(Boolean)
+      : [];
     if (req.body.caregiverImages !== undefined) {
       const requestedImages = Array.isArray(req.body.caregiverImages) ? req.body.caregiverImages : [];
-      const normalizedCaregiverImages = [];
+      const normalizedCaregiverImages = await buildFileListFromPayload(requestedImages, {
+        folder: 'caregivers/team-gallery',
+        fallbackExtension: 'png',
+      });
 
-      for (const image of requestedImages) {
-        if (typeof image === 'string') {
-          normalizedCaregiverImages.push(image);
-        } else if (image?.dataUrl) {
-          const storedUrl = await storeBase64File({
-            base64: image.dataUrl,
-            originalName: image.fileName,
-            folder: 'caregivers/team-gallery',
-            fallbackExtension: 'png',
-          });
-          if (storedUrl) {
-            normalizedCaregiverImages.push(storedUrl);
-          }
-        }
-      }
-
-      const removedImages = caregiverImages.filter((url) => !normalizedCaregiverImages.includes(url));
-      await Promise.all(removedImages.map((url) => removeStoredFile(url)));
-      caregiverImages = normalizedCaregiverImages;
+      const removedImages = caregiverImages.filter(
+        (existingImage) => !normalizedCaregiverImages.some((image) => fileReferencesEqual(image, existingImage))
+      );
+      await Promise.all(removedImages.map((image) => removeStoredFile(image)));
+      caregiverImages = deduplicateFileList(normalizedCaregiverImages);
     }
 
     const caregiver = await updateCaregiver(caregiverId, {

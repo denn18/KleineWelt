@@ -15,5 +15,15 @@ export function readFileAsDataUrl(file) {
 
 export function assetUrl(p) {
   if (!p) return '';
-  return p.startsWith('http') ? p : `${import.meta.env.VITE_BACKEND_URL || ''}${p}`;
+
+  let url = '';
+  if (typeof p === 'string') {
+    url = p;
+  } else {
+    url = p.url || (p.key ? `/api/files/${encodeURIComponent(p.key)}` : '');
+  }
+
+  if (!url) return '';
+
+  return url.startsWith('http') ? url : `${import.meta.env.VITE_BACKEND_URL || ''}${url}`;
 }

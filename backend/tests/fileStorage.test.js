@@ -1,57 +1,91 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { storeBase64File, removeStoredFile } from '../src/utils/fileStorage.js';
+import { Readable } from 'node:stream';
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+} from '@aws-sdk/client-s3';
+import { fetchStoredFile, removeStoredFile, setS3ClientForTests, storeBase64File } from '../src/utils/fileStorage.js';
 
-const currentDir = path.dirname(fileURLToPath(import.meta.url));
-const uploadsRoot = path.resolve(currentDir, '..', 'uploads');
+class FakeS3Client {
+  constructor() {
+    this.objects = new Map();
+  }
 
-async function fileExists(filePath) {
-  try {
-    await fs.stat(filePath);
-    return true;
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      return false;
+  async send(command) {
+    if (command instanceof PutObjectCommand) {
+      this.objects.set(command.input.Key, {
+        bucket: command.input.Bucket,
+        key: command.input.Key,
+        body: command.input.Body,
+        contentType: command.input.ContentType,
+      });
+      return {};
     }
-    throw error;
+
+    if (command instanceof DeleteObjectCommand) {
+      this.objects.delete(command.input.Key);
+      return {};
+    }
+
+    if (command instanceof GetObjectCommand) {
+      const object = this.objects.get(command.input.Key);
+      if (!object) {
+        const error = new Error('Not found');
+        error.$metadata = { httpStatusCode: 404 };
+        throw error;
+      }
+
+      return {
+        Body: Readable.from(object.body),
+        ContentType: object.contentType,
+        ContentLength: object.body?.length ?? 0,
+      };
+    }
+
+    throw new Error('Unsupported command');
   }
 }
 
+function setupFakeS3() {
+  process.env.AWS_S3_BUCKET = 'test-bucket';
+  const client = new FakeS3Client();
+  setS3ClientForTests(client);
+  return client;
+}
+
 test('storeBase64File returns null when no payload is provided', async () => {
+  setupFakeS3();
   const result = await storeBase64File({ base64: '', folder: 'tests' });
   assert.equal(result, null);
 });
 
-test('storeBase64File writes the decoded payload and removeStoredFile cleans it up', async () => {
+test('storeBase64File uploads to S3 and removeStoredFile deletes it again', async () => {
+  const client = setupFakeS3();
   const payload = Buffer.from('Hello kleine Welt!').toString('base64');
   const folder = 'tests';
 
-  const url = await storeBase64File({
+  const file = await storeBase64File({
     base64: payload,
     originalName: 'avatar.png',
     folder,
     fallbackExtension: 'png',
   });
 
-  assert.ok(url.startsWith(`/uploads/${folder}/`));
+  assert.ok(file?.key.includes(`${folder}/`));
+  assert.equal(file.mimeType, 'image/png');
+  assert.equal(client.objects.has(file.key), true);
 
-  const relativePath = url.replace('/uploads/', '');
-  const absolutePath = path.join(uploadsRoot, relativePath);
+  const fetched = await fetchStoredFile(file.key);
+  assert.equal(fetched?.contentType, 'image/png');
 
-  assert.equal(await fileExists(absolutePath), true);
-
-  await removeStoredFile(url);
-
-  assert.equal(await fileExists(absolutePath), false);
-
-  // cleanup folder to keep repository tidy
-  await fs.rm(path.dirname(absolutePath), { recursive: true, force: true });
+  await removeStoredFile(file);
+  assert.equal(client.objects.has(file.key), false);
 });
 
-test('removeStoredFile ignores non-upload urls', async () => {
+test('removeStoredFile ignores missing keys', async () => {
+  setupFakeS3();
   await removeStoredFile('https://example.com/avatar.png');
   await removeStoredFile('/not-uploads/file.txt');
 });
