@@ -20,6 +20,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const frontendDistPath = path.resolve(currentDir, '../../frontend/dist');
+const uploadsDir = path.resolve(currentDir, '../backend/uploads');
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
@@ -33,6 +34,7 @@ app.use('/api/messages', messagesRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/documents', documentsRouter);
 app.use('/api/files', filesRouter);
+app.use('/uploads', express.static(uploadsDir));
 
 app.use(express.static(frontendDistPath));
 app.get('*', (_req, res) => {
