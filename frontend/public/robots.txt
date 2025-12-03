@@ -1,8 +1,4 @@
 User-agent: *
 Allow: /
 
-# Block server-only routes
-Disallow: /api/
-Disallow: /health
-
-Sitemap: https://www.kleine-welt.de/sitemap.xml
+Sitemap: https://wimmel-welt.de/sitemap.xml
