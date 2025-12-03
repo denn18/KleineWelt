@@ -1,42 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.kleine-welt.de/</loc>
+    <loc>https://wimmel-welt.de/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.kleine-welt.de/anmelden</loc>
+    <loc>https://www.wimmel-welt.de/anmelden</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.kleine-welt.de/anmelden/tagespflegeperson</loc>
+    <loc>https://www.wimmel-welt.de/anmelden/tagespflegeperson</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.kleine-welt.de/anmelden/eltern</loc>
+    <loc>https://www.wimmel-welt.de/anmelden/eltern</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.kleine-welt.de/login</loc>
+    <loc>https://www.wimmel-welt.de/login</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.kleine-welt.de/familienzentrum</loc>
+    <loc>https://www.wimmel-welt.de/familienzentrum</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.kleine-welt.de/profil</loc>
+    <loc>https://www.wimmel-welt.de/profil</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.kleine-welt.de/nachrichten</loc>
+    <loc>https://www.wimmel-welt.de/nachrichten</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
