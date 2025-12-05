@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import heroImage from '../assets/hero-family.svg';
 import { useAuth } from '../context/AuthContext.jsx';
 
+
+
 const features = [
   {
     title: 'Persönliche Kindertagespflege',
@@ -52,7 +54,7 @@ function HomePage() {
             </Link>
           </div>
           <p className="text-sm leading-relaxed text-slate-500">
-            Kleine Welt macht Kindertagespflege, Kindervermittlung und die Suche nach freien Betreuungsplätzen so einfach wie
+            Wimmel Welt macht Kindertagespflege, Kindervermittlung und die Suche nach freien Betreuungsplätzen so einfach wie
             möglich – für Familien und Tagespflegepersonen gleichermaßen.
           </p>
         </div>
