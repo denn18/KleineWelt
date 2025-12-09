@@ -11,6 +11,9 @@ import MessagesOverviewPage from './pages/MessagesOverviewPage.jsx';
 import MessengerPage from './pages/MessengerPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import CaregiverDetailPage from './pages/CaregiverDetailPage.jsx';
+import ContactPage from './pages/ContactPage.jsx';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage.jsx';
+import ImprintPage from './pages/ImprintPage.jsx';
 
 function App() {
   return (
@@ -22,6 +25,9 @@ function App() {
         <Route path="anmelden/eltern" element={<ParentSignupPage />} />
         <Route path="familienzentrum" element={<DashboardPage />} />
         <Route path="kindertagespflege/:id" element={<CaregiverDetailPage />} />
+        <Route path="kontakt" element={<ContactPage />} />
+        <Route path="datenschutz" element={<PrivacyPolicyPage />} />
+        <Route path="impressum" element={<ImprintPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route
           path="profil"

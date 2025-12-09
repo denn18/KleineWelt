@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
+import { assetUrl } from '../utils/file.js';
 
 function formatTimestamp(value) {
   if (!value) {
@@ -99,6 +100,10 @@ function MessagesOverviewPage() {
           const partnerId = conversation.participants?.find((participant) => participant !== user.id) || conversation.senderId;
           const partnerProfile = profiles[partnerId];
           const partnerName = partnerProfile?.daycareName || partnerProfile?.name || 'Unbekannter Kontakt';
+          const partnerRoleLabel = partnerProfile?.role === 'caregiver' ? 'Kindertagespflegeperson' : 'Elternteil';
+          const profileImageUrl = partnerProfile?.profileImageUrl ? assetUrl(partnerProfile.profileImageUrl) : '';
+          const logoUrl = partnerProfile?.logoImageUrl ? assetUrl(partnerProfile.logoImageUrl) : '';
+          const initials = partnerName.trim().charAt(0).toUpperCase();
           const preview = conversation.body?.length > 120 ? `${conversation.body.slice(0, 117)}…` : conversation.body;
           const conversationId = [user.id, partnerId].sort().join('--');
           return (
@@ -108,9 +113,40 @@ function MessagesOverviewPage() {
               state={{ conversationId, partner: partnerProfile }}
               className="flex flex-col gap-2 rounded-2xl border border-brand-100 bg-white/80 p-5 text-left shadow transition hover:-translate-y-1 hover:border-brand-300 hover:shadow-lg"
             >
-              <div className="flex items-center justify-between">
-                <p className="text-base font-semibold text-brand-700">{partnerName}</p>
-                <span className="text-xs text-slate-500">{formatTimestamp(conversation.createdAt)}</span>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  {partnerProfile?.role === 'caregiver' ? (
+                    <>
+                      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
+                        {logoUrl ? (
+                          <img src={logoUrl} alt={`${partnerName} Logo`} className="h-full w-full object-cover" />
+                        ) : (
+                          <span className="text-xs font-semibold text-slate-500">Logo</span>
+                        )}
+                      </div>
+                      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-brand-100 bg-brand-50">
+                        {profileImageUrl ? (
+                          <img src={profileImageUrl} alt={partnerName} className="h-full w-full object-cover" />
+                        ) : (
+                          <span className="text-sm font-semibold text-brand-700">{initials}</span>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-brand-100 bg-brand-50">
+                      {profileImageUrl ? (
+                        <img src={profileImageUrl} alt={partnerName} className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-sm font-semibold text-brand-700">{initials}</span>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex flex-col">
+                    <p className="text-base font-semibold text-brand-700">{partnerName}</p>
+                    <span className="text-xs font-semibold text-brand-500">{partnerRoleLabel}</span>
+                  </div>
+                </div>
+                <span className="whitespace-nowrap text-xs text-slate-500">{formatTimestamp(conversation.createdAt)}</span>
               </div>
               <p className="text-sm text-slate-600">{preview}</p>
             </Link>

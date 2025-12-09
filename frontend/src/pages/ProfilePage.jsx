@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import IconUploadButton from '../components/IconUploadButton.jsx';
 import { assetUrl, readFileAsDataUrl } from '../utils/file.js';
+import { WEEKDAY_SUGGESTIONS } from '../utils/weekdays.js';
 
 function useProfileData(user) {
   const [profile, setProfile] = useState(null);
@@ -54,16 +55,6 @@ function createScheduleEntry(initial = {}) {
     activity: initial.activity || '',
   };
 }
-
-const WEEKDAY_SUGGESTIONS = [
-  'Montag',
-  'Dienstag',
-  'Mittwoch',
-  'Donnerstag',
-  'Freitag',  
-  'Samstag',
-  'Sonntag',
-];
 
 function generateTempId() {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
