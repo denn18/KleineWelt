@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import IconUploadButton from '../components/IconUploadButton.jsx';
 import { readFileAsDataUrl } from '../utils/file.js';
+import { WEEKDAY_SUGGESTIONS } from '../utils/weekdays.js';
 
 const createScheduleEntry = (defaults = {}) => ({
   startTime: '',
@@ -143,8 +144,8 @@ function CaregiverSignupPage() {
     removeScheduleEntry('dailySchedule', index);
   }
 
-  function handleAddClosedDay() {
-    const trimmed = closedDayInput.trim();
+  function handleAddClosedDay(value = closedDayInput) {
+    const trimmed = value.trim();
     if (!trimmed) {
       return;
     }
@@ -682,6 +683,18 @@ function CaregiverSignupPage() {
               >
                 Tag hinzufügen
               </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {WEEKDAY_SUGGESTIONS.map((day) => (
+                <button
+                  key={day}
+                  type="button"
+                  onClick={() => handleAddClosedDay(day)}
+                  className="rounded-full border border-dashed border-brand-200 px-3 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                >
+                  {day}
+                </button>
+              ))}
             </div>
             {formState.closedDays.length ? (
               <ul className="flex flex-wrap gap-2">

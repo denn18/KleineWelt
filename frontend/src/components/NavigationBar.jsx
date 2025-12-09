@@ -12,6 +12,7 @@ function NavigationBar() {
     const items = [
       { to: '/', label: 'Startseite' },
       { to: '/familienzentrum', label: 'Tagespflege finden' },
+      { to: '/kontakt', label: 'Kontakt' },
     ];
 
     if (user) {
