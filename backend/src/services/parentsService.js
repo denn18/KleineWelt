@@ -5,6 +5,7 @@ import {
   serializeParent,
   toObjectId,
 } from '../models/Parent.js';
+import { hashPasswordIfPresent } from '../utils/passwords.js';
 
 let parentsCollectionOverride = null;
 
@@ -47,7 +48,7 @@ export async function createParent(data) {
     throw error;
   }
 
-  const document = buildParentDocument(data);
+  const document = await hashPasswordIfPresent(buildParentDocument(data));
   const result = await getParentsCollection().insertOne(document);
 
   return serializeParent({ _id: result.insertedId, ...document });
@@ -69,7 +70,7 @@ export async function updateParent(id, data) {
     return null;
   }
 
-  const update = buildParentUpdate(data);
+  const update = await hashPasswordIfPresent(buildParentUpdate(data));
   if (Object.keys(update).length <= 1) {
     return findParentById(id);
   }

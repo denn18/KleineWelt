@@ -33,6 +33,7 @@ export async function postMessage(req, res) {
       senderId: req.body.senderId,
       recipientId: req.body.recipientId,
       body: req.body.body,
+      attachments: req.body.attachments,
     });
     res.status(201).json(message);
   } catch (error) {

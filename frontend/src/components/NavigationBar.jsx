@@ -11,7 +11,7 @@ function NavigationBar() {
   const links = useMemo(() => {
     const items = [
       { to: '/', label: 'Startseite' },
-      { to: '/familienzentrum', label: 'Tagespflege finden' },
+      { to: '/familienzentrum', label: 'Kindertagespflege finden' },
       { to: '/kontakt', label: 'Kontakt' },
     ];
 
