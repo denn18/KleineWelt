@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import ImageLightbox from '../components/ImageLightbox.jsx';
 import { assetUrl } from '../utils/file.js';
+import { formatAvailableSpotsLabel } from '../utils/availability.js';
 
 function calculateAge(value) {
   if (!value) {
@@ -458,7 +459,7 @@ function DashboardPage() {
                               {locationLabel || 'Ort folgt'}
                             </span>
                             <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
-                              {`${caregiver.availableSpots ?? 0} freie Plätze`}
+                              {formatAvailableSpotsLabel(caregiver.availableSpots ?? 0)}
                             </span>
                             <span className="rounded-full bg-brand-50 px-3 py-1">
                               {`${caregiver.childrenCount ?? 0} Kinder in Betreuung`}
@@ -565,7 +566,7 @@ function DashboardPage() {
                           ) : null}
                           <div className="flex flex-wrap gap-2 text-xs font-semibold text-brand-700">
                             <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
-                              {caregiver.availableSpots ?? 0} freie Plätze
+                              {formatAvailableSpotsLabel(caregiver.availableSpots ?? 0)}
                             </span>
                             <span className="rounded-full bg-brand-50 px-3 py-1">
                               {caregiver.childrenCount ?? 0} betreute Kinder
@@ -668,7 +669,7 @@ function DashboardPage() {
                 ) : null}
                 <div className="flex flex-1 flex-wrap gap-2 text-xs font-semibold text-brand-700">
                   <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
-                    {selectedCaregiver.availableSpots ?? 0} freie Plätze
+                    {formatAvailableSpotsLabel(selectedCaregiver.availableSpots ?? 0)}
                   </span>
                   <span className="rounded-full bg-brand-50 px-3 py-1">
                     {selectedCaregiver.childrenCount ?? 0} betreute Kinder

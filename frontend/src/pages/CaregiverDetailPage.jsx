@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import ImageLightbox from '../components/ImageLightbox.jsx';
 import { assetUrl } from '../utils/file.js';
+import { formatAvailableSpotsLabel } from '../utils/availability.js';
 
 function SectionHeading({ title, description }) {
   return (
@@ -212,7 +213,7 @@ function CaregiverDetailPage() {
                 {caregiver.hasAvailability ? 'Plätze verfügbar' : 'Derzeit ausgebucht'}
               </span>
               <span className="rounded-full bg-brand-50 px-3 py-1">
-                {caregiver.availableSpots ?? 0} freie Plätze
+                {formatAvailableSpotsLabel(caregiver.availableSpots ?? 0)}
               </span>
               <span className="rounded-full bg-brand-50 px-3 py-1">
                 {caregiver.childrenCount ?? 0} betreute Kinder

@@ -31,7 +31,24 @@ export function toObjectId(id) {
   }
 }
 
-export function buildMessageDocument({ conversationId, senderId, recipientId, body }) {
+function normalizeAttachments(attachments) {
+  if (!Array.isArray(attachments)) {
+    return [];
+  }
+
+  return attachments
+    .filter((attachment) => attachment && (attachment.url || attachment.key))
+    .map((attachment) => ({
+      key: attachment.key ?? null,
+      url: attachment.url ?? null,
+      fileName: attachment.fileName || attachment.name || 'Anhang',
+      mimeType: attachment.mimeType || null,
+      size: typeof attachment.size === 'number' ? attachment.size : null,
+      uploadedAt: attachment.uploadedAt || null,
+    }));
+}
+
+export function buildMessageDocument({ conversationId, senderId, recipientId, body, attachments = [] }) {
   const now = new Date();
 
   return {
@@ -40,6 +57,7 @@ export function buildMessageDocument({ conversationId, senderId, recipientId, bo
     senderId,
     recipientId,
     body,
+    attachments: normalizeAttachments(attachments),
     createdAt: now,
     updatedAt: now,
   };

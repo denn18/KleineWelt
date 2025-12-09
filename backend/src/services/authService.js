@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import { parentsCollection, serializeParent } from '../models/Parent.js';
 import { caregiversCollection, serializeCaregiver } from '../models/Caregiver.js';
 
@@ -10,6 +11,32 @@ function getParentsCollection() {
 
 function getCaregiversCollection() {
   return caregiverCollectionOverride ?? caregiversCollection();
+}
+
+async function verifyPasswordAndUpgradeHash(userDocument, password, collection) {
+  if (!userDocument?.password || !password) {
+    return false;
+  }
+
+  // Already hashed with bcrypt
+  if (userDocument.password.startsWith('$2')) {
+    return bcrypt.compare(password, userDocument.password);
+  }
+
+  // Legacy plain-text password: upgrade to bcrypt on successful login
+  if (userDocument.password === password) {
+    const hashed = await bcrypt.hash(password, 10);
+    try {
+      await collection.updateOne({ _id: userDocument._id }, { $set: { password: hashed, passwordUpdatedAt: new Date() } });
+      // eslint-disable-next-line no-param-reassign
+      userDocument.password = hashed;
+    } catch (error) {
+      console.warn('Konnte Passwort nicht auf bcrypt upgraden', error);
+    }
+    return true;
+  }
+
+  return false;
 }
 
 export function __setAuthServiceCollectionsForTesting({ parents, caregivers } = {}) {
@@ -27,7 +54,7 @@ export async function authenticateUser(identifier, password) {
     $or: [{ email: identifier }, { username: identifier }],
   });
 
-  if (parent && parent.password === password) {
+  if (parent && (await verifyPasswordAndUpgradeHash(parent, password, getParentsCollection()))) {
     const serialized = serializeParent(parent);
     return { ...serialized, role: 'parent' };
   }
@@ -36,7 +63,7 @@ export async function authenticateUser(identifier, password) {
     $or: [{ email: identifier }, { username: identifier }],
   });
 
-  if (caregiver && caregiver.password === password) {
+  if (caregiver && (await verifyPasswordAndUpgradeHash(caregiver, password, getCaregiversCollection()))) {
     const serialized = serializeCaregiver(caregiver);
     return { ...serialized, role: 'caregiver' };
   }

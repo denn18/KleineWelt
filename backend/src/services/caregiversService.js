@@ -5,6 +5,7 @@ import {
   serializeCaregiver,
   toObjectId,
 } from '../models/Caregiver.js';
+import { hashPasswordIfPresent } from '../utils/passwords.js';
 import { escapeRegex } from '../utils/regex.js';
 
 export async function listCaregivers(filters = {}) {
@@ -107,7 +108,7 @@ export async function createCaregiver(data) {
     throw error;
   }
 
-  const document = buildCaregiverDocument(data);
+  const document = await hashPasswordIfPresent(buildCaregiverDocument(data));
   const result = await caregiversCollection().insertOne(document);
 
   return serializeCaregiver({ _id: result.insertedId, ...document });
@@ -129,7 +130,7 @@ export async function updateCaregiver(id, data) {
     return null;
   }
 
-  const update = buildCaregiverUpdate(data);
+  const update = await hashPasswordIfPresent(buildCaregiverUpdate(data));
   if (Object.keys(update).length <= 1) {
     return findCaregiverById(id);
   }

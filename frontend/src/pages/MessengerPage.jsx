@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { PaperClipIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext.jsx';
 import ImageLightbox from '../components/ImageLightbox.jsx';
-import { assetUrl } from '../utils/file.js';
+import { assetUrl, readFileAsDataUrl } from '../utils/file.js';
+import { formatAvailableSpotsLabel } from '../utils/availability.js';
 
 function formatTime(value) {
   if (!value) {
@@ -28,6 +30,8 @@ function MessengerPage() {
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [sending, setSending] = useState(false);
   const [lightboxImage, setLightboxImage] = useState(null);
+  const [pendingAttachments, setPendingAttachments] = useState([]);
+  const fileInputRef = useRef(null);
 
   const conversationId = useMemo(() => {
     if (!user) {
@@ -70,9 +74,41 @@ function MessengerPage() {
     loadMessages().catch((error) => console.error(error));
   }, [conversationId]);
 
+  async function handleAttachmentChange(event) {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) {
+      return;
+    }
+
+    try {
+      const prepared = await Promise.all(
+        files.map(async (file) => ({
+          name: file.name,
+          size: file.size,
+          mimeType: file.type,
+          data: await readFileAsDataUrl(file),
+        })),
+      );
+      setPendingAttachments((current) => [...current, ...prepared]);
+    } catch (error) {
+      console.error('Failed to prepare attachments', error);
+    } finally {
+      if (event.target) {
+        event.target.value = '';
+      }
+    }
+  }
+
+  function removePendingAttachment(index) {
+    setPendingAttachments((current) => current.filter((_, i) => i !== index));
+  }
+
   async function handleSendMessage(event) {
     event.preventDefault();
-    if (!messageBody.trim() || sending) {
+    const trimmedBody = messageBody.trim();
+    const hasAttachments = pendingAttachments.length > 0;
+
+    if ((!trimmedBody && !hasAttachments) || sending) {
       return;
     }
     setSending(true);
@@ -80,10 +116,17 @@ function MessengerPage() {
       const response = await axios.post(`/api/messages/${conversationId}`, {
         senderId: user.id,
         recipientId: targetId,
-        body: messageBody,
+        body: trimmedBody,
+        attachments: pendingAttachments.map((attachment) => ({
+          name: attachment.name,
+          data: attachment.data,
+          mimeType: attachment.mimeType,
+          size: attachment.size,
+        })),
       });
       setMessages((current) => [...current, response.data]);
       setMessageBody('');
+      setPendingAttachments([]);
     } catch (error) {
       console.error('Failed to send message', error);
     } finally {
@@ -136,7 +179,7 @@ function MessengerPage() {
       ? partner.availableSpots
       : partner.availableSpots ?? 0
     : null;
-  const availabilityBadge = availableSpots !== null ? `${availableSpots} freie Plätze` : null;
+  const availabilityBadge = availableSpots !== null ? formatAvailableSpotsLabel(availableSpots) : null;
   const ageBadge = typeof partner?.age === 'number' ? `Alter: ${partner.age} Jahre` : null;
   const partnerConceptUrl = partner?.conceptUrl ? assetUrl(partner.conceptUrl) : '';
 
@@ -247,45 +290,137 @@ function MessengerPage() {
                 key={message.id}
                 className={`flex flex-col gap-1 ${message.senderId === user.id ? 'items-end' : 'items-start'}`}
               >
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-500">
-                  {message.senderId === user.id ? 'Du' : partnerName || message.senderId}
-                </span>
-                <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-2 ${
-                    message.senderId === user.id
-                      ? 'bg-brand-600 text-white'
-                      : 'bg-brand-50 text-slate-700'
-                  }`}
-                >
-                  <p>{message.body}</p>
-                  <span
-                    className={`mt-1 block text-[10px] ${
-                      message.senderId === user.id ? 'text-white/80' : 'text-slate-500'
-                    }`}
-                  >
-                    {formatTime(message.createdAt)}
-                  </span>
-                </div>
+                {(() => {
+                  const isOwn = message.senderId === user.id;
+                  const bubbleClasses = isOwn
+                    ? 'bg-brand-600 text-white'
+                    : 'bg-brand-50 text-slate-700';
+                  const metaClasses = isOwn ? 'text-white/80' : 'text-slate-500';
+                  return (
+                    <>
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-500">
+                        {isOwn ? 'Du' : partnerName || message.senderId}
+                      </span>
+                      <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${bubbleClasses}`}>
+                        {message.body ? <p className="whitespace-pre-wrap">{message.body}</p> : null}
+                        {Array.isArray(message.attachments) && message.attachments.length ? (
+                          <div className="mt-2 flex flex-col gap-2">
+                            {message.attachments.map((attachment) => {
+                              const url = assetUrl(attachment);
+                              const isImage = attachment.mimeType?.startsWith('image/');
+                              const label = attachment.fileName || attachment.name || 'Anhang';
+                              const key = attachment.key || attachment.url || label;
+                              const attachmentClasses = isOwn
+                                ? 'border-white/30 bg-white/10'
+                                : 'border-brand-100 bg-white';
+
+                              return (
+                                <div
+                                  key={key}
+                                  className={`flex items-center gap-3 rounded-xl border px-3 py-2 text-left ${attachmentClasses}`}
+                                >
+                                  {isImage ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => openLightbox(url, label)}
+                                      className="h-14 w-14 overflow-hidden rounded-lg border border-brand-100 bg-brand-50"
+                                    >
+                                      <img src={url} alt={label} className="h-full w-full object-cover" />
+                                    </button>
+                                  ) : (
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                                      <PaperClipIcon className="h-6 w-6" />
+                                    </div>
+                                  )}
+                                  <div className="flex flex-1 flex-col text-sm">
+                                    <span className="font-semibold">{label}</span>
+                                    {attachment.size ? (
+                                      <span className="text-xs text-slate-500">
+                                        {Math.round(attachment.size / 1024)} KB
+                                      </span>
+                                    ) : null}
+                                    {url ? (
+                                      <a
+                                        href={url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        download
+                                        className={`text-xs font-semibold ${isOwn ? 'text-white' : 'text-brand-600'} hover:underline`}
+                                      >
+                                        Herunterladen
+                                      </a>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : null}
+                        <span className={`mt-1 block text-[10px] ${metaClasses}`}>
+                          {formatTime(message.createdAt)}
+                        </span>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             ))
           ) : (
             <p className="text-xs text-slate-500">Noch keine Nachrichten vorhanden. Schreibe die erste Nachricht.</p>
           )}
         </div>
-        <form className="flex gap-3" onSubmit={handleSendMessage}>
-          <input
-            value={messageBody}
-            onChange={(event) => setMessageBody(event.target.value)}
-            placeholder="Nachricht schreiben..."
-            className="flex-1 rounded-full border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
-          />
-          <button
-            type="submit"
-            className="rounded-full bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-300"
-            disabled={sending}
-          >
-            {sending ? 'Senden…' : 'Senden'}
-          </button>
+        <form className="flex flex-col gap-3" onSubmit={handleSendMessage}>
+          {pendingAttachments.length ? (
+            <div className="flex flex-wrap gap-2">
+              {pendingAttachments.map((attachment, index) => (
+                <span
+                  key={`${attachment.name}-${index}`}
+                  className="flex items-center gap-2 rounded-full bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-700"
+                >
+                  <PaperClipIcon className="h-4 w-4" />
+                  <span className="max-w-[160px] truncate">{attachment.name || 'Anhang'}</span>
+                  <button
+                    type="button"
+                    className="text-slate-400 transition hover:text-rose-600"
+                    onClick={() => removePendingAttachment(index)}
+                    aria-label={`${attachment.name} entfernen`}
+                  >
+                    <XMarkIcon className="h-4 w-4" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          ) : null}
+          <div className="flex gap-3">
+            <input
+              type="file"
+              multiple
+              ref={fileInputRef}
+              onChange={handleAttachmentChange}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2 rounded-full border border-brand-200 px-4 py-3 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700 disabled:cursor-not-allowed"
+              disabled={sending}
+            >
+              <PaperClipIcon className="h-5 w-5" /> Anhänge
+            </button>
+            <input
+              value={messageBody}
+              onChange={(event) => setMessageBody(event.target.value)}
+              placeholder="Nachricht schreiben..."
+              className="flex-1 rounded-full border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="rounded-full bg-brand-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-300"
+              disabled={sending || (!messageBody.trim() && pendingAttachments.length === 0)}
+            >
+              {sending ? 'Senden…' : 'Senden'}
+            </button>
+          </div>
         </form>
       </div>
       {lightboxImage ? <ImageLightbox image={lightboxImage} onClose={closeLightbox} /> : null}

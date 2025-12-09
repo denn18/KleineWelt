@@ -104,7 +104,15 @@ function MessagesOverviewPage() {
           const profileImageUrl = partnerProfile?.profileImageUrl ? assetUrl(partnerProfile.profileImageUrl) : '';
           const logoUrl = partnerProfile?.logoImageUrl ? assetUrl(partnerProfile.logoImageUrl) : '';
           const initials = partnerName.trim().charAt(0).toUpperCase();
-          const preview = conversation.body?.length > 120 ? `${conversation.body.slice(0, 117)}…` : conversation.body;
+          const hasAttachments = Array.isArray(conversation.attachments) && conversation.attachments.length > 0;
+          const previewText = conversation.body?.trim();
+          const preview = previewText
+            ? previewText.length > 120
+              ? `${previewText.slice(0, 117)}…`
+              : previewText
+            : hasAttachments
+              ? `${conversation.attachments.length} ${conversation.attachments.length === 1 ? 'Anhang' : 'Anhänge'}`
+              : '';
           const conversationId = [user.id, partnerId].sort().join('--');
           return (
             <Link
