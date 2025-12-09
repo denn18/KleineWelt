@@ -249,6 +249,25 @@ function MessengerPage() {
           </div>
         ) : partner ? (
           <div className="flex flex-col gap-3 text-sm text-slate-600">
+            <div className="flex items-center gap-3">
+              {partnerProfileUrl ? (
+                <button
+                  type="button"
+                  onClick={() => openLightbox(partnerProfileUrl, partnerName)}
+                  className="h-24 w-24 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
+                >
+                  <img src={partnerProfileUrl} alt={partnerName} className="h-full w-full object-cover" />
+                </button>
+              ) : (
+                <div className="flex h-24 w-24 items-center justify-center rounded-2xl border border-dashed border-brand-200 bg-brand-50 text-xs font-semibold text-slate-400">
+                  Kein Bild
+                </div>
+              )}
+              <div className="flex flex-col">
+                <p className="text-base font-semibold text-brand-700">{partnerName}</p>
+                {partner.city ? <p className="text-xs text-slate-500">{partner.city}</p> : null}
+              </div>
+            </div>
             <p>
               <span className="font-semibold text-brand-700">E-Mail:</span> {partner.email}
             </p>
