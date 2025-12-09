@@ -132,7 +132,7 @@ function MessagesOverviewPage() {
                           <span className="text-xs font-semibold text-slate-500">Logo</span>
                         )}
                       </div>
-                      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-brand-100 bg-brand-50">
+                      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
                         {profileImageUrl ? (
                           <img src={profileImageUrl} alt={partnerName} className="h-full w-full object-cover" />
                         ) : (
@@ -141,7 +141,7 @@ function MessagesOverviewPage() {
                       </div>
                     </>
                   ) : (
-                    <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-brand-100 bg-brand-50">
+                    <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
                       {profileImageUrl ? (
                         <img src={profileImageUrl} alt={partnerName} className="h-full w-full object-cover" />
                       ) : (
