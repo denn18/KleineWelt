@@ -12,7 +12,6 @@ function NavigationBar() {
     const items = [
       { to: '/', label: 'Startseite' },
       { to: '/familienzentrum', label: 'Kindertagespflege finden' },
-      { to: '/kontakt', label: 'Kontakt' },
     ];
 
     if (user) {
