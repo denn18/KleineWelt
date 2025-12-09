@@ -264,7 +264,8 @@ function MessengerPage() {
                 </div>
               )}
               <div className="flex flex-col">
-                <p className="text-base font-semibold text-brand-700">{partnerName}</p>
+                {/* doppelter Name sieht nicht so gut aus
+                <p className="text-base font-semibold text-brand-700">{partnerName}</p> */}
                 {partner.city ? <p className="text-xs text-slate-500">{partner.city}</p> : null}
               </div>
             </div>
