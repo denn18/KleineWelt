@@ -1,5 +1,23 @@
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Neuer Server mit mobile
 // backend/src/server.js neuer Code mit anpassung für Render Webhosting
 import './config/load-env.js'; // .env früh & einmal laden
 import http from 'http';
