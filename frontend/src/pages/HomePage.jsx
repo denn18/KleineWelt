@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import heroImage from '../assets/hero-family.svg';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -23,7 +23,18 @@ const features = [
 ];
 
 function HomePage() {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  function handleAuthButtonClick() {
+    if (user) {
+      console.info('Nutzer abgemeldet über Home CTA');
+      logout();
+    } else {
+      console.info('Navigation zur Login-Seite von Home CTA');
+      navigate('/login');
+    }
+  }
 
   return (
     <div className="flex flex-col gap-24">
@@ -38,20 +49,19 @@ function HomePage() {
             koordiniere Anfragen und bleibe mit deinem Netzwerk in Kontakt – alles an einem Ort.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
-            {!user ? (
-              <Link
-                to="/anmelden"
-                className="rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:bg-brand-700"
-              >
-                Jetzt registrieren
-              </Link>
-            ) : null}
             <Link
-              to="/login"
+              to="/familienzentrum"
+              className="rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:bg-brand-700"
+            >
+              Kindertagespflege finden
+            </Link>
+            <button
+              type="button"
+              onClick={handleAuthButtonClick}
               className="rounded-full border border-brand-200 px-6 py-3 text-center text-sm font-semibold text-brand-700 transition hover:border-brand-400 hover:text-brand-800"
             >
-              Bereits registriert? Jetzt einloggen
-            </Link>
+              {user ? 'Abmelden' : 'Anmelden'}
+            </button>
           </div>
           <p className="text-sm leading-relaxed text-slate-500">
             Wimmel Welt macht Kindertagespflege, Kindervermittlung und die Suche nach freien Betreuungsplätzen so einfach wie

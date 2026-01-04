@@ -20,10 +20,12 @@ function formatTimestamp(value) {
 
 async function fetchUserProfiles(ids) {
   const uniqueIds = Array.from(new Set(ids)).filter(Boolean);
+  console.info('API Log: Lade Nutzerprofile', uniqueIds);
   const entries = await Promise.all(
     uniqueIds.map(async (id) => {
       try {
         const response = await axios.get(`/api/users/${id}`);
+        console.info('API Log: Profil geladen', id);
         return [id, response.data];
       } catch (error) {
         console.error('Failed to load user', id, error);
@@ -32,6 +34,24 @@ async function fetchUserProfiles(ids) {
     }),
   );
   return Object.fromEntries(entries);
+}
+
+function formatConversationPartner(profile) {
+  if (!profile) {
+    return 'Unbekannter Kontakt';
+  }
+  const baseName = [profile.firstName, profile.lastName].filter(Boolean).join(' ').trim();
+  const personName = baseName || profile.name || '';
+  const daycareName = profile.daycareName || '';
+
+  if (profile.role === 'caregiver') {
+    if (personName && daycareName) {
+      return `${personName} : ${daycareName}`;
+    }
+    return personName || daycareName || 'Unbekannter Kontakt';
+  }
+
+  return personName || 'Unbekannter Kontakt';
 }
 
 function MessagesOverviewPage() {
@@ -49,14 +69,17 @@ function MessagesOverviewPage() {
       setLoading(true);
       setError(null);
       try {
+        console.info('API Log: GET /api/messages', { participantId: user.id });
         const response = await axios.get('/api/messages', { params: { participantId: user.id } });
         setConversations(response.data);
+        console.info('API Log: Nachrichten geladen', response.data.length);
         const partnerIds = response.data
           .map((conversation) => conversation.participants?.find((participant) => participant !== user.id))
           .filter(Boolean);
         if (partnerIds.length) {
           const loadedProfiles = await fetchUserProfiles(partnerIds);
           setProfiles(loadedProfiles);
+          console.info('API Log: Partnerprofile geladen', Object.keys(loadedProfiles).length);
         } else {
           setProfiles({});
         }
@@ -99,11 +122,11 @@ function MessagesOverviewPage() {
         {conversations.map((conversation) => {
           const partnerId = conversation.participants?.find((participant) => participant !== user.id) || conversation.senderId;
           const partnerProfile = profiles[partnerId];
-          const partnerName = partnerProfile?.daycareName || partnerProfile?.name || 'Unbekannter Kontakt';
+          const partnerName = formatConversationPartner(partnerProfile);
           const partnerRoleLabel = partnerProfile?.role === 'caregiver' ? 'Kindertagespflegeperson' : 'Elternteil';
           const profileImageUrl = partnerProfile?.profileImageUrl ? assetUrl(partnerProfile.profileImageUrl) : '';
           const logoUrl = partnerProfile?.logoImageUrl ? assetUrl(partnerProfile.logoImageUrl) : '';
-          const initials = partnerName.trim().charAt(0).toUpperCase();
+          const initials = partnerName ? partnerName.trim().charAt(0).toUpperCase() : '?';
           const hasAttachments = Array.isArray(conversation.attachments) && conversation.attachments.length > 0;
           const previewText = conversation.body?.trim();
           const preview = previewText

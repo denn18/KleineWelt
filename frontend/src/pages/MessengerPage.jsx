@@ -20,6 +20,24 @@ function formatTime(value) {
   });
 }
 
+function formatPartnerName(profile) {
+  if (!profile) {
+    return 'Kontakt';
+  }
+
+  const baseName = [profile.firstName, profile.lastName].filter(Boolean).join(' ').trim() || profile.name || '';
+  const daycareName = profile.daycareName || '';
+
+  if (profile.role === 'caregiver') {
+    if (baseName && daycareName) {
+      return `${baseName} : ${daycareName}`;
+    }
+    return baseName || daycareName || 'Kontakt';
+  }
+
+  return baseName || 'Kontakt';
+}
+
 function MessengerPage() {
   const { user } = useAuth();
   const { targetId } = useParams();
@@ -44,7 +62,9 @@ function MessengerPage() {
     async function loadPartner() {
       if (!partner) {
         try {
+          console.info('API Log: GET /api/users/:id', targetId);
           const response = await axios.get(`/api/users/${targetId}`);
+          console.info('API Log: Partnerprofil geladen', targetId);
           setPartner(response.data);
         } catch (error) {
           console.error('Failed to load conversation partner', error);
@@ -62,7 +82,9 @@ function MessengerPage() {
       }
       setLoadingMessages(true);
       try {
+        console.info('API Log: GET /api/messages/:conversationId', conversationId);
         const response = await axios.get(`/api/messages/${conversationId}`);
+        console.info('API Log: Nachrichten geladen', response.data?.length ?? 0);
         setMessages(response.data);
       } catch (error) {
         console.error('Failed to load messages', error);
@@ -113,6 +135,7 @@ function MessengerPage() {
     }
     setSending(true);
     try {
+      console.info('API Log: POST /api/messages/:conversationId', conversationId);
       const response = await axios.post(`/api/messages/${conversationId}`, {
         senderId: user.id,
         recipientId: targetId,
@@ -124,6 +147,7 @@ function MessengerPage() {
           size: attachment.size,
         })),
       });
+      console.info('Messenger Log: Nachricht gesendet', response.data?.id);
       setMessages((current) => [...current, response.data]);
       setMessageBody('');
       setPendingAttachments([]);
@@ -150,9 +174,7 @@ function MessengerPage() {
   }
 
   const isPartnerCaregiver = partner?.role === 'caregiver';
-  const partnerName = isPartnerCaregiver
-    ? partner.daycareName || `${partner.firstName ?? ''} ${partner.lastName ?? ''}`.trim()
-    : partner?.name || `${partner?.firstName ?? ''} ${partner?.lastName ?? ''}`.trim() || 'Kontakt';
+  const partnerName = formatPartnerName(partner);
   const partnerLogoUrl = partner?.logoImageUrl ? assetUrl(partner.logoImageUrl) : '';
   const partnerProfileUrl = partner?.profileImageUrl ? assetUrl(partner.profileImageUrl) : '';
   const partnerAddress = partner

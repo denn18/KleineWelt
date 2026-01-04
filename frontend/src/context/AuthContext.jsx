@@ -33,7 +33,9 @@ export function AuthProvider({ children }) {
     setIsAuthenticating(true);
     setAuthError(null);
     try {
+      console.info('API Log: Sende Login-Anfrage');
       const response = await axios.post('/api/auth/login', { identifier, password });
+      console.info('Nutzer angemeldet', response.data?.id);
       setUser(response.data);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(response.data));
       return response.data;
@@ -47,6 +49,7 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
+    console.info('Nutzer abgemeldet');
     setUser(null);
     localStorage.removeItem(STORAGE_KEY);
   }
