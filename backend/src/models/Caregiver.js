@@ -196,6 +196,7 @@ export function buildCaregiverDocument(data) {
       typeof data.hasAvailability === 'string'
         ? data.hasAvailability.toLowerCase() === 'true'
         : Boolean(data.hasAvailability),
+    availabilityTiming: data.availabilityTiming?.trim() || 'aktuell',
     bio: data.bio?.trim() || null,
     shortDescription: data.shortDescription?.trim() || null,
     location: data.location ?? null,
@@ -283,6 +284,9 @@ export function buildCaregiverUpdate(data) {
       typeof data.hasAvailability === 'string'
         ? data.hasAvailability.toLowerCase() === 'true'
         : Boolean(data.hasAvailability);
+  }
+  if (data.availabilityTiming !== undefined) {
+    update.availabilityTiming = data.availabilityTiming?.trim() || 'aktuell';
   }
   if (data.bio !== undefined) {
     update.bio = data.bio?.trim() || null;

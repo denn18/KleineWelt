@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import IconUploadButton from '../components/IconUploadButton.jsx';
 import { assetUrl, readFileAsDataUrl } from '../utils/file.js';
+import { AVAILABILITY_TIMING_OPTIONS } from '../utils/availability.js';
 import { WEEKDAY_SUGGESTIONS } from '../utils/weekdays.js';
 
 function useProfileData(user) {
@@ -209,7 +210,7 @@ function ParentProfileEditor({ profile, onSave, saving }) {
       fileName: '',
       action: 'keep',
     });
-    setStatusMessage(null);
+    setStatusMessage((current) => (current?.type === 'success' ? current : null));
   }, [profile]);
 
   function updateField(field, value) {
@@ -442,6 +443,7 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
     daycareName: profile.daycareName || '',
     availableSpots: profile.availableSpots ?? 0,
     hasAvailability: profile.hasAvailability ?? true,
+    availabilityTiming: profile.availabilityTiming ?? 'aktuell',
     childrenCount: profile.childrenCount ?? 0,
     maxChildAge: profile.maxChildAge ?? '',
     birthDate: profile.birthDate ? profile.birthDate.slice(0, 10) : '',
@@ -501,6 +503,7 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
       daycareName: profile.daycareName || '',
       availableSpots: profile.availableSpots ?? 0,
       hasAvailability: profile.hasAvailability ?? true,
+      availabilityTiming: profile.availabilityTiming ?? 'aktuell',
       childrenCount: profile.childrenCount ?? 0,
       maxChildAge: profile.maxChildAge ?? '',
       birthDate: profile.birthDate ? profile.birthDate.slice(0, 10) : '',
@@ -539,7 +542,7 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
         .filter(Boolean)
     );
     setRoomGalleryOffset(0);
-    setStatusMessage(null);
+    setStatusMessage((current) => (current?.type === 'success' ? current : null));
   }, [profile]);
 
   function updateField(field, value) {
@@ -779,6 +782,7 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
       daycareName: formState.daycareName,
       availableSpots: Number(formState.availableSpots),
       hasAvailability: formState.hasAvailability,
+      availabilityTiming: formState.availabilityTiming,
       childrenCount: Number(formState.childrenCount),
       maxChildAge: formState.maxChildAge ? Number(formState.maxChildAge) : null,
       birthDate: formState.birthDate || null,
@@ -907,6 +911,12 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
               {experienceYears !== null ? `${experienceYears} Jahre Erfahrung` : 'Optional: Zeigt deine Erfahrung.'}
             </span>
           </label>
+        </div>
+      </section>
+
+      <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
+        <h2 className="text-lg font-semibold text-brand-700">Betreuungskapazitäten</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
             Maximales Alter der Kinder
             <input
@@ -918,8 +928,6 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
               placeholder="z. B. 6"
             />
           </label>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-3">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
             Aktuell betreute Kinder
             <input
@@ -930,16 +938,8 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
               className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
             />
           </label>
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Freie Plätze
-            <input
-              type="number"
-              min="0"
-              value={formState.availableSpots}
-              onChange={(event) => updateField('availableSpots', event.target.value)}
-              className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
-            />
-          </label>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
             Plätze verfügbar?
             <select
@@ -949,6 +949,30 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
             >
               <option value="yes">Ja, es sind Plätze frei</option>
               <option value="no">Momentan ausgebucht</option>
+            </select>
+          </label>
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            Anzahl freier Plätze
+            <input
+              type="number"
+              min="0"
+              value={formState.availableSpots}
+              onChange={(event) => updateField('availableSpots', event.target.value)}
+              className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+            />
+          </label>
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            Wann werden Plätze frei?
+            <select
+              value={formState.availabilityTiming}
+              onChange={(event) => updateField('availabilityTiming', event.target.value)}
+              className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+            >
+              {AVAILABILITY_TIMING_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </label>
         </div>
