@@ -213,7 +213,11 @@ function CaregiverDetailPage() {
                 {caregiver.hasAvailability ? 'Plätze verfügbar' : 'Derzeit ausgebucht'}
               </span>
               <span className="rounded-full bg-brand-50 px-3 py-1">
-                {formatAvailableSpotsLabel(caregiver.availableSpots ?? 0)}
+                {formatAvailableSpotsLabel({
+                  availableSpots: caregiver.availableSpots ?? 0,
+                  hasAvailability: caregiver.hasAvailability,
+                  availabilityTiming: caregiver.availabilityTiming,
+                })}
               </span>
               <span className="rounded-full bg-brand-50 px-3 py-1">
                 {caregiver.childrenCount ?? 0} betreute Kinder

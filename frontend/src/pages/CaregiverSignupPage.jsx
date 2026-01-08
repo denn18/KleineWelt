@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import IconUploadButton from '../components/IconUploadButton.jsx';
 import { readFileAsDataUrl } from '../utils/file.js';
+import { AVAILABILITY_TIMING_OPTIONS } from '../utils/availability.js';
 import { WEEKDAY_SUGGESTIONS } from '../utils/weekdays.js';
 
 const createScheduleEntry = (defaults = {}) => ({
@@ -61,6 +62,7 @@ function buildInitialState() {
     daycareName: '',
     availableSpots: 0,
     hasAvailability: true,
+    availabilityTiming: 'aktuell',
     childrenCount: 0,
     birthDate: '',
     caregiverSince: '',
@@ -272,6 +274,7 @@ function CaregiverSignupPage() {
         ...formState,
         availableSpots: Number(formState.availableSpots),
         hasAvailability: Boolean(formState.hasAvailability),
+        availabilityTiming: formState.availabilityTiming,
         childrenCount: Number(formState.childrenCount),
         age: computedAge ?? null,
         maxChildAge: formState.maxChildAge ? Number(formState.maxChildAge) : null,
@@ -440,53 +443,86 @@ function CaregiverSignupPage() {
             />
           </label>
         </div>
-        <div className="grid gap-4 sm:grid-cols-4">
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Aktuell betreute Kinder
-            <input
-              type="number"
-              min="0"
-              value={formState.childrenCount}
-              onChange={(event) => updateField('childrenCount', event.target.value)}
-              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-              required
-            />
-          </label>
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Freie Plätze
-            <input
-              type="number"
-              min="0"
-              value={formState.availableSpots}
-              onChange={(event) => updateField('availableSpots', event.target.value)}
-              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-              required
-            />
-          </label>
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Verfügbarkeit
-            <select
-              value={formState.hasAvailability ? 'true' : 'false'}
-              onChange={(event) => updateField('hasAvailability', event.target.value === 'true')}
-              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-            >
-              <option value="true">Es gibt freie Plätze</option>
-              <option value="false">Aktuell keine freien Plätze</option>
-            </select>
-          </label>
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Max. Alter der Kinder
-            <input
-              type="number"
-              min="0"
-              value={formState.maxChildAge}
-              onChange={(event) => updateField('maxChildAge', event.target.value)}
-              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-              placeholder="z. B. 6"
-            />
-          </label>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        </section>
+
+        <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
+          <h2 className="text-lg font-semibold text-brand-700">Betreuungskapazitäten</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+              Maximales Alter der Kinder
+              <input
+                type="number"
+                min="0"
+                value={formState.maxChildAge}
+                onChange={(event) => updateField('maxChildAge', event.target.value)}
+                className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+                placeholder="z. B. 6"
+              />
+            </label>
+            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+              Aktuell betreute Kinder
+              <input
+                type="number"
+                min="0"
+                value={formState.childrenCount}
+                onChange={(event) => updateField('childrenCount', event.target.value)}
+                className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+                required
+              />
+            </label>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+              Plätze verfügbar?
+              <div className="relative">
+                <select
+                  value={formState.hasAvailability ? 'true' : 'false'}
+                  onChange={(event) => updateField('hasAvailability', event.target.value === 'true')}
+                  className="w-full appearance-none rounded-xl border border-brand-200 bg-white px-4 py-3 pr-10 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+                >
+                  <option value="true">Ja, es sind Plätze frei</option>
+                  <option value="false">Momentan ausgebucht</option>
+                </select>
+                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
+                  ▾
+                </span>
+              </div>
+            </label>
+            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+              Anzahl freier Plätze
+              <input
+                type="number"
+                min="0"
+                value={formState.availableSpots}
+                onChange={(event) => updateField('availableSpots', event.target.value)}
+                className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+                required
+              />
+            </label>
+            <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+              Wann werden Plätze frei?
+              <div className="relative">
+                <select
+                  value={formState.availabilityTiming}
+                  onChange={(event) => updateField('availabilityTiming', event.target.value)}
+                  className="w-full appearance-none rounded-xl border border-brand-200 bg-white px-4 py-3 pr-10 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+                >
+                  {AVAILABILITY_TIMING_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
+                  ▾
+                </span>
+              </div>
+            </label>
+          </div>
+        </section>
+        <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
+          <h2 className="text-lg font-semibold text-brand-700">Zugangsdaten</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
             <span className="flex items-center gap-1">
               Benutzername
@@ -516,7 +552,7 @@ function CaregiverSignupPage() {
               aria-required="true"
             />
           </label>
-        </div>
+          </div>
         </section>
         <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
           <h2 className="text-lg font-semibold text-brand-700">Kontakt & Standort</h2>
