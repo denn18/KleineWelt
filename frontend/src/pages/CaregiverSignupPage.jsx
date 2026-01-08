@@ -474,19 +474,14 @@ function CaregiverSignupPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
               Plätze verfügbar?
-              <div className="relative">
-                <select
-                  value={formState.hasAvailability ? 'true' : 'false'}
-                  onChange={(event) => updateField('hasAvailability', event.target.value === 'true')}
-                  className="w-full appearance-none rounded-xl border border-brand-200 bg-white px-4 py-3 pr-10 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-                >
-                  <option value="true">Ja, es sind Plätze frei</option>
-                  <option value="false">Momentan ausgebucht</option>
-                </select>
-                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
-                  ▾
-                </span>
-              </div>
+              <select
+                value={formState.hasAvailability ? 'true' : 'false'}
+                onChange={(event) => updateField('hasAvailability', event.target.value === 'true')}
+                className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+              >
+                <option value="true">Ja, es sind Plätze frei</option>
+                <option value="false">Momentan ausgebucht</option>
+              </select>
             </label>
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
               Anzahl freier Plätze
@@ -501,22 +496,17 @@ function CaregiverSignupPage() {
             </label>
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
               Wann werden Plätze frei?
-              <div className="relative">
-                <select
-                  value={formState.availabilityTiming}
-                  onChange={(event) => updateField('availabilityTiming', event.target.value)}
-                  className="w-full appearance-none rounded-xl border border-brand-200 bg-white px-4 py-3 pr-10 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-                >
-                  {AVAILABILITY_TIMING_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">
-                  ▾
-                </span>
-              </div>
+              <select
+                value={formState.availabilityTiming}
+                onChange={(event) => updateField('availabilityTiming', event.target.value)}
+                className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+              >
+                {AVAILABILITY_TIMING_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
         </section>
