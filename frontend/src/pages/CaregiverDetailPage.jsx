@@ -175,9 +175,6 @@ function CaregiverDetailPage() {
   const profileImageUrl = caregiver.profileImageUrl ? assetUrl(caregiver.profileImageUrl) : '';
   const logoUrl = caregiver.logoImageUrl ? assetUrl(caregiver.logoImageUrl) : '';
   const conceptUrl = caregiver.conceptUrl ? assetUrl(caregiver.conceptUrl) : '';
-  const availabilityStyles = caregiver.hasAvailability
-    ? 'bg-emerald-50 text-emerald-700'
-    : 'bg-amber-50 text-amber-600';
   const sinceDate = caregiver.caregiverSince ? new Date(caregiver.caregiverSince) : null;
   const sinceYear = sinceDate && !Number.isNaN(sinceDate.valueOf()) ? sinceDate.getFullYear() : null;
   const experienceYears = sinceDate && !Number.isNaN(sinceDate.valueOf())
@@ -193,6 +190,16 @@ function CaregiverDetailPage() {
         return years >= 0 ? years : null;
       })()
     : null;
+  const availableSpotsLabel = formatAvailableSpotsLabel({
+    availableSpots: caregiver.availableSpots ?? 0,
+    hasAvailability: caregiver.hasAvailability,
+    availabilityTiming: caregiver.availabilityTiming,
+  });
+  const availableSpotsCount = Number.parseInt(caregiver.availableSpots ?? 0, 10);
+  const hasFreeSpots = Number.isFinite(availableSpotsCount) && availableSpotsCount > 0;
+  const availableSpotsStyles = hasFreeSpots
+    ? 'bg-emerald-50 text-emerald-700'
+    : 'bg-brand-50 text-slate-600';
 
   return (
     <section className="mx-auto mt-12 flex w-full max-w-5xl flex-col gap-10 rounded-3xl bg-white/85 p-10 shadow-xl">
@@ -209,16 +216,7 @@ function CaregiverDetailPage() {
             <h1 className="text-3xl font-semibold text-brand-700">{caregiver.daycareName || caregiver.name}</h1>
             {formattedAddress ? <p className="text-sm text-slate-600">{formattedAddress}</p> : null}
             <div className="flex flex-wrap gap-2 text-xs font-semibold text-brand-700">
-              <span className={`rounded-full px-3 py-1 ${availabilityStyles}`}>
-                {caregiver.hasAvailability ? 'Plätze verfügbar' : 'Derzeit ausgebucht'}
-              </span>
-              <span className="rounded-full bg-brand-50 px-3 py-1">
-                {formatAvailableSpotsLabel({
-                  availableSpots: caregiver.availableSpots ?? 0,
-                  hasAvailability: caregiver.hasAvailability,
-                  availabilityTiming: caregiver.availabilityTiming,
-                })}
-              </span>
+              <span className={`rounded-full px-3 py-1 ${availableSpotsStyles}`}>{availableSpotsLabel}</span>
               <span className="rounded-full bg-brand-50 px-3 py-1">
                 {caregiver.childrenCount ?? 0} betreute Kinder
               </span>
