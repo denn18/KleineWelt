@@ -1,19 +1,19 @@
 import { Route, Routes } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout.jsx';
-import HomePage from './pages/HomePage.jsx';
-import RoleSelectionPage from './pages/RoleSelectionPage.jsx';
-import CaregiverSignupPage from './pages/CaregiverSignupPage.jsx';
-import ParentSignupPage from './pages/ParentSignupPage.jsx';
-import DashboardPage from './pages/DashboardPage.jsx';
-import LoginPage from './pages/LoginPage.jsx';
-import ProfilePage from './pages/ProfilePage.jsx';
-import MessagesOverviewPage from './pages/MessagesOverviewPage.jsx';
-import MessengerPage from './pages/MessengerPage.jsx';
+import HomePage from './pages/HomePage/index.jsx';
+import RoleSelectionPage from './pages/RoleSelectionPage/index.jsx';
+import CaregiverSignupPage from './pages/CaregiverSignupPage/index.jsx';
+import ParentSignupPage from './pages/ParentSignupPage/index.jsx';
+import DashboardPage from './pages/DashboardPage/index.jsx';
+import LoginPage from './pages/LoginPage/index.jsx';
+import ProfilePage from './pages/ProfilePage/index.jsx';
+import MessagesOverviewPage from './pages/MessagesOverviewPage/index.jsx';
+import MessengerPage from './pages/MessengerPage/index.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
-import CaregiverDetailPage from './pages/CaregiverDetailPage.jsx';
-import ContactPage from './pages/ContactPage.jsx';
-import PrivacyPolicyPage from './pages/PrivacyPolicyPage.jsx';
-import ImprintPage from './pages/ImprintPage.jsx';
+import CaregiverDetailPage from './pages/CaregiverDetailPage/index.jsx';
+import ContactPage from './pages/ContactPage/index.jsx';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage/index.jsx';
+import ImprintPage from './pages/ImprintPage/index.jsx';
 
 function App() {
   return (
