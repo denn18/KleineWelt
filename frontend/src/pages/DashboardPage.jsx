@@ -351,8 +351,8 @@ function DashboardPage() {
                   caregiver.yearsOfExperience ?? calculateYearsSince(caregiver.caregiverSince);
                 const experienceText = yearsOfExperience !== null
                   ? yearsOfExperience === 0
-                    ? 'Seit diesem Jahr Tagespflegeperson'
-                    : `Seit ${yearsOfExperience} ${yearsOfExperience === 1 ? 'Jahr' : 'Jahren'} Tagespflegeperson`
+                    ? 'Seit diesem Jahr Kindertagespflegeperson'
+                    : `Seit ${yearsOfExperience} ${yearsOfExperience === 1 ? 'Jahr' : 'Jahren'} Kindertagespflegeperson`
                   : sinceYear
                     ? `Seit ${sinceYear} aktiv`
                     : null;
@@ -362,9 +362,9 @@ function DashboardPage() {
                   .trim();
                 const personInfoParts = [];
                 if (caregiverFullName) {
-                  personInfoParts.push(`Tagespflegeperson: ${caregiverFullName}`);
+                  personInfoParts.push(`Kindertagespflegeperson: ${caregiverFullName}`);
                 } else if (caregiver.name) {
-                  personInfoParts.push(`Tagespflegeperson: ${caregiver.name}`);
+                  personInfoParts.push(`Kindertagespflegeperson: ${caregiver.name}`);
                 }
                 if (caregiverAge !== null) {
                   personInfoParts.push(
@@ -458,8 +458,16 @@ function DashboardPage() {
                             <span className="rounded-full bg-brand-50 px-3 py-1">
                               {locationLabel || 'Ort folgt'}
                             </span>
-                            <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
-                              {formatAvailableSpotsLabel(caregiver.availableSpots ?? 0)}
+                            <span
+                              className={`rounded-full px-3 py-1 ${
+                                caregiver.hasAvailability ? 'bg-emerald-50 text-emerald-700' : 'bg-brand-50 text-slate-600'
+                              }`}
+                            >
+                              {formatAvailableSpotsLabel({
+                                availableSpots: caregiver.availableSpots ?? 0,
+                                hasAvailability: caregiver.hasAvailability,
+                                availabilityTiming: caregiver.availabilityTiming,
+                              })}
                             </span>
                             <span className="rounded-full bg-brand-50 px-3 py-1">
                               {`${caregiver.childrenCount ?? 0} Kinder in Betreuung`}
@@ -566,7 +574,11 @@ function DashboardPage() {
                           ) : null}
                           <div className="flex flex-wrap gap-2 text-xs font-semibold text-brand-700">
                             <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
-                              {formatAvailableSpotsLabel(caregiver.availableSpots ?? 0)}
+                              {formatAvailableSpotsLabel({
+                                availableSpots: caregiver.availableSpots ?? 0,
+                                hasAvailability: caregiver.hasAvailability,
+                                availabilityTiming: caregiver.availabilityTiming,
+                              })}
                             </span>
                             <span className="rounded-full bg-brand-50 px-3 py-1">
                               {caregiver.childrenCount ?? 0} betreute Kinder
@@ -668,8 +680,16 @@ function DashboardPage() {
                   </button>
                 ) : null}
                 <div className="flex flex-1 flex-wrap gap-2 text-xs font-semibold text-brand-700">
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
-                    {formatAvailableSpotsLabel(selectedCaregiver.availableSpots ?? 0)}
+                  <span
+                    className={`rounded-full px-3 py-1 ${
+                      selectedCaregiver.hasAvailability ? 'bg-emerald-50 text-emerald-700' : 'bg-brand-50 text-slate-600'
+                    }`}
+                  >
+                    {formatAvailableSpotsLabel({
+                      availableSpots: selectedCaregiver.availableSpots ?? 0,
+                      hasAvailability: selectedCaregiver.hasAvailability,
+                      availabilityTiming: selectedCaregiver.availabilityTiming,
+                    })}
                   </span>
                   <span className="rounded-full bg-brand-50 px-3 py-1">
                     {selectedCaregiver.childrenCount ?? 0} betreute Kinder

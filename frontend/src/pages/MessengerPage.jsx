@@ -201,7 +201,13 @@ function MessengerPage() {
       ? partner.availableSpots
       : partner.availableSpots ?? 0
     : null;
-  const availabilityBadge = availableSpots !== null ? formatAvailableSpotsLabel(availableSpots) : null;
+  const availabilityBadge = partner
+    ? formatAvailableSpotsLabel({
+        availableSpots,
+        hasAvailability: partner.hasAvailability,
+        availabilityTiming: partner.availabilityTiming,
+      })
+    : null;
   const ageBadge = typeof partner?.age === 'number' ? `Alter: ${partner.age} Jahre` : null;
   const partnerConceptUrl = partner?.conceptUrl ? assetUrl(partner.conceptUrl) : '';
 
@@ -247,7 +253,9 @@ function MessengerPage() {
               {childrenBadge ? <span className="rounded-full bg-brand-50 px-3 py-1">{childrenBadge}</span> : null}
               {availabilityBadge ? (
                 <span
-                  className={`rounded-full px-3 py-1 ${availableSpots > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-brand-50'}`}
+                  className={`rounded-full px-3 py-1 ${
+                    partner?.hasAvailability ? 'bg-emerald-50 text-emerald-700' : 'bg-brand-50 text-slate-600'
+                  }`}
                 >
                   {availabilityBadge}
                 </span>
