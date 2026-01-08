@@ -939,18 +939,7 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
             />
           </label>
         </div>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-            Plätze verfügbar?
-            <select
-              value={formState.hasAvailability ? 'yes' : 'no'}
-              onChange={(event) => updateField('hasAvailability', event.target.value === 'yes')}
-              className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
-            >
-              <option value="yes">Ja, es sind Plätze frei</option>
-              <option value="no">Momentan ausgebucht</option>
-            </select>
-          </label>
+        <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
             Anzahl freier Plätze
             <input

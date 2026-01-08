@@ -179,7 +179,6 @@ function DashboardPage() {
     const date = new Date(selectedCaregiver.caregiverSince);
     return Number.isNaN(date.valueOf()) ? null : date.getFullYear();
   }, [selectedCaregiver]);
-  const selectedAvailability = selectedCaregiver?.hasAvailability ? 'Plätze verfügbar' : 'Zurzeit ausgebucht';
 
   function toggleCard(caregiverId) {
     setCollapsedCards((current) => ({ ...current, [caregiverId]: !current[caregiverId] }));
@@ -342,9 +341,6 @@ function DashboardPage() {
                 const sinceYear = sinceDate && !Number.isNaN(sinceDate.valueOf())
                   ? sinceDate.getFullYear()
                   : null;
-                const availabilityMessage = caregiver.hasAvailability
-                  ? 'Plätze verfügbar'
-                  : 'Zurzeit ausgebucht';
                 const caregiverAge =
                   caregiver.age ?? calculateAge(caregiver.birthDate);
                 const yearsOfExperience =
@@ -518,7 +514,6 @@ function DashboardPage() {
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-                        <span>{availabilityMessage}</span>
                         <button
                           type="button"
                           onClick={(event) => {
@@ -705,7 +700,6 @@ function DashboardPage() {
                 </div>
               </div>
               <div className="grid gap-3 text-sm text-slate-600">
-                <span className="text-xs font-semibold text-brand-600">{selectedAvailability}</span>
                 {selectedRoomImages.length ? (
                   <div className="flex flex-col gap-2">
                     <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Räumlichkeiten</h3>
