@@ -78,6 +78,20 @@ function buildRoomGalleryItem(imageRef) {
   };
 }
 
+function buildContractDocumentItem(document) {
+  if (!document) return null;
+
+  const fileRef = document.file ?? document.fileRef ?? document.document ?? null;
+  const idSource = fileRef?.key || fileRef?.url || document.id;
+  return {
+    id: idSource || generateTempId(),
+    name: document.name || '',
+    file: fileRef || null,
+    fileData: null,
+    fileName: fileRef?.fileName || '',
+  };
+}
+
 function ChildrenEditor({ childrenList, onChange }) {
   function updateChild(index, field, value) {
     const updated = childrenList.map((child, childIndex) =>
@@ -488,6 +502,9 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
     fileData: null,
     action: 'keep',
   });
+  const [contractDocuments, setContractDocuments] = useState(() =>
+    (profile.contractDocuments ?? []).map((document) => buildContractDocumentItem(document)).filter(Boolean)
+  );
   const [statusMessage, setStatusMessage] = useState(null);
 
   useEffect(() => {
@@ -536,6 +553,9 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
       action: 'keep',
     });
     setConceptState({ fileName: '', fileData: null, action: 'keep' });
+    setContractDocuments(
+      (profile.contractDocuments ?? []).map((document) => buildContractDocumentItem(document)).filter(Boolean)
+    );
     setRoomGallery(
       (profile.roomImages ?? [])
         .map((imageRef) => buildRoomGalleryItem(imageRef))
@@ -654,6 +674,35 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
 
   function handleRemoveConcept() {
     setConceptState({ fileName: '', fileData: null, action: 'remove' });
+  }
+
+  function handleAddContractDocument() {
+    setContractDocuments((current) => [
+      ...current,
+      { id: generateTempId(), name: '', file: null, fileData: null, fileName: '' },
+    ]);
+  }
+
+  function handleRemoveContractDocument(id) {
+    setContractDocuments((current) => current.filter((doc) => doc.id !== id));
+  }
+
+  function updateContractDocument(id, field, value) {
+    setContractDocuments((current) =>
+      current.map((doc) => (doc.id === id ? { ...doc, [field]: value } : doc))
+    );
+  }
+
+  async function handleContractDocumentFileChange(id, event) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    const dataUrl = await readFileAsDataUrl(file);
+    updateContractDocument(id, 'fileData', dataUrl);
+    updateContractDocument(id, 'fileName', file.name);
+    updateContractDocument(id, 'file', null);
+    event.target.value = '';
   }
 
   async function handleRoomImagesChange(event) {
@@ -798,6 +847,14 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
           image.fileData ? { dataUrl: image.fileData, fileName: image.fileName } : image.source
         )
         .filter(Boolean),
+      contractDocuments: contractDocuments
+        .map((document) => ({
+          name: document.name?.trim(),
+          file: document.fileData
+            ? { dataUrl: document.fileData, fileName: document.fileName }
+            : document.file,
+        }))
+        .filter((document) => document.name && document.file),
     };
 
     if (formState.newPassword.trim()) {
@@ -1255,6 +1312,76 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
           className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
           placeholder="Beschreibe Frühstück, Mittagessen und Snacks."
         />
+      </section>
+
+      <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-brand-700">Vertragsunterlagen</h2>
+            <p className="text-xs text-slate-500">
+              Füge optionale Vertragsunterlagen hinzu. Dokumente nur im PDF-Format hochladen.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAddContractDocument}
+            className="rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+          >
+            1 Dokument hinzufügen
+          </button>
+        </div>
+        {contractDocuments.length ? (
+          <div className="flex flex-col gap-4">
+            {contractDocuments.map((document) => (
+              <div key={document.id} className="grid gap-4 rounded-2xl border border-brand-100 bg-white/70 p-4 sm:grid-cols-[2fr,1fr] sm:items-center">
+                <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                  Name des Dokuments
+                  <input
+                    value={document.name}
+                    onChange={(event) => updateContractDocument(document.id, 'name', event.target.value)}
+                    className="rounded-xl border border-brand-200 px-3 py-2 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
+                    placeholder="z. B. Betreuungsvertrag"
+                  />
+                </label>
+                <div className="flex flex-col gap-2 text-sm">
+                  <IconUploadButton
+                    label="PDF hochladen"
+                    accept="application/pdf"
+                    onChange={(event) => handleContractDocumentFileChange(document.id, event)}
+                  />
+                  <span className="text-xs text-slate-500">
+                    {document.fileName
+                      ? `Ausgewählt: ${document.fileName}`
+                      : document.file
+                        ? 'Ein Dokument ist bereits hinterlegt.'
+                        : 'Noch kein Dokument ausgewählt.'}
+                  </span>
+                  {document.file ? (
+                    <a
+                      href={assetUrl(document.file)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                    >
+                      Dokument ansehen
+                    </a>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveContractDocument(document.id)}
+                    className="self-start text-xs font-semibold text-rose-600 hover:text-rose-700"
+                  >
+                    Dokument entfernen
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-2xl border border-dashed border-brand-200 bg-white/60 px-4 py-6 text-sm text-slate-500">
+            Noch keine Vertragsunterlagen hinzugefügt. Nutze den Button, um ein Dokument hochzuladen.
+          </p>
+        )}
       </section>
 
       <section className="grid gap-5 rounded-3xl bg-white/80 p-6 shadow">

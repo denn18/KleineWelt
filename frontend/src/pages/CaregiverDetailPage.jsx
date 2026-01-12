@@ -175,6 +175,7 @@ function CaregiverDetailPage() {
   const profileImageUrl = caregiver.profileImageUrl ? assetUrl(caregiver.profileImageUrl) : '';
   const logoUrl = caregiver.logoImageUrl ? assetUrl(caregiver.logoImageUrl) : '';
   const conceptUrl = caregiver.conceptUrl ? assetUrl(caregiver.conceptUrl) : '';
+  const contractDocuments = caregiver.contractDocuments ?? [];
   const sinceDate = caregiver.caregiverSince ? new Date(caregiver.caregiverSince) : null;
   const sinceYear = sinceDate && !Number.isNaN(sinceDate.valueOf()) ? sinceDate.getFullYear() : null;
   const experienceYears = sinceDate && !Number.isNaN(sinceDate.valueOf())
@@ -344,6 +345,40 @@ function CaregiverDetailPage() {
         <p className="text-sm text-slate-600">
           {caregiver.mealPlan || 'Die Kindertagespflege hat noch keine Informationen zum Essensplan ergänzt.'}
         </p>
+      </section>
+
+      <section className="grid gap-3">
+        <SectionHeading title="Unterlagen" />
+        {contractDocuments.length ? (
+          <ul className="grid gap-3">
+            {contractDocuments.map((document, index) => {
+              const fileUrl = document?.file ? assetUrl(document.file) : '';
+              const label = document?.name || `Dokument ${index + 1}`;
+              return (
+                <li
+                  key={`${label}-${index}`}
+                  className="flex flex-col gap-2 rounded-2xl border border-brand-100 bg-white/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <span className="text-sm font-semibold text-brand-700">{label}</span>
+                  {fileUrl ? (
+                    <a
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-fit rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                    >
+                      Dokument herunterladen
+                    </a>
+                  ) : (
+                    <span className="text-xs text-slate-500">Kein Dokument hinterlegt.</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="text-sm text-slate-500">Es wurden keine Unterlagen hinterlegt.</p>
+        )}
       </section>
 
       <section className="grid gap-4">

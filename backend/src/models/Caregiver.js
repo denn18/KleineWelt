@@ -85,6 +85,26 @@ function normalizeImageArray(input) {
   return input.map((entry) => normalizeFileReference(entry)).filter(Boolean);
 }
 
+function normalizeContractDocuments(input) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .map((item) => {
+      const name = item?.name?.trim();
+      if (!name) {
+        return null;
+      }
+      const fileRef = normalizeFileReference(item?.file ?? item?.fileRef ?? item?.document);
+      if (!fileRef) {
+        return null;
+      }
+      return { name, file: fileRef };
+    })
+    .filter(Boolean);
+}
+
 export function serializeCaregiver(document) {
   if (!document) {
     return null;
@@ -125,6 +145,14 @@ export function serializeCaregiver(document) {
     : [];
   rest.caregiverImages = Array.isArray(rest.caregiverImages)
     ? rest.caregiverImages.map((entry) => normalizeFileReference(entry)).filter(Boolean)
+    : [];
+  rest.contractDocuments = Array.isArray(rest.contractDocuments)
+    ? rest.contractDocuments
+        .map((doc) => ({
+          name: doc?.name ?? null,
+          file: normalizeFileReference(doc?.file),
+        }))
+        .filter((doc) => doc.name && doc.file)
     : [];
 
   return {
@@ -172,6 +200,7 @@ export function buildCaregiverDocument(data) {
   const mealPlan = data.mealPlan?.trim() || null;
   const roomImages = normalizeImageArray(data.roomImages);
   const caregiverImages = normalizeImageArray(data.caregiverImages);
+  const contractDocuments = normalizeContractDocuments(data.contractDocuments);
   const closedDays = Array.isArray(data.closedDays)
     ? data.closedDays.map((day) => day?.trim()).filter(Boolean)
     : [];
@@ -205,6 +234,7 @@ export function buildCaregiverDocument(data) {
     mealPlan,
     roomImages,
     caregiverImages,
+    contractDocuments,
     closedDays,
     username: data.username?.trim() || data.email?.trim(),
     password: data.password,
@@ -311,6 +341,9 @@ export function buildCaregiverUpdate(data) {
   }
   if (data.caregiverImages !== undefined) {
     update.caregiverImages = normalizeImageArray(data.caregiverImages);
+  }
+  if (data.contractDocuments !== undefined) {
+    update.contractDocuments = normalizeContractDocuments(data.contractDocuments);
   }
   if (data.closedDays !== undefined) {
     update.closedDays = Array.isArray(data.closedDays)
