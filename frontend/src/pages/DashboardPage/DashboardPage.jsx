@@ -1,0 +1,775 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+// import MapView from '../components/MapView.jsx'; Google Maps API später einrichten, kostet Geld
+import { useAuth } from '../context/AuthContext.jsx';
+import ImageLightbox from '../components/ImageLightbox.jsx';
+import { assetUrl } from '../utils/file.js';
+import { formatAvailableSpotsLabel } from '../utils/availability.js';
+
+function calculateAge(value) {
+  if (!value) {
+    return null;
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) {
+    return null;
+  }
+  const now = new Date();
+  let age = now.getFullYear() - date.getFullYear();
+  const hasBirthdayPassed =
+    now.getMonth() > date.getMonth() || (now.getMonth() === date.getMonth() && now.getDate() >= date.getDate());
+  if (!hasBirthdayPassed) {
+    age -= 1;
+  }
+  return age >= 0 ? age : null;
+}
+
+function calculateYearsSince(value) {
+  if (!value) {
+    return null;
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) {
+    return null;
+  }
+  const now = new Date();
+  let years = now.getFullYear() - date.getFullYear();
+  const hasAnniversaryPassed =
+    now.getMonth() > date.getMonth() || (now.getMonth() === date.getMonth() && now.getDate() >= date.getDate());
+  if (!hasAnniversaryPassed) {
+    years -= 1;
+  }
+  return years >= 0 ? years : null;
+}
+
+function DashboardPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({ postalCode: '', city: '', search: '' });
+  const [caregivers, setCaregivers] = useState([]);
+  const [selectedCaregiver, setSelectedCaregiver] = useState(null);
+  const [collapsedCards, setCollapsedCards] = useState({});
+  const [roomImageIndexes, setRoomImageIndexes] = useState({});
+  const [suggestions, setSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState(null);
+  const suggestionsRef = useRef(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    setSearchTerm('');
+    setFilters((current) => {
+      if (!current.postalCode && !current.city && !current.search) {
+        return current;
+      }
+      return { postalCode: '', city: '', search: '' };
+    });
+  }, [location.key]);
+
+  useEffect(() => {
+    async function fetchCaregivers() {
+      const params = Object.fromEntries(
+        Object.entries(filters)
+          .filter(([, value]) => Boolean(value))
+          .map(([key, value]) => [key, value])
+      );
+
+      const response = await axios.get('/api/caregivers', {
+        params: Object.keys(params).length ? params : undefined,
+      });
+      setCaregivers(response.data);
+      if (response.data.length) {
+        setSelectedCaregiver(response.data[0]);
+      } else {
+        setSelectedCaregiver(null);
+      }
+      setCollapsedCards((current) => {
+        const next = {};
+        response.data.forEach((caregiver) => {
+          next[caregiver.id] = current[caregiver.id] ?? true;
+        });
+        return next;
+      });
+      setRoomImageIndexes((current) => {
+        const next = {};
+        response.data.forEach((caregiver) => {
+          next[caregiver.id] = current[caregiver.id] ?? 0;
+        });
+        return next;
+      });
+    }
+
+    fetchCaregivers().catch((error) => {
+      console.error('Failed to load caregivers', error);
+    });
+  }, [filters]);
+
+  useEffect(() => {
+    if (!searchTerm || searchTerm.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    let ignore = false;
+    setLoadingSuggestions(true);
+
+    axios
+      .get('/api/caregivers/locations', {
+        params: { q: searchTerm.trim() },
+      })
+      .then((response) => {
+        if (!ignore) {
+          setSuggestions(response.data);
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load caregiver locations', error);
+        if (!ignore) {
+          setSuggestions([]);
+        }
+      })
+      .finally(() => {
+        if (!ignore) {
+          setLoadingSuggestions(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [searchTerm]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
+        setSuggestionsOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const caregiversForMap = useMemo(() => caregivers.filter((caregiver) => caregiver.location), [caregivers]);
+
+  const activeLocation = useMemo(() => {
+    if (filters.postalCode || filters.city) {
+      return [filters.postalCode, filters.city].filter(Boolean).join(' ');
+    }
+    if (filters.search) {
+      return filters.search;
+    }
+    return '';
+  }, [filters]);
+
+  const selectedLogo = selectedCaregiver?.logoImageUrl ? assetUrl(selectedCaregiver.logoImageUrl) : '';
+  const selectedProfileImage = selectedCaregiver?.profileImageUrl ? assetUrl(selectedCaregiver.profileImageUrl) : '';
+  const selectedConceptUrl = selectedCaregiver?.conceptUrl ? assetUrl(selectedCaregiver.conceptUrl) : '';
+  const selectedRoomImages = useMemo(
+    () => (selectedCaregiver?.roomImages ?? []).map((url) => assetUrl(url)),
+    [selectedCaregiver],
+  );
+  const selectedSinceYear = useMemo(() => {
+    if (!selectedCaregiver?.caregiverSince) {
+      return null;
+    }
+    const date = new Date(selectedCaregiver.caregiverSince);
+    return Number.isNaN(date.valueOf()) ? null : date.getFullYear();
+  }, [selectedCaregiver]);
+
+  function toggleCard(caregiverId) {
+    setCollapsedCards((current) => ({ ...current, [caregiverId]: !current[caregiverId] }));
+  }
+
+  function handleCycleRoomImage(caregiverId, direction) {
+    setRoomImageIndexes((current) => {
+      const caregiverData = caregivers.find((entry) => entry.id === caregiverId);
+      const images = caregiverData?.roomImages ?? [];
+      if (!images.length) {
+        return current;
+      }
+      const total = images.length;
+      const currentIndex = current[caregiverId] ?? 0;
+      const nextIndex = (currentIndex + direction + total) % total;
+      return { ...current, [caregiverId]: nextIndex };
+    });
+  }
+
+  function openLightbox(url, alt) {
+    if (!url) {
+      return;
+    }
+    setLightboxImage({ url, alt });
+  }
+
+  function closeLightbox() {
+    setLightboxImage(null);
+  }
+
+  function handleOpenMessenger(caregiver) {
+    if (!user) {
+      navigate('/login', { state: { from: location.pathname } });
+      return;
+    }
+
+    navigate(`/nachrichten/${caregiver.id}`, {
+      state: { partner: { ...caregiver, role: 'caregiver' } },
+    });
+  }
+
+  function handleSuggestionSelect(suggestion) {
+    const label = [suggestion.postalCode, suggestion.city].filter(Boolean).join(' ');
+    setSearchTerm(label);
+    setFilters({ postalCode: suggestion.postalCode ?? '', city: suggestion.city ?? '', search: '' });
+    setSuggestionsOpen(false);
+  }
+
+  function handleSearchSubmit(event) {
+    event.preventDefault();
+    const trimmed = searchTerm.trim();
+    if (!trimmed) {
+      setFilters({ postalCode: '', city: '', search: '' });
+      setSuggestionsOpen(false);
+      return;
+    }
+
+    const parts = trimmed.split(/\s+/);
+    const first = parts[0];
+    if (/^\d{5}$/.test(first)) {
+      const cityName = parts.slice(1).join(' ').trim();
+      setFilters({ postalCode: first, city: cityName, search: '' });
+    } else {
+      setFilters({ postalCode: '', city: '', search: trimmed });
+    }
+    setSuggestionsOpen(false);
+  }
+
+  return (
+    <section className="flex flex-col gap-8">
+      <header className="flex flex-col gap-2">
+        <h1 className="text-3xl font-semibold text-brand-700">Familienzentrum</h1>
+        <p className="text-sm text-slate-600">
+          Finde Tagespflegepersonen in deiner Nähe, vergleiche Profile und starte persönliche Gespräche.
+        </p>
+      </header>
+
+      <form
+        className="flex flex-col gap-4 rounded-3xl bg-white/80 p-6 shadow md:flex-row md:items-center"
+        onSubmit={handleSearchSubmit}
+      >
+        <div className="relative flex flex-1 flex-col gap-2 text-sm font-medium text-slate-700" ref={suggestionsRef}>
+          <label className="flex flex-col gap-2">
+            Ort oder Postleitzahl suchen
+            <input
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              onFocus={() => setSuggestionsOpen(true)}
+              //Später wieder in PLZ eingeben ändern!!!!!
+              placeholder="aktuell nur 33332, Gütersloh :)"
+              className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+            />
+          </label>
+          {suggestionsOpen && (loadingSuggestions || suggestions.length > 0) ? (
+            <div className="absolute top-full z-10 mt-2 w-full rounded-2xl border border-brand-100 bg-white shadow-lg">
+              {loadingSuggestions ? (
+                <p className="px-4 py-3 text-xs text-slate-500">Orte werden geladen…</p>
+              ) : (
+                <ul className="max-h-60 overflow-y-auto text-sm">
+                  {suggestions.map((suggestion, index) => {
+                    const label = [suggestion.postalCode, suggestion.city].filter(Boolean).join(' ');
+                    return (
+                      <li key={`${suggestion.postalCode}-${suggestion.city}-${index}`}>
+                        <button
+                          type="button"
+                          onClick={() => handleSuggestionSelect(suggestion)}
+                          className="flex w-full flex-col gap-0.5 px-4 py-3 text-left hover:bg-brand-50"
+                        >
+                          <span className="font-medium text-brand-700">{label || suggestion.daycareName}</span>
+                          {suggestion.daycareName ? (
+                            <span className="text-xs text-slate-500">Empfohlen: {suggestion.daycareName}</span>
+                          ) : null}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          ) : null}
+        </div>
+        <div className="flex flex-col items-start gap-2 text-xs text-slate-500 md:w-48">
+          <span className="rounded-full bg-brand-50 px-3 py-1 font-semibold text-brand-600">{caregivers.length} Profile</span>
+          {activeLocation ? <span className="text-xs">Aktueller Filter: {activeLocation}</span> : null}
+        </div>
+        <button
+          type="submit"
+          className="rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-brand-700"
+        >
+          Suche aktualisieren
+        </button>
+      </form>
+
+      <div className="grid gap-6 xl:grid-cols-[3fr,2fr]">
+        <div className="flex flex-col gap-6">
+          <div className="rounded-3xl bg-white/80 p-6 shadow">
+            <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-brand-700">Gefundene Kindertagespflegepersonen</h2>
+                <p className="text-xs text-slate-500">
+                  Scroll durch die Kacheln, vergleiche Angebote und öffne Details mit einem Klick.
+                </p>
+              </div>
+              <span className="text-xs font-semibold text-brand-600">{caregivers.length} Profile</span>
+            </header>
+            <div className="mt-4 flex max-h-[480px] flex-col gap-4 overflow-y-auto pr-2">
+              {caregivers.map((caregiver) => {
+                const collapsed = collapsedCards[caregiver.id] ?? true;
+                const locationLabel = [caregiver.postalCode, caregiver.city].filter(Boolean).join(' ');
+                const logoUrl = caregiver.logoImageUrl ? assetUrl(caregiver.logoImageUrl) : '';
+                const roomImages = (caregiver.roomImages ?? []).map((imageUrl) => assetUrl(imageUrl));
+                const profileImageUrl = caregiver.profileImageUrl ? assetUrl(caregiver.profileImageUrl) : '';
+                const currentRoomIndex = roomImages.length
+                  ? (roomImageIndexes[caregiver.id] ?? 0) % roomImages.length
+                  : 0;
+                const currentRoomImage = roomImages.length ? roomImages[currentRoomIndex] : '';
+                const sinceDate = caregiver.caregiverSince
+                  ? new Date(caregiver.caregiverSince)
+                  : null;
+                const sinceYear = sinceDate && !Number.isNaN(sinceDate.valueOf())
+                  ? sinceDate.getFullYear()
+                  : null;
+                const caregiverAge =
+                  caregiver.age ?? calculateAge(caregiver.birthDate);
+                const yearsOfExperience =
+                  caregiver.yearsOfExperience ?? calculateYearsSince(caregiver.caregiverSince);
+                const experienceText = yearsOfExperience !== null
+                  ? yearsOfExperience === 0
+                    ? 'Seit diesem Jahr Kindertagespflegeperson'
+                    : `Seit ${yearsOfExperience} ${yearsOfExperience === 1 ? 'Jahr' : 'Jahren'} Kindertagespflegeperson`
+                  : sinceYear
+                    ? `Seit ${sinceYear} aktiv`
+                    : null;
+                const caregiverFullName = [caregiver.firstName, caregiver.lastName]
+                  .filter(Boolean)
+                  .join(' ')
+                  .trim();
+                const personInfoParts = [];
+                if (caregiverFullName) {
+                  personInfoParts.push(`Kindertagespflegeperson: ${caregiverFullName}`);
+                } else if (caregiver.name) {
+                  personInfoParts.push(`Kindertagespflegeperson: ${caregiver.name}`);
+                }
+                if (caregiverAge !== null) {
+                  personInfoParts.push(
+                    `${caregiverAge} ${caregiverAge === 1 ? 'Jahr' : 'Jahre'} alt`
+                  );
+                }
+                if (experienceText) {
+                  personInfoParts.push(experienceText);
+                }
+                const personInfo = personInfoParts.join(' · ');
+
+                return (
+                  <article
+                    key={caregiver.id}
+                    className={`flex flex-col gap-4 rounded-2xl border px-5 py-4 transition hover:border-brand-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 cursor-pointer ${
+                      selectedCaregiver?.id === caregiver.id
+                        ? 'border-brand-400 bg-brand-50/80'
+                        : 'border-brand-100 bg-white'
+                    }`}
+                    onClick={() => setSelectedCaregiver(caregiver)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setSelectedCaregiver(caregiver);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div className="flex flex-col gap-3">
+                    <div className="flex items-start gap-4">
+                      <div className="flex w-16 flex-col items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openLightbox(logoUrl, `Logo von ${caregiver.daycareName || caregiver.name}`);
+                          }}
+                          disabled={!logoUrl}
+                          className={`flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border ${
+                            logoUrl
+                              ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
+                              : 'border-dashed border-brand-200 bg-brand-50'
+                          }`}
+                        >
+                          {logoUrl ? (
+                            <img
+                              src={logoUrl}
+                              alt={`Logo von ${caregiver.daycareName || caregiver.name}`}
+                              className="h-full w-full object-contain"
+                            />
+                          ) : (
+                            <span className="text-[10px] font-semibold text-slate-400">Logo folgt</span>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openLightbox(profileImageUrl, caregiver.daycareName || caregiver.name);
+                          }}
+                          disabled={!profileImageUrl}
+                          className={`h-16 w-16 overflow-hidden rounded-2xl border ${
+                            profileImageUrl
+                              ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
+                              : 'border-dashed border-brand-200 bg-brand-50'
+                          }`}
+                          aria-label="Profilbild vergrößern"
+                        >
+                          {profileImageUrl ? (
+                            <img
+                              src={profileImageUrl}
+                              alt={caregiver.daycareName || caregiver.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-slate-400">
+                              Kein Bild
+                            </div>
+                          )}
+                        </button>
+                      </div>
+                      <div className="flex flex-1 flex-col gap-2">
+                        <h3 className="text-base font-semibold text-brand-700">
+                          {caregiver.daycareName || caregiver.name}
+                          </h3>
+                          {personInfo ? (
+                            <p className="text-sm text-slate-600">{personInfo}</p>
+                          ) : null}
+                          <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+                            <span className="rounded-full bg-brand-50 px-3 py-1">
+                              {locationLabel || 'Ort folgt'}
+                            </span>
+                            <span
+                              className={`rounded-full px-3 py-1 ${
+                                caregiver.hasAvailability ? 'bg-emerald-50 text-emerald-700' : 'bg-brand-50 text-slate-600'
+                              }`}
+                            >
+                              {formatAvailableSpotsLabel({
+                                availableSpots: caregiver.availableSpots ?? 0,
+                                hasAvailability: caregiver.hasAvailability,
+                                availabilityTiming: caregiver.availabilityTiming,
+                              })}
+                            </span>
+                            <span className="rounded-full bg-brand-50 px-3 py-1">
+                              {`${caregiver.childrenCount ?? 0} Kinder in Betreuung`}
+                            </span>
+                            {caregiver.maxChildAge ? (
+                              <span className="rounded-full bg-brand-50 px-3 py-1">
+                                bis {caregiver.maxChildAge} Jahre
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                        <div className="relative flex h-20 w-28 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
+                          {currentRoomImage ? (
+                            <img
+                              src={currentRoomImage}
+                              alt={`Räumlichkeit von ${caregiver.daycareName || caregiver.name}`}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-[10px] font-semibold text-slate-400">Noch keine Räume</span>
+                          )}
+                          {roomImages.length > 1 ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleCycleRoomImage(caregiver.id, -1);
+                                }}
+                                className="absolute left-1 top-1/2 -translate-y-1/2 rounded-full bg-white/80 px-2 py-1 text-[10px] font-semibold text-brand-600 shadow hover:bg-white"
+                                aria-label="Vorheriges Raumbild anzeigen"
+                              >
+                                ←
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  handleCycleRoomImage(caregiver.id, 1);
+                                }}
+                                className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-white/80 px-2 py-1 text-[10px] font-semibold text-brand-600 shadow hover:bg-white"
+                                aria-label="Nächstes Raumbild anzeigen"
+                              >
+                                →
+                              </button>
+                            </>
+                          ) : null}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            toggleCard(caregiver.id);
+                          }}
+                          //className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                          //Hier war Detail Ansicht für die Kacheln, ist erstmal weg sonst hat man doppelte Info mit dem rechten Steckbrief
+                        >
+                          {/* {collapsed ? 'Details anzeigen' : 'Details schließen'} */}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* {!collapsed ? (
+                      <div className="grid gap-4 border-t border-brand-100 pt-4 sm:grid-cols-[auto,1fr]">
+                        <div className="flex flex-col items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openLightbox(profileImageUrl, caregiver.daycareName || caregiver.name);
+                            }}
+                            disabled={!profileImageUrl}
+                            className={`h-24 w-24 overflow-hidden rounded-3xl border ${
+                              profileImageUrl
+                                ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
+                                : 'border-dashed border-brand-200 bg-brand-50'
+                            }`}
+                          >
+                            {profileImageUrl ? (
+                              <img
+                                src={profileImageUrl}
+                                alt={caregiver.daycareName || caregiver.name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">Kein Bild</div>
+                            )}
+                          </button>
+                          {sinceYear ? (
+                            <span className="text-[11px] font-semibold text-brand-600">
+                              Seit {sinceYear} aktiv
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="flex flex-col gap-3 text-sm text-slate-600">
+                          {caregiver.bio ? (
+                            <div className="flex flex-col gap-1">
+                              <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Über dich</h3>
+                              <p className="leading-relaxed">{caregiver.bio}</p>
+                            </div>
+                          ) : null}
+                          <div className="flex flex-wrap gap-2 text-xs font-semibold text-brand-700">
+                            <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
+                              {formatAvailableSpotsLabel({
+                                availableSpots: caregiver.availableSpots ?? 0,
+                                hasAvailability: caregiver.hasAvailability,
+                                availabilityTiming: caregiver.availabilityTiming,
+                              })}
+                            </span>
+                            <span className="rounded-full bg-brand-50 px-3 py-1">
+                              {caregiver.childrenCount ?? 0} betreute Kinder
+                            </span>
+                            {caregiver.maxChildAge ? (
+                              <span className="rounded-full bg-brand-50 px-3 py-1">
+                                Aufnahme bis {caregiver.maxChildAge} Jahre
+                              </span>
+                            ) : null}
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Link
+                              to={`/kindertagespflege/${caregiver.id}`}
+                              onClick={(event) => event.stopPropagation()}
+                              className="rounded-full border border-brand-600 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:bg-brand-600 hover:text-white"
+                            >
+                              Kindertagespflege kennenlernen
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleOpenMessenger(caregiver);
+                              }}
+                              className="rounded-full bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700"
+                            >
+                              Nachricht schreiben
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null} */}
+                  </article>
+                );
+              })}
+              {!caregivers.length ? (
+                <p className="rounded-2xl border border-dashed border-brand-200 bg-white px-4 py-6 text-sm text-slate-500">
+                  Keine Tagespflegepersonen gefunden. Probiere eine andere Postleitzahl oder bitte eine Tagespflegeperson, ein
+                  Profil anzulegen.
+                </p>
+              ) : null}
+            </div>
+          </div>
+          {/*  Google Maps API hier später vernünftig einrichten, kostet Geld
+          <div className="rounded-3xl bg-white/80 p-6 shadow">
+            <h2 className="text-xl font-semibold text-brand-700">Live-Karte</h2>
+            <p className="mb-4 text-xs text-slate-500">
+              Die Karte zeigt dir eine Vorschau der Tagespflegepersonen in deiner Nähe. Für eine genaue Positionierung kannst du
+              später API-Schlüssel für deinen Lieblingskartenanbieter hinterlegen.
+            </p>
+            <MapView caregivers={caregiversForMap} />
+          </div> */}
+        </div>
+
+        <aside className="flex flex-col gap-4 rounded-3xl bg-white/80 p-6 shadow">
+          {selectedCaregiver ? (
+            <div className="flex flex-col gap-4">
+              <header className="flex flex-col gap-1">
+                <h2 className="text-2xl font-semibold text-brand-700">{selectedCaregiver.daycareName || selectedCaregiver.name}</h2>
+                <p className="text-sm text-slate-600">
+                  {[
+                    selectedCaregiver.address,
+                    [selectedCaregiver.postalCode, selectedCaregiver.city].filter(Boolean).join(' '),
+                  ]
+                    .filter(Boolean)
+                    .join(', ')}
+                </p>
+              </header>
+              <div className="flex flex-wrap items-center gap-4">
+                {selectedLogo ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openLightbox(
+                        selectedLogo,
+                        `Logo von ${selectedCaregiver.daycareName || selectedCaregiver.name}`,
+                      )
+                    }
+                    className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
+                  >
+                    <img
+                      src={selectedLogo}
+                      alt={`Logo von ${selectedCaregiver.daycareName || selectedCaregiver.name}`}
+                      className="h-full w-full object-contain"
+                    />
+                  </button>
+                ) : null}
+                {selectedProfileImage ? (
+                  <button
+                    type="button"
+                    onClick={() => openLightbox(selectedProfileImage, selectedCaregiver.daycareName || selectedCaregiver.name)}
+                    className="h-16 w-16 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
+                  >
+                    <img
+                      src={selectedProfileImage}
+                      alt={selectedCaregiver.daycareName || selectedCaregiver.name}
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                ) : null}
+                <div className="flex flex-1 flex-wrap gap-2 text-xs font-semibold text-brand-700">
+                  <span
+                    className={`rounded-full px-3 py-1 ${
+                      selectedCaregiver.hasAvailability ? 'bg-emerald-50 text-emerald-700' : 'bg-brand-50 text-slate-600'
+                    }`}
+                  >
+                    {formatAvailableSpotsLabel({
+                      availableSpots: selectedCaregiver.availableSpots ?? 0,
+                      hasAvailability: selectedCaregiver.hasAvailability,
+                      availabilityTiming: selectedCaregiver.availabilityTiming,
+                    })}
+                  </span>
+                  <span className="rounded-full bg-brand-50 px-3 py-1">
+                    {selectedCaregiver.childrenCount ?? 0} betreute Kinder
+                  </span>
+                  {selectedCaregiver.maxChildAge ? (
+                    <span className="rounded-full bg-brand-50 px-3 py-1">
+                      Aufnahme bis {selectedCaregiver.maxChildAge} Jahre
+                    </span>
+                  ) : null}
+                  {selectedSinceYear ? (
+                    <span className="rounded-full bg-brand-50 px-3 py-1">Seit {selectedSinceYear} aktiv</span>
+                  ) : null}
+                </div>
+              </div>
+              <div className="grid gap-3 text-sm text-slate-600">
+                {selectedRoomImages.length ? (
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Räumlichkeiten</h3>
+                    <div className="grid grid-cols-3 gap-2">
+                      {selectedRoomImages.slice(0, 3).map((imageUrl, index) => (
+                        <img
+                          key={`${imageUrl}-${index}`}
+                          src={imageUrl}
+                          alt={`Räumlichkeit ${index + 1}`}
+                          className="h-20 w-full rounded-2xl object-cover"
+                        />
+                      ))}
+                    </div>
+                    {selectedRoomImages.length > 3 ? (
+                      <span className="text-xs text-slate-500">Weitere Bilder findest du im Profil.</span>
+                    ) : null}
+                  </div>
+                ) : null}
+                {selectedCaregiver.shortDescription ? (
+                  <div className="flex flex-col gap-1">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Kurzbeschreibung</h3>
+                    <p>{selectedCaregiver.shortDescription}</p>
+                  </div>
+                ) : null}
+                {selectedCaregiver.bio ? (
+                  <div className="flex flex-col gap-1">
+                    <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Über dich</h3>
+                    <p className="text-sm leading-relaxed">{selectedCaregiver.bio}</p>
+                  </div>
+                ) : null}
+                {selectedCaregiver.age ? (
+                  <p>
+                    <span className="font-semibold text-brand-700">Alter:</span> {selectedCaregiver.age} Jahre
+                  </p>
+                ) : null}
+                {selectedConceptUrl ? (
+                  <a
+                    href={selectedConceptUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex w-fit items-center gap-2 rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                  >
+                    Konzeption als PDF herunterladen
+                  </a>
+                ) : null}
+                <Link
+                  to={`/kindertagespflege/${selectedCaregiver.id}`}
+                  className="inline-flex w-fit items-center gap-2 rounded-full border border-brand-600 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:bg-brand-600 hover:text-white"
+                >
+                  Kindertagespflege kennenlernen
+                </Link>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleOpenMessenger(selectedCaregiver)}
+                className="rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-700"
+              >
+                Nachricht schreiben
+              </button>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">
+              Wähle eine Tagespflegeperson aus der Liste, um weitere Details zu sehen und eine Unterhaltung zu starten.
+            </p>
+          )}
+        </aside>
+      </div>
+      {lightboxImage ? <ImageLightbox image={lightboxImage} onClose={closeLightbox} /> : null}
+    </section>
+  );
+}
+
+export default DashboardPage;
