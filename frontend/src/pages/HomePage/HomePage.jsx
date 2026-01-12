@@ -1,0 +1,88 @@
+import { Link, useNavigate } from 'react-router-dom';
+import heroImage from '../assets/hero-family.svg';
+import { useAuth } from '../context/AuthContext.jsx';
+
+
+
+const features = [
+  {
+    title: 'Persönliche Kindertagespflege',
+    description:
+      'Finde liebevolle Kindertagespflegepersonen in deiner Nähe, die genau zu den Bedürfnissen deiner Familie passen.',
+  },
+  {
+    title: 'Transparente Kindertagespflege',
+    description:
+      'Vergleiche pädagogische Konzepte, freie Kindertagespflegeplätze und Altersgrenzen auf einen Blick.',
+  },
+  {
+    title: 'Direkte Kommunikation',
+    description:
+      'Nutze unseren Messenger für schnelle Absprachen, Kennenlerntermine und individuelle Fragen rund um deine Betreuung.',
+  },
+];
+
+function HomePage() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  function handleAuthButtonClick() {
+    if (user) {
+      console.info('Nutzer abgemeldet über Home CTA');
+      logout();
+    } else {
+      console.info('Navigation zur Login-Seite von Home CTA');
+      navigate('/login');
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-24">
+      <section className="grid gap-12 rounded-3xl bg-white/70 p-10 shadow-lg backdrop-blur sm:grid-cols-2">
+        <div className="flex flex-col gap-6">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-500">Willkommen bei Wimmel Welt</p>
+          <h1 className="text-4xl font-bold text-slate-900 sm:text-5xl">
+            Gemeinsam schaffen wir einen sicheren Ort zum Wachsen.
+          </h1>
+          <p className="text-lg text-slate-600">
+            Unsere Plattform verbindet Familien mit engagierten Kindertagespflegepersonen. Entdecke Betreuungsmöglichkeiten,
+            koordiniere Anfragen und bleibe mit deinem Netzwerk in Kontakt – alles an einem Ort.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link
+              to="/familienzentrum"
+              className="rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:bg-brand-700"
+            >
+              Kindertagespflege finden
+            </Link>
+            <button
+              type="button"
+              onClick={handleAuthButtonClick}
+              className="rounded-full border border-brand-200 px-6 py-3 text-center text-sm font-semibold text-brand-700 transition hover:border-brand-400 hover:text-brand-800"
+            >
+              {user ? 'Abmelden' : 'Anmelden'}
+            </button>
+          </div>
+          <p className="text-sm leading-relaxed text-slate-500">
+            Wimmel Welt macht Kindertagespflege, Kindervermittlung und die Suche nach freien Betreuungsplätzen so einfach wie
+            möglich – für Familien und Tagespflegepersonen gleichermaßen.
+          </p>
+        </div>
+        <div className="flex items-center justify-center">
+          <img src={heroImage} alt="Familie" className="max-h-80 w-full object-contain" />
+        </div>
+      </section>
+
+      <section className="grid gap-8 sm:grid-cols-3">
+        {features.map((feature) => (
+          <article key={feature.title} className="flex flex-col gap-3 rounded-2xl bg-white/80 p-6 shadow">
+            <h2 className="text-xl font-semibold text-brand-700">{feature.title}</h2>
+            <p className="text-sm leading-relaxed text-slate-600">{feature.description}</p>
+          </article>
+        ))}
+      </section>
+    </div>
+  );
+}
+
+export default HomePage;
