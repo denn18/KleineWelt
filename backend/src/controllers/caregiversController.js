@@ -71,6 +71,64 @@ async function buildFileListFromPayload(items, options) {
   return deduplicateFileList(normalized);
 }
 
+async function buildContractDocumentsFromPayload(items, options) {
+  const normalized = [];
+
+  if (!Array.isArray(items)) {
+    return normalized;
+  }
+
+  for (const item of items) {
+    const name = item?.name?.trim();
+    if (!name) {
+      continue;
+    }
+
+    const fileCandidate = item?.file ?? item?.fileRef ?? item?.document ?? item?.fileData ?? item?.dataUrl;
+
+    if (typeof fileCandidate === 'string') {
+      const ref = reuseFileReference(fileCandidate);
+      if (ref) {
+        normalized.push({ name, file: ref });
+      }
+      continue;
+    }
+
+    if (fileCandidate?.dataUrl) {
+      const stored = await storeBase64File({
+        base64: fileCandidate.dataUrl,
+        originalName: fileCandidate.fileName,
+        folder: options.folder,
+        fallbackExtension: options.fallbackExtension,
+      });
+      if (stored) {
+        normalized.push({ name, file: stored });
+      }
+      continue;
+    }
+
+    if (item?.dataUrl) {
+      const stored = await storeBase64File({
+        base64: item.dataUrl,
+        originalName: item.fileName,
+        folder: options.folder,
+        fallbackExtension: options.fallbackExtension,
+      });
+      if (stored) {
+        normalized.push({ name, file: stored });
+      }
+      continue;
+    }
+
+    const ref = reuseFileReference(fileCandidate);
+    if (ref) {
+      normalized.push({ name, file: ref });
+    }
+  }
+
+  return normalized;
+}
+
 export async function getCaregivers(req, res) {
   try {
     const caregivers = await listCaregivers({
@@ -130,12 +188,18 @@ export async function postCaregiver(req, res) {
       fallbackExtension: 'png',
     });
 
+    const storedContractDocuments = await buildContractDocumentsFromPayload(req.body.contractDocuments ?? [], {
+      folder: 'caregivers/contracts',
+      fallbackExtension: 'pdf',
+    });
+
     const caregiver = await createCaregiver({
       ...req.body,
       profileImageUrl,
       conceptUrl,
       roomImages: storedRoomImages,
       caregiverImages: storedCaregiverImages,
+      contractDocuments: storedContractDocuments,
       logoImageUrl,
     });
     res.status(201).json(caregiver);
@@ -251,12 +315,35 @@ export async function patchCaregiver(req, res) {
       caregiverImages = deduplicateFileList(normalizedCaregiverImages);
     }
 
+    let contractDocuments = Array.isArray(existing.contractDocuments)
+      ? existing.contractDocuments
+          .map((doc) => ({
+            name: doc?.name?.trim() || '',
+            file: normalizeFileReference(doc?.file),
+          }))
+          .filter((doc) => doc.name && doc.file)
+      : [];
+    if (req.body.contractDocuments !== undefined) {
+      const normalizedDocuments = await buildContractDocumentsFromPayload(req.body.contractDocuments ?? [], {
+        folder: 'caregivers/contracts',
+        fallbackExtension: 'pdf',
+      });
+
+      const removedDocuments = contractDocuments.filter(
+        (existingDocument) =>
+          !normalizedDocuments.some((doc) => fileReferencesEqual(doc.file, existingDocument.file))
+      );
+      await Promise.all(removedDocuments.map((doc) => removeStoredFile(doc.file)));
+      contractDocuments = normalizedDocuments;
+    }
+
     const caregiver = await updateCaregiver(caregiverId, {
       ...req.body,
       profileImageUrl,
       conceptUrl,
       roomImages,
       caregiverImages,
+      contractDocuments,
       logoImageUrl,
     });
 
