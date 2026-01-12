@@ -2,7 +2,7 @@ import { describe, it, beforeEach, expect } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
-import ProfilePage from '../pages/ProfilePage.jsx';
+import ProfilePage from '../pages/ProfilePage/index.jsx';
 import { AuthProvider } from '../context/AuthContext.jsx';
 
 function renderProfile(user) {
