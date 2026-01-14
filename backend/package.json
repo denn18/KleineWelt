@@ -8,8 +8,7 @@
     "server": "nodemon src/server.js",
     "start": "node src/server.js",
     "lint": "eslint .",
-    "test": "node --test",
-    "generate:vapid": "node src/scripts/generateVapidKeys.js"
+    "test": "node --test"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.940.0",
@@ -19,8 +18,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "mime-types": "^2.1.35",
-    "mongodb": "^6.20.0",
-    "web-push": "^3.6.7"
+    "mongodb": "^6.20.0"
   },
   "devDependencies": {
     "eslint": "^8.57.0",

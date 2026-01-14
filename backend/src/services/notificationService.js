@@ -1,6 +1,5 @@
 import { findUserById } from './usersService.js';
 import { sendEmail } from './emailService.js';
-import { sendPushToUser } from './webPushService.js';
 
 function buildDisplayName(user) {
   const parts = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim();
@@ -14,7 +13,7 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, messageB
       findUserById(senderId),
     ]);
 
-    if (!recipient) {
+    if (!recipient || !recipient.email) {
       return false;
     }
 
@@ -23,24 +22,6 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, messageB
     const preview = (messageBody ?? '').replace(/\s+/g, ' ').trim().slice(0, 180);
 
     const textPreview = preview.length ? `"${preview}${preview.length === 180 ? '…' : ''}"` : '';
-
-    await sendPushToUser({
-      userId: recipientId,
-      payload: {
-        title: 'Neue Nachricht in Wimmel Welt',
-        body: senderName ? `Von ${senderName}` : 'Du hast eine neue Nachricht erhalten.',
-        icon: '/hero-family.svg',
-        badge: '/hero-family.svg',
-        data: {
-          url: `/nachrichten/${senderId}`,
-          conversationId,
-        },
-      },
-    });
-
-    if (!recipient.email) {
-      return false;
-    }
 
     const text = [
       `Hallo ${recipientName},`,
