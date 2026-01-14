@@ -1,6 +1,15 @@
 import { findUserById } from '../services/usersService.js';
 import { savePushSubscription, removePushSubscription } from '../services/pushSubscriptionsService.js';
-import { sendWebPushNotification } from '../services/webPushService.js';
+import { getVapidPublicKey, sendWebPushNotification } from '../services/webPushService.js';
+
+export function getVapidPublicKeyResponse(_req, res) {
+  const publicKey = getVapidPublicKey();
+  if (!publicKey) {
+    return res.status(503).json({ message: 'VAPID-Schlüssel sind nicht konfiguriert.' });
+  }
+
+  return res.json({ publicKey });
+}
 
 export async function subscribeToPush(req, res) {
   const { userId, subscription, userAgent } = req.body || {};

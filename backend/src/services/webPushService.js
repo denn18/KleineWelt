@@ -1,22 +1,44 @@
 import webpush from 'web-push';
 import { listPushSubscriptionsForUser, removePushSubscriptionByEndpoint } from './pushSubscriptionsService.js';
 
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
-
+let vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
+let vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
 let vapidConfigured = false;
 
+function ensureVapidKeys() {
+  if (vapidPublicKey && vapidPrivateKey) {
+    return true;
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    return false;
+  }
+
+  const generated = webpush.generateVAPIDKeys();
+  vapidPublicKey = generated.publicKey;
+  vapidPrivateKey = generated.privateKey;
+  return true;
+}
+
 function canSendWebPush() {
-  return Boolean(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
+  return ensureVapidKeys();
 }
 
 function configureWebPush() {
-  if (vapidConfigured || !canSendWebPush()) {
+  if (vapidConfigured || !ensureVapidKeys()) {
     return;
   }
 
-  webpush.setVapidDetails('mailto:support@wimmel-welt.de', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  webpush.setVapidDetails('mailto:support@wimmel-welt.de', vapidPublicKey, vapidPrivateKey);
   vapidConfigured = true;
+}
+
+export function getVapidPublicKey() {
+  if (!ensureVapidKeys()) {
+    return null;
+  }
+
+  return vapidPublicKey;
 }
 
 function buildPushSubscription(subscription) {
