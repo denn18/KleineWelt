@@ -47,6 +47,21 @@ Dieses Repository enthält den Grundstein für die Plattform "Kleine Welt" mit g
   - `npm run preview`: Vorschau des Builds
   - `npm run lint`: ESLint-Prüfung
 
+## Web Push (PWA)
+
+Für Push-Benachrichtigungen (z. B. neue Nachrichten in der mobilen PWA) werden VAPID-Schlüssel benötigt.
+
+1. Schlüssel generieren:
+   - `cd backend`
+   - `npm run generate:vapid`
+2. Werte in die Umgebungsvariablen eintragen:
+   - `VAPID_PUBLIC_KEY` und `VAPID_PRIVATE_KEY` in `backend/.env`
+   - `VITE_VAPID_PUBLIC_KEY` in `frontend/.env.local`
+3. Mobile testen (iOS/Android):
+   - Seite in Safari/Chrome öffnen → „Zum Home-Bildschirm“
+   - Push in den Profileinstellungen aktivieren
+   - Optionaler Dev-Test: `POST /api/push-subscriptions/test` mit `userId`
+
 ## Nächste Schritte
 
 1. MongoDB-Verbindung implementieren und Models/Schemas anlegen.

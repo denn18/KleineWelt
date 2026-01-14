@@ -1,5 +1,6 @@
 import { findUserById } from './usersService.js';
 import { sendEmail } from './emailService.js';
+import { sendWebPushNotification } from './webPushService.js';
 
 function buildDisplayName(user) {
   const parts = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim();
@@ -13,7 +14,7 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, messageB
       findUserById(senderId),
     ]);
 
-    if (!recipient || !recipient.email) {
+    if (!recipient) {
       return false;
     }
 
@@ -38,11 +39,31 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, messageB
 
     const subject = `Neue Nachricht von ${senderName}`;
 
-    return sendEmail({
-      to: recipient.email,
-      subject,
-      text,
-    });
+    const pushPayload = {
+      title: 'Neue Nachricht in Wimmel Welt',
+      body: `${senderName} hat dir geschrieben.`,
+      url: `/nachrichten/${senderId}`,
+      icon: '/hero-family.svg',
+      badge: '/hero-family.svg',
+      tag: `message:${conversationId}`,
+    };
+
+    const tasks = [
+      recipient.email
+        ? sendEmail({
+            to: recipient.email,
+            subject,
+            text,
+          })
+        : Promise.resolve(false),
+      sendWebPushNotification({
+        userId: recipientId,
+        payload: pushPayload,
+      }),
+    ];
+
+    const [emailResult] = await Promise.allSettled(tasks);
+    return emailResult.status === 'fulfilled' ? emailResult.value : false;
   } catch (error) {
     console.error('Benachrichtigung über neue Nachricht fehlgeschlagen:', error);
     return false;
