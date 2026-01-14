@@ -5,6 +5,14 @@ import IconUploadButton from '../components/IconUploadButton.jsx';
 import { assetUrl, readFileAsDataUrl } from '../utils/file.js';
 import { AVAILABILITY_TIMING_OPTIONS } from '../utils/availability.js';
 import { WEEKDAY_SUGGESTIONS } from '../utils/weekdays.js';
+import {
+  getActivePushSubscription,
+  getNotificationPermission,
+  isPushSupported,
+  requestNotificationPermission,
+  subscribeToPush,
+  unsubscribeFromPush,
+} from '../../utils/pushNotifications.js';
 
 function useProfileData(user) {
   const [profile, setProfile] = useState(null);
@@ -1476,6 +1484,171 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
   );
 }
 
+function PushNotificationSettings({ userId }) {
+  const [isSupported] = useState(() => isPushSupported());
+  const [permission, setPermission] = useState(() =>
+    isPushSupported() ? getNotificationPermission() : 'default',
+  );
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isSupported) return;
+
+    let isActive = true;
+
+    async function loadSubscription() {
+      try {
+        const subscription = await getActivePushSubscription();
+        if (isActive) {
+          setIsSubscribed(Boolean(subscription));
+        }
+      } catch (error) {
+        console.error('Failed to read push subscription', error);
+      }
+    }
+
+    loadSubscription();
+
+    return () => {
+      isActive = false;
+    };
+  }, [isSupported]);
+
+  async function handleEnablePush() {
+    if (!userId || isLoading) return;
+
+    setIsLoading(true);
+    setStatusMessage(null);
+
+    try {
+      if (!isSupported) {
+        setStatusMessage({
+          type: 'error',
+          text: 'Push-Benachrichtigungen werden in diesem Browser nicht unterstützt.',
+        });
+        return;
+      }
+
+      let permissionState = getNotificationPermission();
+      if (permissionState !== 'granted') {
+        permissionState = await requestNotificationPermission();
+      }
+
+      setPermission(permissionState);
+
+      if (permissionState !== 'granted') {
+        setStatusMessage({
+          type: 'error',
+          text: 'Bitte erlaube Benachrichtigungen in den Browser-Einstellungen.',
+        });
+        return;
+      }
+
+      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      const subscription = await subscribeToPush(vapidPublicKey);
+
+      await axios.post('/api/push-subscriptions', {
+        userId,
+        subscription: subscription.toJSON(),
+        userAgent: navigator.userAgent,
+      });
+
+      setIsSubscribed(true);
+      setStatusMessage({ type: 'success', text: 'Push-Benachrichtigungen aktiviert.' });
+    } catch (error) {
+      console.error('Failed to enable push notifications', error);
+      setStatusMessage({ type: 'error', text: 'Push konnte nicht aktiviert werden.' });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleDisablePush() {
+    if (!userId || isLoading) return;
+
+    setIsLoading(true);
+    setStatusMessage(null);
+
+    try {
+      const subscription = await getActivePushSubscription();
+
+      if (subscription) {
+        await axios.delete('/api/push-subscriptions', {
+          data: { userId, endpoint: subscription.endpoint },
+        });
+      }
+
+      await unsubscribeFromPush();
+      setIsSubscribed(false);
+      setStatusMessage({ type: 'success', text: 'Push-Benachrichtigungen deaktiviert.' });
+    } catch (error) {
+      console.error('Failed to disable push notifications', error);
+      setStatusMessage({ type: 'error', text: 'Push konnte nicht deaktiviert werden.' });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <section className="rounded-2xl border border-brand-100 bg-white/80 p-4 shadow-sm">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-base font-semibold text-brand-700">Push-Benachrichtigungen</h2>
+        <p className="text-sm text-slate-600">
+          Aktiviere Push, um neue Nachrichten direkt auf dem Homescreen zu sehen.
+        </p>
+
+        {!isSupported ? (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+            Push ist hier nicht verfügbar. Bitte installiere die App über „Zum Home-Bildschirm“
+            und erlaube Benachrichtigungen in Safari.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+              <span>Permission: {permission}</span>
+              <span>•</span>
+              <span>Status: {isSubscribed ? 'aktiv' : 'inaktiv'}</span>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleEnablePush}
+                className="rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isLoading || permission === 'denied' || isSubscribed}
+              >
+                Push aktivieren
+              </button>
+              <button
+                type="button"
+                onClick={handleDisablePush}
+                className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isLoading || !isSubscribed}
+              >
+                Push deaktivieren
+              </button>
+            </div>
+          </div>
+        )}
+
+        {statusMessage ? (
+          <p
+            className={`rounded-xl border px-3 py-2 text-xs ${
+              statusMessage.type === 'success'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                : 'border-rose-200 bg-rose-50 text-rose-700'
+            }`}
+          >
+            {statusMessage.text}
+          </p>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 export default function ProfilePageMobile() {
   const { user, updateUser } = useAuth();
   const { profile, loading, error, setProfile } = useProfileData(user);
@@ -1510,6 +1683,8 @@ export default function ProfilePageMobile() {
           Aktualisiere dein Profil, um Familien und Tagespflegepersonen stets mit den neuesten Informationen zu versorgen.
         </p>
       </header>
+
+      <PushNotificationSettings userId={user.id} />
 
       {loading ? <p className="text-sm text-slate-500">Profil wird geladen…</p> : null}
       {error ? (
