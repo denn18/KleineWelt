@@ -6,6 +6,7 @@ import { assetUrl, readFileAsDataUrl } from '../utils/file.js';
 import { AVAILABILITY_TIMING_OPTIONS } from '../utils/availability.js';
 import { WEEKDAY_SUGGESTIONS } from '../utils/weekdays.js';
 import {
+  fetchVapidPublicKey,
   getActivePushSubscription,
   getNotificationPermission,
   isPushSupported,
@@ -1546,7 +1547,7 @@ function PushNotificationSettings({ userId }) {
         return;
       }
 
-      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+      const vapidPublicKey = await fetchVapidPublicKey();
       const subscription = await subscribeToPush(vapidPublicKey);
 
       await axios.post('/api/push-subscriptions', {
