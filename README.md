@@ -47,6 +47,37 @@ Dieses Repository enthält den Grundstein für die Plattform "Kleine Welt" mit g
   - `npm run preview`: Vorschau des Builds
   - `npm run lint`: ESLint-Prüfung
 
+## Web Push (PWA)
+
+### VAPID Keys generieren
+
+```bash
+cd backend
+npm run generate:vapid
+```
+
+Die Ausgabe enthält `VAPID_PUBLIC_KEY` und `VAPID_PRIVATE_KEY`. Diese Werte gehören in `backend/.env`:
+
+```
+VAPID_PUBLIC_KEY=...
+VAPID_PRIVATE_KEY=...
+VAPID_SUBJECT=https://www.wimmel-welt.de
+```
+
+Zusätzlich muss der öffentliche Schlüssel im Frontend verfügbar sein (z. B. `frontend/.env.local`):
+
+```
+VITE_VAPID_PUBLIC_KEY=...
+```
+
+### iPhone Test (PWA)
+
+1. Seite in Safari öffnen und über „Teilen → Zum Home-Bildschirm“ installieren.
+2. Die installierte App öffnen, im Profil (Mobile) „Push aktivieren“ drücken.
+3. Erst dann wird die Berechtigung abgefragt – keine automatische Abfrage beim Laden.
+
+Hinweis: Push-Benachrichtigungen funktionieren nur in der installierten PWA und auf HTTPS/localhost.
+
 ## Nächste Schritte
 
 1. MongoDB-Verbindung implementieren und Models/Schemas anlegen.

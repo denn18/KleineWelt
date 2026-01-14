@@ -5,6 +5,15 @@ import IconUploadButton from '../components/IconUploadButton.jsx';
 import { assetUrl, readFileAsDataUrl } from '../utils/file.js';
 import { AVAILABILITY_TIMING_OPTIONS } from '../utils/availability.js';
 import { WEEKDAY_SUGGESTIONS } from '../utils/weekdays.js';
+import {
+  getCurrentSubscription,
+  getNotificationPermission,
+  getVapidPublicKey,
+  isPushSupported,
+  requestNotificationPermission,
+  subscribeToPush,
+  unsubscribeFromPush,
+} from '../utils/pushNotifications.js';
 
 function useProfileData(user) {
   const [profile, setProfile] = useState(null);
@@ -259,6 +268,152 @@ function ScheduleEditor({ title, entries, onChange }) {
         Weiteren Eintrag hinzufügen
       </button>
     </div>
+  );
+}
+
+function PushNotificationsPanel({ user }) {
+  const [status, setStatus] = useState(() => ({
+    supported: isPushSupported(),
+    permission: getNotificationPermission(),
+    subscribed: false,
+    loading: false,
+    error: '',
+  }));
+
+  useEffect(() => {
+    if (!status.supported) {
+      return undefined;
+    }
+
+    let isActive = true;
+
+    getCurrentSubscription()
+      .then((subscription) => {
+        if (!isActive) return;
+        setStatus((prev) => ({
+          ...prev,
+          subscribed: Boolean(subscription),
+          permission: getNotificationPermission(),
+        }));
+      })
+      .catch((error) => {
+        console.error('Failed to load push subscription status', error);
+        if (!isActive) return;
+        setStatus((prev) => ({ ...prev, error: 'Push-Status konnte nicht geladen werden.' }));
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [status.supported, user?.id]);
+
+  async function handleEnablePush() {
+    setStatus((prev) => ({ ...prev, loading: true, error: '' }));
+
+    try {
+      if (!getVapidPublicKey()) {
+        throw new Error('VAPID Public Key fehlt.');
+      }
+
+      const permission = await requestNotificationPermission();
+      if (permission !== 'granted') {
+        setStatus((prev) => ({ ...prev, permission, loading: false }));
+        return;
+      }
+
+      const subscription = await subscribeToPush();
+      await axios.post('/api/push-subscriptions', {
+        userId: user.id,
+        subscription: subscription.toJSON(),
+        userAgent: navigator.userAgent,
+      });
+
+      setStatus((prev) => ({ ...prev, subscribed: true, permission, loading: false }));
+    } catch (error) {
+      console.error('Failed to enable push notifications', error);
+      setStatus((prev) => ({
+        ...prev,
+        loading: false,
+        error: error?.message || 'Push-Benachrichtigungen konnten nicht aktiviert werden.',
+      }));
+    }
+  }
+
+  async function handleDisablePush() {
+    setStatus((prev) => ({ ...prev, loading: true, error: '' }));
+
+    try {
+      const subscription = await getCurrentSubscription();
+      if (subscription) {
+        await axios.delete('/api/push-subscriptions', {
+          data: { userId: user.id, endpoint: subscription.endpoint },
+        });
+        await unsubscribeFromPush();
+      }
+
+      setStatus((prev) => ({
+        ...prev,
+        subscribed: false,
+        permission: getNotificationPermission(),
+        loading: false,
+      }));
+    } catch (error) {
+      console.error('Failed to disable push notifications', error);
+      setStatus((prev) => ({
+        ...prev,
+        loading: false,
+        error: error?.message || 'Push-Benachrichtigungen konnten nicht deaktiviert werden.',
+      }));
+    }
+  }
+
+  const permissionLabel = status.permission === 'granted' ? 'Erlaubt' : status.permission === 'denied' ? 'Blockiert' : 'Noch nicht entschieden';
+  const statusLabel = status.subscribed ? 'Aktiv' : 'Inaktiv';
+
+  return (
+    <section className="rounded-3xl bg-white/85 p-5 shadow">
+      <h2 className="text-base font-semibold text-brand-700">Push-Benachrichtigungen</h2>
+      <p className="mt-2 text-sm text-slate-600">
+        Aktiviere Push, um neue Nachrichten direkt als Hinweis auf deinem Handy zu erhalten.
+      </p>
+
+      <div className="mt-4 flex flex-col gap-2 text-sm text-slate-600">
+        <span>Berechtigung: {permissionLabel}</span>
+        <span>Status: {statusLabel}</span>
+      </div>
+
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <button
+          type="button"
+          onClick={handleEnablePush}
+          disabled={!status.supported || status.loading || status.subscribed}
+          className="flex-1 rounded-2xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-300"
+        >
+          Push aktivieren
+        </button>
+        <button
+          type="button"
+          onClick={handleDisablePush}
+          disabled={!status.supported || status.loading || !status.subscribed}
+          className="flex-1 rounded-2xl border border-brand-200 bg-white px-4 py-2 text-sm font-semibold text-brand-600 shadow-sm transition hover:border-brand-400 hover:text-brand-700 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
+        >
+          Push deaktivieren
+        </button>
+      </div>
+
+      {!status.supported || status.permission === 'denied' ? (
+        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          Push ist aktuell nicht verfügbar. Bitte füge die App über Safari zum Home-Bildschirm hinzu und erlaube
+          Benachrichtigungen in den iOS-Einstellungen.
+        </p>
+      ) : null}
+
+      {status.error ? (
+        <p className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {status.error}
+        </p>
+      ) : null}
+    </section>
   );
 }
 
@@ -1510,6 +1665,8 @@ export default function ProfilePageMobile() {
           Aktualisiere dein Profil, um Familien und Tagespflegepersonen stets mit den neuesten Informationen zu versorgen.
         </p>
       </header>
+
+      <PushNotificationsPanel user={user} />
 
       {loading ? <p className="text-sm text-slate-500">Profil wird geladen…</p> : null}
       {error ? (
