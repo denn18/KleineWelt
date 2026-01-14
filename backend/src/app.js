@@ -11,6 +11,7 @@ import authRouter from './routes/auth.js';
 import usersRouter from './routes/users.js';
 import documentsRouter from './routes/documents.js';
 import filesRouter from './routes/files.js';
+import pushSubscriptionsRouter from './routes/pushSubscriptions.js';
 
 // ✅ NEU: DB Zugriff für /readiness
 import { getDatabase } from './config/database.js';
@@ -58,6 +59,7 @@ app.use('/api/messages', messagesRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/documents', documentsRouter);
 app.use('/api/files', filesRouter);
+app.use('/api/push-subscriptions', pushSubscriptionsRouter);
 app.use('/uploads', express.static(uploadsDir));
 
 app.use(express.static(frontendDistPath));
