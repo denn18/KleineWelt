@@ -1,6 +1,4 @@
 
-
-
 // frontend/src/pages/MessengerPage/Mobile.jsx
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
@@ -476,8 +474,6 @@ function Mobile() {
 }
 
 export default Mobile;
-
-
 // // frontend/src/pages/MessengerPage/Mobile.jsx
 // import { useEffect, useMemo, useRef, useState } from 'react';
 // import { useLocation, useParams, useNavigate } from 'react-router-dom';
@@ -714,7 +710,7 @@ export default Mobile;
 //         <span className="text-xs text-slate-500 truncate">Gesprächspartner: {partnerName || 'Kontakt'}</span>
 //       </header>
 
-//       {/* {erstmal auskommentiert sieht bei der Mobilen Ansicht nicht gut aus
+//       {erstmal auskommentiert sieht bei der Mobilen Ansicht
 //       /* Partner Card
 //       <aside className="rounded-3xl border border-brand-100 bg-white/90 p-4 shadow-sm">
 //         <h1 className="text-lg font-semibold text-brand-700">{partnerName || 'Nachricht'}</h1>
@@ -829,7 +825,7 @@ export default Mobile;
 //             {partner.notes ? <p className="text-sm leading-relaxed">{partner.notes}</p> : null}
 //           </div>
 //         )}
-//       </aside> */} 
+//       </aside> */}
 
 //       {/* Messenger */}
 //       <div className="rounded-3xl border border-brand-100 bg-white/90 p-4 shadow-sm">
