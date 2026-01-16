@@ -4,22 +4,18 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import { assetUrl } from '../utils/file.js';
 
-function formatTimestampParts(value) {
+function formatTimestamp(value) {
   if (!value) {
-    return { date: '', time: '' };
+    return '';
   }
   const date = new Date(value);
-  return {
-    date: date.toLocaleDateString('de-DE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }),
-    time: date.toLocaleTimeString('de-DE', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
-  };
+  return date.toLocaleString('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 async function fetchUserProfiles(ids) {
@@ -123,58 +119,42 @@ function MessagesOverviewPage() {
             Noch keine Nachrichten vorhanden. Besuche das Familienzentrum, um Gespräche zu starten.
           </p>
         ) : null}
-        {[...conversations]
-          .sort((first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime())
-          .map((conversation) => {
-            const partnerId =
-              conversation.participants?.find((participant) => participant !== user.id) || conversation.senderId;
-            const partnerProfile = profiles[partnerId];
-            const partnerName = formatConversationPartner(partnerProfile);
-            const partnerRoleLabel = partnerProfile?.role === 'caregiver' ? 'Kindertagespflegeperson' : 'Elternteil';
-            const profileImageUrl = partnerProfile?.profileImageUrl ? assetUrl(partnerProfile.profileImageUrl) : '';
-            const logoUrl = partnerProfile?.logoImageUrl ? assetUrl(partnerProfile.logoImageUrl) : '';
-            const initials = partnerName ? partnerName.trim().charAt(0).toUpperCase() : '?';
-            const hasAttachments = Array.isArray(conversation.attachments) && conversation.attachments.length > 0;
-            const previewText = conversation.body?.trim();
-            const isUnread = conversation.senderId && conversation.senderId !== user.id;
-            const timestamp = formatTimestampParts(conversation.createdAt);
-            const preview = previewText
-              ? previewText.length > 120
-                ? `${previewText.slice(0, 117)}…`
-                : previewText
-              : hasAttachments
-                ? `${conversation.attachments.length} ${conversation.attachments.length === 1 ? 'Anhang' : 'Anhänge'}`
-                : '';
-            const conversationId = [user.id, partnerId].sort().join('--');
-            return (
-              <Link
-                key={conversation.id}
-                to={`/nachrichten/${partnerId}`}
-                state={{ conversationId, partner: partnerProfile }}
-                className={`flex flex-col gap-2 rounded-2xl border bg-white/80 p-5 text-left shadow transition hover:-translate-y-1 hover:border-brand-300 hover:shadow-lg ${
-                  isUnread ? 'border-2 border-brand-400 bg-brand-50/40' : 'border-brand-100'
-                }`}
-              >
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    {partnerProfile?.role === 'caregiver' ? (
-                      <>
-                        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
-                          {logoUrl ? (
-                            <img src={logoUrl} alt={`${partnerName} Logo`} className="h-full w-full object-cover" />
-                          ) : (
-                            <span className="text-xs font-semibold text-slate-500">Logo</span>
-                          )}
-                        </div>
-                        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
-                          {profileImageUrl ? (
-                            <img src={profileImageUrl} alt={partnerName} className="h-full w-full object-cover" />
-                          ) : (
-                            <span className="text-sm font-semibold text-brand-700">{initials}</span>
-                          )}
-                        </div>
-                      </>
-                    ) : (
+        {conversations.map((conversation) => {
+          const partnerId = conversation.participants?.find((participant) => participant !== user.id) || conversation.senderId;
+          const partnerProfile = profiles[partnerId];
+          const partnerName = formatConversationPartner(partnerProfile);
+          const partnerRoleLabel = partnerProfile?.role === 'caregiver' ? 'Kindertagespflegeperson' : 'Elternteil';
+          const profileImageUrl = partnerProfile?.profileImageUrl ? assetUrl(partnerProfile.profileImageUrl) : '';
+          const logoUrl = partnerProfile?.logoImageUrl ? assetUrl(partnerProfile.logoImageUrl) : '';
+          const initials = partnerName ? partnerName.trim().charAt(0).toUpperCase() : '?';
+          const hasAttachments = Array.isArray(conversation.attachments) && conversation.attachments.length > 0;
+          const previewText = conversation.body?.trim();
+          const preview = previewText
+            ? previewText.length > 120
+              ? `${previewText.slice(0, 117)}…`
+              : previewText
+            : hasAttachments
+              ? `${conversation.attachments.length} ${conversation.attachments.length === 1 ? 'Anhang' : 'Anhänge'}`
+              : '';
+          const conversationId = [user.id, partnerId].sort().join('--');
+          return (
+            <Link
+              key={conversation.id}
+              to={`/nachrichten/${partnerId}`}
+              state={{ conversationId, partner: partnerProfile }}
+              className="flex flex-col gap-2 rounded-2xl border border-brand-100 bg-white/80 p-5 text-left shadow transition hover:-translate-y-1 hover:border-brand-300 hover:shadow-lg"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  {partnerProfile?.role === 'caregiver' ? (
+                    <>
+                      <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
+                        {logoUrl ? (
+                          <img src={logoUrl} alt={`${partnerName} Logo`} className="h-full w-full object-cover" />
+                        ) : (
+                          <span className="text-xs font-semibold text-slate-500">Logo</span>
+                        )}
+                      </div>
                       <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
                         {profileImageUrl ? (
                           <img src={profileImageUrl} alt={partnerName} className="h-full w-full object-cover" />
@@ -182,21 +162,27 @@ function MessagesOverviewPage() {
                           <span className="text-sm font-semibold text-brand-700">{initials}</span>
                         )}
                       </div>
-                    )}
-                    <div className="flex flex-col">
-                      <p className="text-base font-semibold text-brand-700">{partnerName}</p>
-                      <span className="text-xs font-semibold text-brand-500">{partnerRoleLabel}</span>
+                    </>
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
+                      {profileImageUrl ? (
+                        <img src={profileImageUrl} alt={partnerName} className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-sm font-semibold text-brand-700">{initials}</span>
+                      )}
                     </div>
-                  </div>
-                  <div className="flex flex-col text-xs text-slate-500 leading-tight text-right">
-                    <span>{timestamp.date}</span>
-                    <span>{timestamp.time}</span>
+                  )}
+                  <div className="flex flex-col">
+                    <p className="text-base font-semibold text-brand-700">{partnerName}</p>
+                    <span className="text-xs font-semibold text-brand-500">{partnerRoleLabel}</span>
                   </div>
                 </div>
-                <p className="text-sm text-slate-600">{preview}</p>
-              </Link>
-            );
-          })}
+                <span className="whitespace-nowrap text-xs text-slate-500">{formatTimestamp(conversation.createdAt)}</span>
+              </div>
+              <p className="text-sm text-slate-600">{preview}</p>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
