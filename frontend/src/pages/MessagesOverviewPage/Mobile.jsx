@@ -5,18 +5,6 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { assetUrl } from '../../utils/file.js';
 
-function formatTimestamp(value) {
-  if (!value) return '';
-  const date = new Date(value);
-  return date.toLocaleString('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
 async function fetchUserProfiles(ids) {
   const uniqueIds = Array.from(new Set(ids)).filter(Boolean);
   console.info('API Log: Lade Nutzerprofile', uniqueIds);
@@ -158,6 +146,44 @@ export default function Mobile() {
     return null;
   }
 
+  const handleDeleteConversation = async (event, conversationId) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const confirmed = window.confirm('Möchtest du diese Konversation wirklich löschen?');
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await axios.delete(`/api/messages/${conversationId}`, { data: { userId: user.id } });
+      setConversations((current) => current.filter((conversation) => conversation.conversationId !== conversationId));
+    } catch (deleteError) {
+      console.error('Failed to delete conversation', deleteError);
+      setError('Unterhaltung konnte nicht gelöscht werden.');
+    }
+  };
+
+  const handleMarkAsRead = async (conversationId) => {
+    try {
+      await axios.post(`/api/messages/${conversationId}/read`, { userId: user.id });
+      setConversations((current) =>
+        current.map((conversation) =>
+          conversation.conversationId === conversationId
+            ? {
+                ...conversation,
+                readBy: conversation.readBy?.includes(user.id)
+                  ? conversation.readBy
+                  : [...(conversation.readBy ?? []), user.id],
+              }
+            : conversation,
+        ),
+      );
+    } catch (readError) {
+      console.error('Failed to mark conversation as read', readError);
+    }
+  };
+
   return (
     <section className="mx-auto mt-6 flex w-full max-w-md flex-col gap-5 rounded-3xl bg-white/85 p-5 shadow-lg">
       <header className="flex flex-col gap-2">
@@ -189,13 +215,17 @@ export default function Mobile() {
 
           const preview = buildPreview(conversation);
           const conversationId = [user.id, partnerId].sort().join('--');
+          const isUnread = !conversation.readBy?.includes(user.id);
 
           return (
             <Link
               key={conversation.id}
               to={`/nachrichten/${partnerId}`}
               state={{ conversationId, partner: partnerProfile, from: location.pathname }}
-              className="flex flex-col gap-3 rounded-2xl border border-brand-100 bg-white/90 p-4 text-left shadow-sm transition hover:border-brand-300 hover:shadow"
+              className={`flex flex-col gap-3 rounded-2xl border bg-white/90 p-4 text-left shadow-sm transition hover:shadow ${
+                isUnread ? 'border-brand-500 ring-2 ring-brand-200' : 'border-brand-100 hover:border-brand-300'
+              }`}
+              onClick={() => handleMarkAsRead(conversationId)}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -205,7 +235,19 @@ export default function Mobile() {
                     <span className="text-[11px] font-semibold text-brand-500">{partnerRoleLabel}</span>
                   </div>
                 </div>
-                <span className="shrink-0 text-[11px] text-slate-500">{formatTimestamp(conversation.createdAt)}</span>
+                <button
+                  type="button"
+                  aria-label="Konversation löschen"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-rose-500 transition hover:bg-rose-50"
+                  onClick={(event) => handleDeleteConversation(event, conversationId)}
+                >
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden="true">
+                    <path
+                      fill="currentColor"
+                      d="M9 3h6l1 2h4v2H4V5h4l1-2Zm1 6h2v9h-2V9Zm4 0h2v9h-2V9ZM7 9h2v9H7V9Z"
+                    />
+                  </svg>
+                </button>
               </div>
 
               {preview ? <p className="text-sm text-slate-600">{preview}</p> : null}
