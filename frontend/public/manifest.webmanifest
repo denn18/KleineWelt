@@ -12,6 +12,12 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/wimmel-welt.png",
+      "sizes": "1780x1338",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

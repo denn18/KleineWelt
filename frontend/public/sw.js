@@ -10,7 +10,7 @@ self.addEventListener('push', (event) => {
   const title = payload.title || 'Neue Nachricht';
   const options = {
     body: payload.body || 'Du hast eine neue Nachricht erhalten.',
-    icon: payload.icon || '/hero-family.svg',
+    icon: payload.icon || '/wimmel-welt.png',
     badge: payload.badge || '/hero-family.svg',
     tag: payload.tag || 'message',
     data: {
