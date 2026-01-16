@@ -57,6 +57,8 @@ Für Push-Benachrichtigungen (z. B. neue Nachrichten in der mobilen PWA) werde
 2. Werte in die Umgebungsvariablen eintragen:
    - `VAPID_PUBLIC_KEY` und `VAPID_PRIVATE_KEY` in `backend/.env`
    - `VITE_VAPID_PUBLIC_KEY` in `frontend/.env.local`
+   - Optional: `VAPID_KEYS_FILE` (Standard: `backend/.data/vapid-keys.json`) für automatische Speicherung
+   - Falls keine Keys gesetzt sind, erzeugt das Backend beim Start ein neues Paar und speichert es unter `backend/.data/vapid-keys.json` (damit die Keys nach einem Neustart erhalten bleiben).
 3. Mobile testen (iOS/Android):
    - Seite in Safari/Chrome öffnen → „Zum Home-Bildschirm“
    - Push in den Profileinstellungen aktivieren
