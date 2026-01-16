@@ -5,16 +5,20 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { assetUrl } from '../../utils/file.js';
 
-function formatTimestamp(value) {
-  if (!value) return '';
+function formatTimestampParts(value) {
+  if (!value) return { date: '', time: '' };
   const date = new Date(value);
-  return date.toLocaleString('de-DE', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return {
+    date: date.toLocaleDateString('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }),
+    time: date.toLocaleTimeString('de-DE', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+  };
 }
 
 async function fetchUserProfiles(ids) {
@@ -179,39 +183,48 @@ export default function Mobile() {
           </p>
         ) : null}
 
-        {conversations.map((conversation) => {
-          const partnerId =
-            conversation.participants?.find((participant) => participant !== user.id) || conversation.senderId;
+        {[...conversations]
+          .sort((first, second) => new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime())
+          .map((conversation) => {
+            const partnerId =
+              conversation.participants?.find((participant) => participant !== user.id) || conversation.senderId;
 
-          const partnerProfile = profiles[partnerId];
-          const partnerName = formatConversationPartner(partnerProfile);
-          const partnerRoleLabel = partnerProfile?.role === 'caregiver' ? 'Kindertagespflegeperson' : 'Elternteil';
+            const partnerProfile = profiles[partnerId];
+            const partnerName = formatConversationPartner(partnerProfile);
+            const partnerRoleLabel = partnerProfile?.role === 'caregiver' ? 'Kindertagespflegeperson' : 'Elternteil';
 
-          const preview = buildPreview(conversation);
-          const conversationId = [user.id, partnerId].sort().join('--');
+            const preview = buildPreview(conversation);
+            const conversationId = [user.id, partnerId].sort().join('--');
+            const isUnread = conversation.senderId && conversation.senderId !== user.id;
+            const timestamp = formatTimestampParts(conversation.createdAt);
 
-          return (
-            <Link
-              key={conversation.id}
-              to={`/nachrichten/${partnerId}`}
-              state={{ conversationId, partner: partnerProfile, from: location.pathname }}
-              className="flex flex-col gap-3 rounded-2xl border border-brand-100 bg-white/90 p-4 text-left shadow-sm transition hover:border-brand-300 hover:shadow"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <AvatarStack partnerProfile={partnerProfile} partnerName={partnerName} />
-                  <div className="flex flex-col">
-                    <p className="text-sm font-semibold text-brand-700 leading-snug">{partnerName}</p>
-                    <span className="text-[11px] font-semibold text-brand-500">{partnerRoleLabel}</span>
+            return (
+              <Link
+                key={conversation.id}
+                to={`/nachrichten/${partnerId}`}
+                state={{ conversationId, partner: partnerProfile, from: location.pathname }}
+                className={`flex flex-col gap-3 rounded-2xl border bg-white/90 p-4 text-left shadow-sm transition hover:border-brand-300 hover:shadow ${
+                  isUnread ? 'border-2 border-brand-400 bg-brand-50/40' : 'border-brand-100'
+                }`}
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <AvatarStack partnerProfile={partnerProfile} partnerName={partnerName} />
+                    <div className="flex flex-col">
+                      <p className="text-sm font-semibold text-brand-700 leading-snug">{partnerName}</p>
+                      <span className="text-[11px] font-semibold text-brand-500">{partnerRoleLabel}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col text-[11px] text-slate-500 leading-tight text-right">
+                    <span>{timestamp.date}</span>
+                    <span>{timestamp.time}</span>
                   </div>
                 </div>
-                <span className="shrink-0 text-[11px] text-slate-500">{formatTimestamp(conversation.createdAt)}</span>
-              </div>
 
-              {preview ? <p className="text-sm text-slate-600">{preview}</p> : null}
-            </Link>
-          );
-        })}
+                {preview ? <p className="text-sm text-slate-600">{preview}</p> : null}
+              </Link>
+            );
+          })}
       </div>
     </section>
   );

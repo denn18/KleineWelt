@@ -268,15 +268,6 @@ function Mobile() {
       <div className="px-4 pt-3">
         <div className="flex items-center justify-between">
           <div className="text-[22px] font-extrabold tracking-[0.2px] text-brand-800">Wimmel Welt</div>
-
-          <button
-            type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-600 text-white shadow"
-            aria-label="Menü"
-            onClick={() => {}}
-          >
-            <span className="text-xl leading-none">≡</span>
-          </button>
         </div>
       </div>
 
@@ -296,7 +287,7 @@ function Mobile() {
             {/* ✅ NUR der Name, kein Plätze-Label */}
             <div className="min-w-0 flex-1 text-center">
               <div className="text-xs font-bold tracking-widest text-brand-500">MESSENGER</div>
-              <div className="truncate text-base font-semibold text-slate-800">{partnerName || 'Kontakt'}</div>
+              <div className="text-base font-semibold text-slate-800 break-words">{partnerName || 'Kontakt'}</div>
             </div>
 
             <div className="w-[88px]" aria-hidden="true" />
