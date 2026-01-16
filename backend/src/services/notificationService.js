@@ -40,7 +40,7 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, messageB
     const subject = `Neue Nachricht von ${senderName}`;
 
     const pushPayload = {
-      title: 'Neue Nachricht von Wimmel Welt',
+      title: 'Neue Nachricht in Wimmel Welt',
       body: `${senderName} hat dir geschrieben.`,
       url: `/nachrichten/${senderId}`,
       icon: '/hero-family.svg',
