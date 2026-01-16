@@ -58,6 +58,7 @@ export function buildMessageDocument({ conversationId, senderId, recipientId, bo
     recipientId,
     body,
     attachments: normalizeAttachments(attachments),
+    readBy: [senderId],
     createdAt: now,
     updatedAt: now,
   };

@@ -1,4 +1,10 @@
-import { listConversationsForUser, listMessages, sendMessage } from '../services/messagesService.js';
+import {
+  deleteConversation,
+  listConversationsForUser,
+  listMessages,
+  markConversationAsRead,
+  sendMessage,
+} from '../services/messagesService.js';
 
 export async function getMessageOverview(req, res) {
   const { participantId } = req.query;
@@ -40,5 +46,31 @@ export async function postMessage(req, res) {
     console.error('Failed to send message', error);
     const status = error.status || 500;
     res.status(status).json({ message: 'Konnte Nachricht nicht senden.' });
+  }
+}
+
+export async function markConversationRead(req, res) {
+  try {
+    const { conversationId } = req.params;
+    const { userId } = req.body;
+    const messages = await markConversationAsRead({ conversationId, userId });
+    res.json(messages);
+  } catch (error) {
+    console.error('Failed to mark conversation as read', error);
+    const status = error.status || 500;
+    res.status(status).json({ message: 'Konnte Nachricht nicht als gelesen markieren.' });
+  }
+}
+
+export async function deleteConversationById(req, res) {
+  try {
+    const { conversationId } = req.params;
+    const { userId } = req.body;
+    await deleteConversation({ conversationId, userId });
+    res.status(204).send();
+  } catch (error) {
+    console.error('Failed to delete conversation', error);
+    const status = error.status || 500;
+    res.status(status).json({ message: 'Konnte Unterhaltung nicht löschen.' });
   }
 }

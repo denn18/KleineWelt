@@ -104,3 +104,33 @@ export async function listConversationsForUser(participantId) {
   const documents = await cursor.toArray();
   return documents.map(serializeMessage);
 }
+
+export async function markConversationAsRead({ conversationId, userId }) {
+  if (!conversationId || !userId) {
+    const error = new Error('Missing required read fields.');
+    error.status = 400;
+    throw error;
+  }
+
+  await getMessagesCollection().updateMany(
+    { conversationId, readBy: { $ne: userId } },
+    { $addToSet: { readBy: userId }, $set: { updatedAt: new Date() } },
+  );
+
+  const cursor = getMessagesCollection()
+    .find({ conversationId })
+    .sort({ createdAt: 1 });
+  const documents = await cursor.toArray();
+  return documents.map(serializeMessage);
+}
+
+export async function deleteConversation({ conversationId, userId }) {
+  if (!conversationId || !userId) {
+    const error = new Error('Missing required delete fields.');
+    error.status = 400;
+    throw error;
+  }
+
+  await getMessagesCollection().deleteMany({ conversationId, participants: userId });
+  return true;
+}
