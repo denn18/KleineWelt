@@ -5,7 +5,7 @@ import { PaperClipIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext.jsx';
 import ImageLightbox from '../components/ImageLightbox.jsx';
 import { assetUrl, readFileAsDataUrl } from '../utils/file.js';
-import { formatAvailableSpotsLabel } from '../utils/availability.js';
+import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../utils/availability.js';
 
 function formatTime(value) {
   if (!value) {
@@ -254,7 +254,13 @@ function MessengerPage() {
               {availabilityBadge ? (
                 <span
                   className={`rounded-full px-3 py-1 ${
-                    partner?.hasAvailability ? 'bg-emerald-50 text-emerald-700' : 'bg-brand-50 text-slate-600'
+                    isAvailabilityHighlighted({
+                      availableSpots,
+                      availabilityTiming: partner?.availabilityTiming,
+                      hasAvailability: partner?.hasAvailability,
+                    })
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'bg-brand-50 text-slate-600'
                   }`}
                 >
                   {availabilityBadge}

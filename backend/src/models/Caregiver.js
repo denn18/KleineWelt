@@ -221,10 +221,6 @@ export function buildCaregiverDocument(data) {
     birthDate: birthDate ?? null,
     caregiverSince: caregiverSince ?? null,
     maxChildAge,
-    hasAvailability:
-      typeof data.hasAvailability === 'string'
-        ? data.hasAvailability.toLowerCase() === 'true'
-        : Boolean(data.hasAvailability),
     availabilityTiming: data.availabilityTiming?.trim() || 'aktuell',
     bio: data.bio?.trim() || null,
     shortDescription: data.shortDescription?.trim() || null,

@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext.jsx';
 import ImageLightbox from '../../components/ImageLightbox.jsx';
 import { assetUrl } from '../../utils/file.js';
-import { formatAvailableSpotsLabel } from '../../utils/availability.js';
+import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../../utils/availability.js';
 
 function SectionHeading({ title, description }) {
   return (
@@ -185,9 +185,13 @@ export default function Mobile() {
     availabilityTiming: caregiver.availabilityTiming,
   });
 
-  const availableSpotsCount = Number.parseInt(caregiver.availableSpots ?? 0, 10);
-  const hasFreeSpots = Number.isFinite(availableSpotsCount) && availableSpotsCount > 0;
-  const availableSpotsStyles = hasFreeSpots ? 'bg-emerald-50 text-emerald-700' : 'bg-brand-50 text-slate-600';
+  const availableSpotsStyles = isAvailabilityHighlighted({
+    availableSpots: caregiver.availableSpots ?? 0,
+    availabilityTiming: caregiver.availabilityTiming,
+    hasAvailability: caregiver.hasAvailability,
+  })
+    ? 'bg-emerald-50 text-emerald-700'
+    : 'bg-brand-50 text-slate-600';
 
   const caregiverTitle = caregiver.daycareName || caregiver.name;
 

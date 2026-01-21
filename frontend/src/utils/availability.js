@@ -50,10 +50,31 @@ export function formatAvailableSpotsLabel({ availableSpots, hasAvailability, ava
     return '';
   }
 
+  if (spots === 0) {
+    return 'keine Plätze frei';
+  }
+
   const label = spots === 1 ? 'Platz' : 'Plätze';
   const normalizedTiming = normalizeTiming(availabilityTiming);
   if (normalizedTiming === 'aktuell') {
     return `${spots} ${label} aktuell frei`;
   }
   return `${spots} ${label} ab ${MONTH_LABELS[normalizedTiming]} frei`;
+}
+
+export function isAvailabilityHighlighted({ availableSpots, availabilityTiming, hasAvailability } = {}) {
+  if (hasAvailability === false) {
+    return false;
+  }
+
+  const spots = Number.isFinite(availableSpots) ? availableSpots : Number.parseInt(availableSpots ?? '0', 10);
+  if (!Number.isFinite(spots)) {
+    return true;
+  }
+
+  if (spots === 0) {
+    return false;
+  }
+
+  return true;
 }

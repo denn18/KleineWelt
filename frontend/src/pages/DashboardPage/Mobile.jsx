@@ -6,7 +6,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import ImageLightbox from '../components/ImageLightbox.jsx';
 import { assetUrl } from '../utils/file.js';
-import { formatAvailableSpotsLabel } from '../utils/availability.js';
+import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../utils/availability.js';
 
 function calculateAge(value) {
   if (!value) return null;
@@ -440,7 +440,13 @@ function DashboardPageMobile() {
 
                       <span
                         className={`rounded-full px-3 py-1 ${
-                          caregiver.hasAvailability ? 'bg-emerald-50 text-emerald-700' : 'bg-brand-50 text-slate-600'
+                          isAvailabilityHighlighted({
+                            availableSpots: caregiver.availableSpots ?? 0,
+                            availabilityTiming: caregiver.availabilityTiming,
+                            hasAvailability: caregiver.hasAvailability,
+                          })
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-brand-50 text-slate-600'
                         }`}
                       >
                         {formatAvailableSpotsLabel({
@@ -595,7 +601,13 @@ function DashboardPageMobile() {
               <div className="flex flex-1 flex-wrap gap-2 text-xs font-semibold text-brand-700">
                 <span
                   className={`rounded-full px-3 py-1 ${
-                    selectedCaregiver.hasAvailability ? 'bg-emerald-50 text-emerald-700' : 'bg-brand-50 text-slate-600'
+                    isAvailabilityHighlighted({
+                      availableSpots: selectedCaregiver.availableSpots ?? 0,
+                      availabilityTiming: selectedCaregiver.availabilityTiming,
+                      hasAvailability: selectedCaregiver.hasAvailability,
+                    })
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'bg-brand-50 text-slate-600'
                   }`}
                 >
                   {formatAvailableSpotsLabel({
