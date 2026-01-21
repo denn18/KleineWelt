@@ -38,7 +38,7 @@ function normalizeTiming(value) {
 
 export function formatAvailableSpotsLabel({ availableSpots, hasAvailability, availabilityTiming } = {}) {
   if (hasAvailability === false) {
-    return 'keine Plätze frei';
+    return 'aktuell keine Plätze frei';
   }
 
   if (availableSpots === null || availableSpots === undefined) {
@@ -48,6 +48,10 @@ export function formatAvailableSpotsLabel({ availableSpots, hasAvailability, ava
   const spots = Number.isFinite(availableSpots) ? availableSpots : Number.parseInt(availableSpots, 10);
   if (!Number.isFinite(spots)) {
     return '';
+  }
+
+  if (spots === 0) {
+    return 'aktuell keine Plätze frei';
   }
 
   const label = spots === 1 ? 'Platz' : 'Plätze';
@@ -68,7 +72,7 @@ export function isAvailabilityHighlighted({ availableSpots, availabilityTiming, 
     return true;
   }
 
-  if (spots === 0 && normalizeTiming(availabilityTiming) === 'aktuell') {
+  if (spots === 0) {
     return false;
   }
 
