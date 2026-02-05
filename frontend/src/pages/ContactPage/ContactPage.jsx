@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CheckCircleIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import IconUploadButton from '../components/IconUploadButton.jsx';
+import { trackEvent } from '../../utils/analytics.js';
 
 const CONTACT_EMAIL = 'wimmel-welt@info.de';
 
@@ -34,7 +35,9 @@ function ContactPage() {
 
   function handleSubmit(event) {
     event.preventDefault();
+    trackEvent('form_submit', { form_name: 'contact' });
     setUploadMessage((current) => current || 'Vielen Dank! Wir haben deine Nachricht erhalten.');
+    trackEvent('form_success', { form_name: 'contact' });
   }
 
   return (
