@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import IconUploadButton from '../components/IconUploadButton.jsx';
 import { readFileAsDataUrl } from '../utils/file.js';
+import { trackEvent } from '../utils/analytics.js';
 
 function createChild() {
   return { name: '', age: '', gender: '', notes: '' };
@@ -28,6 +29,7 @@ function ParentSignupPage() {
   const [status, setStatus] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   function updateField(field, value) {
@@ -62,6 +64,12 @@ function ParentSignupPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    trackEvent('register_click', {
+      event_category: 'engagement',
+      event_label: 'create_account',
+      page_path: location.pathname,
+    });
+    trackEvent('form_submit', { form_name: 'parent_signup' });
     setSubmitting(true);
     setStatus(null);
     try {
@@ -90,6 +98,8 @@ function ParentSignupPage() {
         type: 'success',
         message: 'Registrierung erfolgreich! Wir melden uns mit passenden Tagespflegepersonen.',
       });
+      trackEvent('register_success');
+      trackEvent('form_success', { form_name: 'parent_signup' });
 
       try {
         await login(credentials.identifier, credentials.password);
@@ -116,6 +126,9 @@ function ParentSignupPage() {
       setProfileImage({ preview: '', dataUrl: null, fileName: '' });
     } catch (error) {
       console.error(error);
+      const reason = error?.response?.data?.message || error?.message;
+      trackEvent('register_error', reason ? { reason } : {});
+      trackEvent('form_error', reason ? { form_name: 'parent_signup', reason } : { form_name: 'parent_signup' });
       setStatus({
         type: 'error',
         message: error.response?.data?.message || 'Etwas ist schiefgelaufen. Bitte versuche es später erneut.',

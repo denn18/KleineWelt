@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { trackEvent } from '../utils/analytics.js';
 
 function LoginPageMobile() {
   const [identifier, setIdentifier] = useState('');
@@ -29,11 +30,15 @@ function LoginPageMobile() {
       return;
     }
 
+    trackEvent('login_click');
+    trackEvent('form_submit', { form_name: 'login' });
     setSubmitting(true);
     try {
       const user = await login(identifier, password);
       const redirectTo = location.state?.from || '/familienzentrum';
 
+      trackEvent('login_success');
+      trackEvent('form_success', { form_name: 'login' });
       setSuccessMessage('Willkommen zurück! Du wirst zum Familienzentrum weitergeleitet.');
 
       timeoutRef.current = setTimeout(() => {
@@ -41,6 +46,9 @@ function LoginPageMobile() {
       }, 900);
     } catch (error) {
       // Fehler wird bereits im Context gesetzt
+      const reason = error?.response?.data?.message || error?.message;
+      trackEvent('login_error', reason ? { reason } : {});
+      trackEvent('form_error', reason ? { form_name: 'login', reason } : { form_name: 'login' });
       setSuccessMessage(null);
     } finally {
       setSubmitting(false);
