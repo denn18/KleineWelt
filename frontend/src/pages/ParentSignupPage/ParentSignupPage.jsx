@@ -64,10 +64,11 @@ function ParentSignupPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    const pagePath = location.pathname;
     trackEvent('register_click', {
       event_category: 'engagement',
       event_label: 'create_account',
-      page_path: location.pathname,
+      page_path: pagePath,
     });
     trackEvent('form_submit', { form_name: 'parent_signup' });
     setSubmitting(true);
@@ -98,7 +99,7 @@ function ParentSignupPage() {
         type: 'success',
         message: 'Registrierung erfolgreich! Wir melden uns mit passenden Tagespflegepersonen.',
       });
-      trackEvent('register_success');
+      trackEvent('register_success', { page_path: pagePath });
       trackEvent('form_success', { form_name: 'parent_signup' });
 
       try {
@@ -127,7 +128,7 @@ function ParentSignupPage() {
     } catch (error) {
       console.error(error);
       const reason = error?.response?.data?.message || error?.message;
-      trackEvent('register_error', reason ? { reason } : {});
+      trackEvent('register_error', reason ? { reason, page_path: pagePath } : { page_path: pagePath });
       trackEvent('form_error', reason ? { form_name: 'parent_signup', reason } : { form_name: 'parent_signup' });
       setStatus({
         type: 'error',

@@ -30,15 +30,14 @@ function LoginPageMobile() {
       return;
     }
 
-    trackEvent('login_click');
-    trackEvent('form_submit', { form_name: 'login' });
+    const pagePath = location.pathname;
+    trackEvent('login_click', { page_path: pagePath });
     setSubmitting(true);
     try {
       const user = await login(identifier, password);
       const redirectTo = location.state?.from || '/familienzentrum';
 
-      trackEvent('login_success');
-      trackEvent('form_success', { form_name: 'login' });
+      trackEvent('login_success', { page_path: pagePath });
       setSuccessMessage('Willkommen zurück! Du wirst zum Familienzentrum weitergeleitet.');
 
       timeoutRef.current = setTimeout(() => {
@@ -47,8 +46,7 @@ function LoginPageMobile() {
     } catch (error) {
       // Fehler wird bereits im Context gesetzt
       const reason = error?.response?.data?.message || error?.message;
-      trackEvent('login_error', reason ? { reason } : {});
-      trackEvent('form_error', reason ? { form_name: 'login', reason } : { form_name: 'login' });
+      trackEvent('login_error', reason ? { reason, page_path: pagePath } : { page_path: pagePath });
       setSuccessMessage(null);
     } finally {
       setSubmitting(false);

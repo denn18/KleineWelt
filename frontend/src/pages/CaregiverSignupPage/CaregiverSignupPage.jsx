@@ -266,10 +266,11 @@ function CaregiverSignupPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+    const pagePath = location.pathname;
     trackEvent('register_click', {
       event_category: 'engagement',
       event_label: 'create_account',
-      page_path: location.pathname,
+      page_path: pagePath,
     });
     trackEvent('form_submit', { form_name: 'caregiver_signup' });
     setSubmitting(true);
@@ -305,7 +306,7 @@ function CaregiverSignupPage() {
         type: 'success',
         message: 'Vielen Dank! Dein Profil ist angelegt und wird Familien angezeigt.',
       });
-      trackEvent('register_success');
+      trackEvent('register_success', { page_path: pagePath });
       trackEvent('form_success', { form_name: 'caregiver_signup' });
 
       try {
@@ -338,7 +339,7 @@ function CaregiverSignupPage() {
     } catch (error) {
       console.error(error);
       const reason = error?.response?.data?.message || error?.message;
-      trackEvent('register_error', reason ? { reason } : {});
+      trackEvent('register_error', reason ? { reason, page_path: pagePath } : { page_path: pagePath });
       trackEvent('form_error', reason ? { form_name: 'caregiver_signup', reason } : { form_name: 'caregiver_signup' });
       setStatus({
         type: 'error',
