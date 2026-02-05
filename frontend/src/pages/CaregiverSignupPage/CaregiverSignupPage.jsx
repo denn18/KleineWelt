@@ -6,7 +6,7 @@ import IconUploadButton from '../components/IconUploadButton.jsx';
 import { readFileAsDataUrl } from '../utils/file.js';
 import { AVAILABILITY_TIMING_OPTIONS } from '../utils/availability.js';
 import { WEEKDAY_SUGGESTIONS } from '../utils/weekdays.js';
-import { getPagePath, trackEvent } from '../../utils/analytics.js';
+import { getPagePath, trackEvent } from '../utils/analytics.js';
 
 const createScheduleEntry = (defaults = {}) => ({
   startTime: '',

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { trackEvent } from '../../utils/analytics.js';
+import { trackEvent } from '../utils/analytics.js';
 
 function LoginPageMobile() {
   const [identifier, setIdentifier] = useState('');

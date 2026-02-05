@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { trackEvent } from '../../utils/analytics.js';
+import { trackEvent } from '../utils/analytics.js';
 
 function LoginPage() {
   const [identifier, setIdentifier] = useState('');
