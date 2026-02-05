@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { trackEvent } from '../utils/analytics.js';
 
 function RoleSelectionPage() {
   return (
@@ -12,6 +13,7 @@ function RoleSelectionPage() {
       <div className="grid gap-6 sm:grid-cols-2">
         <Link
           to="/anmelden/eltern"
+          onClick={() => trackEvent('cta_click', { label: 'Elternprofil anlegen', location: 'role_selection' })}
           className="flex flex-col gap-4 rounded-2xl border border-brand-100 bg-gradient-to-br from-white to-brand-50 p-8 text-left shadow transition hover:-translate-y-1 hover:border-brand-300 hover:shadow-lg"
         >
           <div>
@@ -26,6 +28,7 @@ function RoleSelectionPage() {
         </Link>
         <Link
           to="/anmelden/tagespflegeperson"
+          onClick={() => trackEvent('cta_click', { label: 'Kindertagespflegeprofil anlegen', location: 'role_selection' })}
           className="flex flex-col gap-4 rounded-2xl border border-brand-100 bg-gradient-to-br from-white to-brand-50 p-8 text-left shadow transition hover:-translate-y-1 hover:border-brand-300 hover:shadow-lg"
         >
           <div>

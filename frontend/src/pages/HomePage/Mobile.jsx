@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import heroImage from '../../assets/hero-family.svg';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { trackEvent } from '../utils/analytics.js';
 
 const features = [
   {
@@ -30,6 +31,7 @@ export default function HomePageMobile() {
       logout();
     } else {
       console.info('Navigation zur Login-Seite von Home CTA (Mobile)');
+      trackEvent('cta_click', { label: 'Anmelden', location: 'hero' });
       navigate('/login');
     }
   }
@@ -64,6 +66,7 @@ export default function HomePageMobile() {
         <div className="mt-5 flex flex-col gap-3">
           <Link
             to="/familienzentrum"
+            onClick={() => trackEvent('cta_click', { label: 'Kindertagespflege finden', location: 'hero' })}
             className="rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:bg-brand-700"
           >
             Kindertagespflege finden
