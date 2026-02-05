@@ -37,7 +37,6 @@ function ContactPage() {
     event.preventDefault();
     trackEvent('form_submit', { form_name: 'contact' });
     setUploadMessage((current) => current || 'Vielen Dank! Wir haben deine Nachricht erhalten.');
-    trackEvent('form_success', { form_name: 'contact' });
   }
 
   return (
