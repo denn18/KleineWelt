@@ -4,8 +4,8 @@ import axios from 'axios';
 import { PaperClipIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext.jsx';
 import ImageLightbox from '../components/ImageLightbox.jsx';
-import { assetUrl, readFileAsDataUrl } from '../utils/file.js';
-import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../utils/availability.js';
+import { assetUrl, readFileAsDataUrl } from '../../utils/file.js';
+import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../../utils/availability.js';
 
 function formatTime(value) {
   if (!value) {

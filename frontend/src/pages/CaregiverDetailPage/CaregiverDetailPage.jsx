@@ -3,8 +3,8 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import ImageLightbox from '../components/ImageLightbox.jsx';
-import { assetUrl } from '../utils/file.js';
-import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../utils/availability.js';
+import { assetUrl } from '../../utils/file.js';
+import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../../utils/availability.js';
 
 function SectionHeading({ title, description }) {
   return (

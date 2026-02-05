@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import IconUploadButton from '../components/IconUploadButton.jsx';
-import { readFileAsDataUrl } from '../utils/file.js';
-import { AVAILABILITY_TIMING_OPTIONS } from '../utils/availability.js';
-import { WEEKDAY_SUGGESTIONS } from '../utils/weekdays.js';
-import { getPagePath, trackEvent } from '../utils/analytics.js';
+import { readFileAsDataUrl } from '../../utils/file.js';
+import { AVAILABILITY_TIMING_OPTIONS } from '../../utils/availability.js';
+import { WEEKDAY_SUGGESTIONS } from '../../utils/weekdays.js';
+import { getPagePath, trackEvent } from '../../utils/analytics.js';
 
 const createScheduleEntry = (defaults = {}) => ({
   startTime: '',
