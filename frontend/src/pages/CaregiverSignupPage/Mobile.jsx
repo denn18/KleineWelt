@@ -6,6 +6,7 @@ import IconUploadButton from '../../components/IconUploadButton.jsx';
 import { readFileAsDataUrl } from '../../utils/file.js';
 import { AVAILABILITY_TIMING_OPTIONS } from '../../utils/availability.js';
 import { WEEKDAY_SUGGESTIONS } from '../../utils/weekdays.js';
+import { getPagePath, trackEvent } from '../../utils/analytics.js';
 
 const createScheduleEntry = (defaults = {}) => ({
   startTime: '',
@@ -222,6 +223,12 @@ export default function Mobile() {
     event.preventDefault();
     setSubmitting(true);
     setStatus(null);
+    trackEvent('register_click', {
+      event_category: 'engagement',
+      event_label: 'create_account',
+      page_path: getPagePath(),
+    });
+    trackEvent('form_submit', { form_name: 'caregiver_signup' });
 
     try {
       const computedAgeLocal = calculateAgeFromDateString(formState.birthDate);
@@ -255,6 +262,8 @@ export default function Mobile() {
         closedDays: formState.closedDays,
       });
 
+      trackEvent('register_success');
+      trackEvent('form_success', { form_name: 'caregiver_signup' });
       setStatus({ type: 'success', message: 'Vielen Dank! Dein Profil ist angelegt und wird Familien angezeigt.' });
 
       try {
@@ -280,6 +289,9 @@ export default function Mobile() {
       setClosedDayInput('');
     } catch (error) {
       console.error(error);
+      const reason = error.response?.data?.message || error.message;
+      trackEvent('register_error', reason ? { reason } : {});
+      trackEvent('form_error', reason ? { form_name: 'caregiver_signup', reason } : { form_name: 'caregiver_signup' });
       setStatus({
         type: 'error',
         message: error.response?.data?.message || 'Etwas ist schiefgelaufen. Bitte versuche es später erneut.',
