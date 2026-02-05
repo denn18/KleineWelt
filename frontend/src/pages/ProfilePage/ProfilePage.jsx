@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import IconUploadButton from '../components/IconUploadButton.jsx';
-import { assetUrl, readFileAsDataUrl } from '../utils/file.js';
-import { AVAILABILITY_TIMING_OPTIONS } from '../utils/availability.js';
-import { WEEKDAY_SUGGESTIONS } from '../utils/weekdays.js';
+import { assetUrl, readFileAsDataUrl } from '../../utils/file.js';
+import { AVAILABILITY_TIMING_OPTIONS } from '../../utils/availability.js';
+import { WEEKDAY_SUGGESTIONS } from '../../utils/weekdays.js';
 
 function useProfileData(user) {
   const [profile, setProfile] = useState(null);

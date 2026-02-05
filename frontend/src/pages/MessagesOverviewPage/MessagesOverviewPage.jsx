@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
-import { assetUrl } from '../utils/file.js';
+import { assetUrl } from '../../utils/file.js';
 
 async function fetchUserProfiles(ids) {
   const uniqueIds = Array.from(new Set(ids)).filter(Boolean);

@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import heroImage from '../assets/hero-family.svg';
 import { useAuth } from '../context/AuthContext.jsx';
-import { trackEvent } from '../utils/analytics.js';
+import { trackEvent } from '../../utils/analytics.js';
 
 
 

@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import IconUploadButton from '../components/IconUploadButton.jsx';
-import { readFileAsDataUrl } from '../utils/file.js';
-import { getPagePath, trackEvent } from '../utils/analytics.js';
+import { readFileAsDataUrl } from '../../utils/file.js';
+import { getPagePath, trackEvent } from '../../utils/analytics.js';
 
 function createChild() {
   return { name: '', age: '', gender: '', notes: '' };
