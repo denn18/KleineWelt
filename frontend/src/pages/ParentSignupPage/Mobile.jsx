@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import IconUploadButton from '../components/IconUploadButton.jsx';
 import { readFileAsDataUrl } from '../utils/file.js';
+import { getPagePath, trackEvent } from '../utils/analytics.js';
 
 function createChild() {
   return { name: '', age: '', gender: '', notes: '' };
@@ -79,6 +80,12 @@ function ParentSignupPageMobile() {
 
     setSubmitting(true);
     setStatus(null);
+    trackEvent('register_click', {
+      event_category: 'engagement',
+      event_label: 'create_account',
+      page_path: getPagePath(),
+    });
+    trackEvent('form_submit', { form_name: 'parent_signup' });
 
     try {
       const cleanedChildren = children.map((child) => ({
@@ -97,6 +104,8 @@ function ParentSignupPageMobile() {
         numberOfChildren: cleanedChildren.filter((child) => child.name).length,
       });
 
+      trackEvent('register_success');
+      trackEvent('form_success', { form_name: 'parent_signup' });
       const credentials = {
         identifier: formState.username || formState.email,
         password: formState.password,
@@ -133,6 +142,9 @@ function ParentSignupPageMobile() {
       setProfileImage({ preview: '', dataUrl: null, fileName: '' });
     } catch (error) {
       console.error(error);
+      const reason = error.response?.data?.message || error.message;
+      trackEvent('register_error', reason ? { reason } : {});
+      trackEvent('form_error', reason ? { form_name: 'parent_signup', reason } : { form_name: 'parent_signup' });
       setStatus({
         type: 'error',
         message: error.response?.data?.message || 'Etwas ist schiefgelaufen. Bitte versuche es später erneut.',

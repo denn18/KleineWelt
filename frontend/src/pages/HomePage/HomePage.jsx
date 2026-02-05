@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import heroImage from '../assets/hero-family.svg';
 import { useAuth } from '../context/AuthContext.jsx';
+import { trackEvent } from '../utils/analytics.js';
 
 
 
@@ -51,6 +52,12 @@ function HomePage() {
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link
               to="/familienzentrum"
+              onClick={() =>
+                trackEvent('cta_click', {
+                  label: 'Kindertagespflege finden',
+                  location: 'hero',
+                })
+              }
               className="rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:bg-brand-700"
             >
               Kindertagespflege finden

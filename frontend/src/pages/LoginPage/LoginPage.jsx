@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { trackEvent } from '../utils/analytics.js';
 
 function LoginPage() {
   const [identifier, setIdentifier] = useState('');
@@ -14,8 +15,12 @@ function LoginPage() {
   async function handleSubmit(event) {
     event.preventDefault();
     setSubmitting(true);
+    trackEvent('login_click');
+    trackEvent('form_submit', { form_name: 'login' });
     try {
       const user = await login(identifier, password);
+      trackEvent('login_success');
+      trackEvent('form_success', { form_name: 'login' });
       const redirectTo = location.state?.from || '/familienzentrum';
       setSuccessMessage('Willkommen zurück! Du wirst zum Familienzentrum weitergeleitet.');
       setTimeout(() => {
@@ -24,6 +29,9 @@ function LoginPage() {
     } catch (error) {
       // Fehler wird bereits im Context gesetzt
       setSuccessMessage(null);
+      const reason = error?.response?.data?.message || error?.message;
+      trackEvent('login_error', reason ? { reason } : {});
+      trackEvent('form_error', reason ? { form_name: 'login', reason } : { form_name: 'login' });
     } finally {
       setSubmitting(false);
     }
