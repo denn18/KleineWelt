@@ -445,11 +445,29 @@ function CaregiverDetailPage() {
 
       <section className="grid gap-4">
         <SectionHeading title="Kontakt" />
-        <div className="grid gap-2 text-sm text-slate-600">
-          {caregiver.phone ? <p>Telefon: <a className="text-brand-600 hover:text-brand-700" href={`tel:${caregiver.phone}`}>{caregiver.phone}</a></p> : null}
-          {caregiver.email ? <p>E-Mail: <a className="text-brand-600 hover:text-brand-700" href={`mailto:${caregiver.email}`}>{caregiver.email}</a></p> : null}
-          {formattedAddress ? <p>Adresse: {formattedAddress}</p> : null}
-        </div>
+        {user ? (
+          <div className="grid gap-2 text-sm text-slate-600">
+            {caregiver.phone ? (
+              <p>
+                Telefon:{' '}
+                <a className="text-brand-600 hover:text-brand-700" href={`tel:${caregiver.phone}`}>
+                  {caregiver.phone}
+                </a>
+              </p>
+            ) : null}
+            {caregiver.email ? (
+              <p>
+                E-Mail:{' '}
+                <a className="text-brand-600 hover:text-brand-700" href={`mailto:${caregiver.email}`}>
+                  {caregiver.email}
+                </a>
+              </p>
+            ) : null}
+            {formattedAddress ? <p>Adresse: {formattedAddress}</p> : null}
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500">Kontaktdaten nach Anmeldung oder Registrierung sichtbar.</p>
+        )}
       </section>
       {lightboxImage ? <ImageLightbox image={lightboxImage} onClose={closeLightbox} /> : null}
     </section>
