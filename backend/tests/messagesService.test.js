@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   listConversationsForUser,
+  listMessages,
   sendMessage,
   __setMessagesCollectionForTesting,
   __resetMessagesCollectionForTesting,
@@ -16,6 +17,7 @@ test('sendMessage validates required fields', async (t) => {
 
   const messagesCollection = {
     insertOne: t.mock.fn(),
+    findOne: t.mock.fn(async () => null),
   };
 
   __setMessagesCollectionForTesting(messagesCollection);
@@ -37,6 +39,7 @@ test('sendMessage stores participants without duplicates', async (t) => {
 
   const inserted = [];
   const messagesCollection = {
+    findOne: t.mock.fn(async () => null),
     insertOne: t.mock.fn(async (document) => {
       inserted.push(document);
       return { insertedId: createId('msg-1') };
@@ -46,7 +49,7 @@ test('sendMessage stores participants without duplicates', async (t) => {
   __setMessagesCollectionForTesting(messagesCollection);
 
   const result = await sendMessage({
-    conversationId: 'conv-1',
+    conversationId: 'user-1--user-2',
     senderId: 'user-1',
     recipientId: 'user-2',
     body: 'Hallo!',
@@ -54,7 +57,7 @@ test('sendMessage stores participants without duplicates', async (t) => {
 
   assert.equal(result.id, 'msg-1');
   assert.deepEqual(inserted[0].participants, ['user-1', 'user-2']);
-  assert.equal(inserted[0].conversationId, 'conv-1');
+  assert.equal(inserted[0].conversationId, 'user-1--user-2');
 });
 
 test('listConversationsForUser returns the latest message per conversation ordered by recency', async (t) => {
@@ -95,4 +98,28 @@ test('listConversationsForUser returns the latest message per conversation order
   const pipeline = aggregateMock.mock.calls[0].arguments[0];
   assert.equal(pipeline[0].$match.participants, 'user-1');
   assert.equal(pipeline[1].$sort.createdAt, -1);
+});
+
+test('listMessages throws 403 when user is not part of existing conversation', async (t) => {
+  t.after(__resetMessagesCollectionForTesting);
+
+  const messagesCollection = {
+    findOne: t.mock.fn(async (query) => {
+      if (query.participants) {
+        return null;
+      }
+
+      return { _id: createId('x'), conversationId: 'conv-1', participants: ['user-a', 'user-b'] };
+    }),
+  };
+
+  __setMessagesCollectionForTesting(messagesCollection);
+
+  await assert.rejects(
+    () => listMessages({ conversationId: 'conv-1', userId: 'user-c' }),
+    (error) => {
+      assert.equal(error.status, 403);
+      return true;
+    },
+  );
 });

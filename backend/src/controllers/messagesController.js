@@ -7,14 +7,8 @@ import {
 } from '../services/messagesService.js';
 
 export async function getMessageOverview(req, res) {
-  const { participantId } = req.query;
-
-  if (!participantId) {
-    return res.status(400).json({ message: 'participantId ist erforderlich.' });
-  }
-
   try {
-    const conversations = await listConversationsForUser(participantId);
+    const conversations = await listConversationsForUser(req.user.id);
     res.json(conversations);
   } catch (error) {
     console.error('Failed to load message overview', error);
@@ -24,7 +18,7 @@ export async function getMessageOverview(req, res) {
 
 export async function getMessages(req, res) {
   try {
-    const messages = await listMessages(req.params.conversationId);
+    const messages = await listMessages({ conversationId: req.params.conversationId, userId: req.user.id });
     res.json(messages);
   } catch (error) {
     console.error('Failed to load messages', error);
@@ -36,7 +30,7 @@ export async function postMessage(req, res) {
   try {
     const message = await sendMessage({
       conversationId: req.params.conversationId,
-      senderId: req.body.senderId,
+      senderId: req.user.id,
       recipientId: req.body.recipientId,
       body: req.body.body,
       attachments: req.body.attachments,
@@ -52,8 +46,7 @@ export async function postMessage(req, res) {
 export async function markConversationRead(req, res) {
   try {
     const { conversationId } = req.params;
-    const { userId } = req.body;
-    const messages = await markConversationAsRead({ conversationId, userId });
+    const messages = await markConversationAsRead({ conversationId, userId: req.user.id });
     res.json(messages);
   } catch (error) {
     console.error('Failed to mark conversation as read', error);
@@ -65,8 +58,7 @@ export async function markConversationRead(req, res) {
 export async function deleteConversationById(req, res) {
   try {
     const { conversationId } = req.params;
-    const { userId } = req.body;
-    await deleteConversation({ conversationId, userId });
+    await deleteConversation({ conversationId, userId: req.user.id });
     res.status(204).send();
   } catch (error) {
     console.error('Failed to delete conversation', error);

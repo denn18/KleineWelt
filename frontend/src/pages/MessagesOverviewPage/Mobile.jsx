@@ -110,8 +110,8 @@ export default function Mobile() {
       setError(null);
 
       try {
-        console.info('API Log: GET /api/messages', { participantId: user.id });
-        const response = await axios.get('/api/messages', { params: { participantId: user.id } });
+        console.info('API Log: GET /api/messages');
+        const response = await axios.get('/api/messages');
 
         setConversations(response.data);
         console.info('API Log: Nachrichten geladen', response.data.length);
@@ -156,7 +156,7 @@ export default function Mobile() {
     }
 
     try {
-      await axios.delete(`/api/messages/${conversationId}`, { data: { userId: user.id } });
+      await axios.delete(`/api/messages/${conversationId}`);
       setConversations((current) => current.filter((conversation) => conversation.conversationId !== conversationId));
     } catch (deleteError) {
       console.error('Failed to delete conversation', deleteError);
@@ -166,7 +166,7 @@ export default function Mobile() {
 
   const handleMarkAsRead = async (conversationId) => {
     try {
-      await axios.post(`/api/messages/${conversationId}/read`, { userId: user.id });
+      await axios.post(`/api/messages/${conversationId}/read`);
       setConversations((current) =>
         current.map((conversation) =>
           conversation.conversationId === conversationId
@@ -214,7 +214,7 @@ export default function Mobile() {
           const partnerRoleLabel = partnerProfile?.role === 'caregiver' ? 'Kindertagespflegeperson' : 'Elternteil';
 
           const preview = buildPreview(conversation);
-          const conversationId = [user.id, partnerId].sort().join('--');
+          const conversationId = conversation.conversationId;
           const isUnread = !conversation.readBy?.includes(user.id);
 
           return (

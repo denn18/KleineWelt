@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 
 
@@ -13,6 +13,15 @@ const AuthContext = createContext({
   setAuthError: () => {},
   isAuthenticating: false,
 });
+
+
+function applyAuthToken(token) {
+  if (token) {
+    axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+  } else {
+    delete axios.defaults.headers.common.Authorization;
+  }
+}
 
 function readStoredUser() {
   try {
@@ -29,6 +38,10 @@ export function AuthProvider({ children }) {
   const [authError, setAuthError] = useState(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
+  useEffect(() => {
+    applyAuthToken(user?.token);
+  }, [user?.token]);
+
   async function login(identifier, password) {
     setIsAuthenticating(true);
     setAuthError(null);
@@ -36,8 +49,10 @@ export function AuthProvider({ children }) {
       console.info('API Log: Sende Login-Anfrage');
       const response = await axios.post('/api/auth/login', { identifier, password });
       console.info('Nutzer angemeldet', response.data?.id);
-      setUser(response.data);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(response.data));
+      const authenticatedUser = response.data;
+      applyAuthToken(authenticatedUser?.token);
+      setUser(authenticatedUser);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(authenticatedUser));
       return response.data;
     } catch (error) {
       console.error('Login failed', error);
@@ -50,6 +65,7 @@ export function AuthProvider({ children }) {
 
   function logout() {
     console.info('Nutzer abgemeldet');
+    applyAuthToken(null);
     setUser(null);
     localStorage.removeItem(STORAGE_KEY);
   }
