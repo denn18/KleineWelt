@@ -1,4 +1,5 @@
 import { authenticateUser } from '../services/authService.js';
+import { createAuthToken } from '../utils/authToken.js';
 
 export async function loginController(req, res) {
   const { identifier, password } = req.body || {};
@@ -9,7 +10,8 @@ export async function loginController(req, res) {
 
   try {
     const user = await authenticateUser(identifier, password);
-    res.json(user);
+    const token = createAuthToken({ id: user.id, role: user.role, email: user.email });
+    res.json({ ...user, token });
   } catch (error) {
     console.error('Failed to authenticate user', error);
     const status = error.status || 500;

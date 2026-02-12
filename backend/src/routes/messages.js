@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { requireAuth } from '../middleware/requireAuth.js';
 import {
   deleteConversationById,
   getMessageOverview,
@@ -8,6 +9,8 @@ import {
 } from '../controllers/messagesController.js';
 
 const router = Router();
+
+router.use(requireAuth);
 
 router.get('/', getMessageOverview);
 router.get('/:conversationId', getMessages);

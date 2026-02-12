@@ -139,9 +139,10 @@ function Mobile() {
   }, []);
 
   const conversationId = useMemo(() => {
+    if (location.state?.conversationId) return location.state.conversationId;
     if (!user) return '';
     return [user.id, targetId].sort().join('--');
-  }, [user, targetId]);
+  }, [location.state, user, targetId]);
 
   useEffect(() => {
     async function loadPartner() {
@@ -223,7 +224,6 @@ function Mobile() {
     try {
       console.info('API Log: POST /api/messages/:conversationId', conversationId);
       const response = await axios.post(`/api/messages/${conversationId}`, {
-        senderId: user.id,
         recipientId: targetId,
         body: trimmedBody,
         attachments: pendingAttachments.map((attachment) => ({

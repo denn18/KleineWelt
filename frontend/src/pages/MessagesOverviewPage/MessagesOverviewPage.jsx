@@ -55,8 +55,8 @@ function MessagesOverviewPage() {
       setLoading(true);
       setError(null);
       try {
-        console.info('API Log: GET /api/messages', { participantId: user.id });
-        const response = await axios.get('/api/messages', { params: { participantId: user.id } });
+        console.info('API Log: GET /api/messages');
+        const response = await axios.get('/api/messages');
         setConversations(response.data);
         console.info('API Log: Nachrichten geladen', response.data.length);
         const partnerIds = response.data
@@ -98,7 +98,7 @@ function MessagesOverviewPage() {
     }
 
     try {
-      await axios.delete(`/api/messages/${conversationId}`, { data: { userId: user.id } });
+      await axios.delete(`/api/messages/${conversationId}`);
       setConversations((current) => current.filter((conversation) => conversation.conversationId !== conversationId));
     } catch (deleteError) {
       console.error('Failed to delete conversation', deleteError);
@@ -108,7 +108,7 @@ function MessagesOverviewPage() {
 
   const handleMarkAsRead = async (conversationId) => {
     try {
-      await axios.post(`/api/messages/${conversationId}/read`, { userId: user.id });
+      await axios.post(`/api/messages/${conversationId}/read`);
       setConversations((current) =>
         current.map((conversation) =>
           conversation.conversationId === conversationId
@@ -160,7 +160,7 @@ function MessagesOverviewPage() {
             : hasAttachments
               ? `${conversation.attachments.length} ${conversation.attachments.length === 1 ? 'Anhang' : 'Anhänge'}`
               : '';
-          const conversationId = [user.id, partnerId].sort().join('--');
+          const conversationId = conversation.conversationId;
           const isUnread = !conversation.readBy?.includes(user.id);
           return (
             <Link
