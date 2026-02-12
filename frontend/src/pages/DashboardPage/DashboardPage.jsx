@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import ImageLightbox from '../components/ImageLightbox.jsx';
 import { assetUrl } from '../utils/file.js';
 import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../utils/availability.js';
+import { trackEvent } from '../utils/analytics.js';
 
 function calculateAge(value) {
   if (!value) {
@@ -184,7 +185,7 @@ function DashboardPage() {
     setCollapsedCards((current) => ({ ...current, [caregiverId]: !current[caregiverId] }));
   }
 
-  function handleCycleRoomImage(caregiverId, direction) {
+  function handleCycleRoomImage(caregiverId, direction, area = 'list') {
     setRoomImageIndexes((current) => {
       const caregiverData = caregivers.find((entry) => entry.id === caregiverId);
       const images = caregiverData?.roomImages ?? [];
@@ -194,6 +195,7 @@ function DashboardPage() {
       const total = images.length;
       const currentIndex = current[caregiverId] ?? 0;
       const nextIndex = (currentIndex + direction + total) % total;
+      trackEvent('engagement_raeumlichkeiten_anschauen', { page: 'dashboard', platform: 'web', area, direction: direction > 0 ? 'next' : 'prev' });
       return { ...current, [caregiverId]: nextIndex };
     });
   }
@@ -209,7 +211,9 @@ function DashboardPage() {
     setLightboxImage(null);
   }
 
-  function handleOpenMessenger(caregiver) {
+  function handleOpenMessenger(caregiver, area = 'detail') {
+    trackEvent('engagement_nachricht_schreiben', { page: 'dashboard', platform: 'web', area });
+
     if (!user) {
       navigate('/login', { state: { from: location.pathname } });
       return;
@@ -244,6 +248,8 @@ function DashboardPage() {
     } else {
       setFilters({ postalCode: '', city: '', search: trimmed });
     }
+
+    trackEvent('engagement_postleitzahl_suche', { page: 'dashboard', platform: 'web', search_value: trimmed || 'empty' });
     setSuggestionsOpen(false);
   }
 
@@ -497,7 +503,7 @@ function DashboardPage() {
                                 type="button"
                                 onClick={(event) => {
                                   event.stopPropagation();
-                                  handleCycleRoomImage(caregiver.id, -1);
+                                  handleCycleRoomImage(caregiver.id, -1, 'list');
                                 }}
                                 className="absolute left-1 top-1/2 -translate-y-1/2 rounded-full bg-white/80 px-2 py-1 text-[10px] font-semibold text-brand-600 shadow hover:bg-white"
                                 aria-label="Vorheriges Raumbild anzeigen"
@@ -508,7 +514,7 @@ function DashboardPage() {
                                 type="button"
                                 onClick={(event) => {
                                   event.stopPropagation();
-                                  handleCycleRoomImage(caregiver.id, 1);
+                                  handleCycleRoomImage(caregiver.id, 1, 'list');
                                 }}
                                 className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full bg-white/80 px-2 py-1 text-[10px] font-semibold text-brand-600 shadow hover:bg-white"
                                 aria-label="Nächstes Raumbild anzeigen"
@@ -750,6 +756,7 @@ function DashboardPage() {
                 {selectedConceptUrl ? (
                   <a
                     href={selectedConceptUrl}
+                    onClick={() => trackEvent('engagement_konzeption_durchlesen', { page: 'dashboard', platform: 'web', area: 'detail' })}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex w-fit items-center gap-2 rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
@@ -759,6 +766,7 @@ function DashboardPage() {
                 ) : null}
                 <Link
                   to={`/kindertagespflege/${selectedCaregiver.id}`}
+                  onClick={() => trackEvent('engagement_kindertagespflege_kennenlernen', { page: 'dashboard', platform: 'web', area: 'detail' })}
                   className="inline-flex w-fit items-center gap-2 rounded-full border border-brand-600 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:bg-brand-600 hover:text-white"
                 >
                   Kindertagespflege kennenlernen
@@ -766,7 +774,7 @@ function DashboardPage() {
               </div>
               <button
                 type="button"
-                onClick={() => handleOpenMessenger(selectedCaregiver)}
+                onClick={() => handleOpenMessenger(selectedCaregiver, 'detail')}
                 className="rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-700"
               >
                 Nachricht schreiben

@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import ImageLightbox from '../../components/ImageLightbox.jsx';
 import { assetUrl } from '../../utils/file.js';
 import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../../utils/availability.js';
+import { trackEvent } from '../../utils/analytics.js';
 
 function SectionHeading({ title, description }) {
   return (
@@ -83,6 +84,8 @@ export default function Mobile() {
   }, [caregiver]);
 
   function handleStartConversation() {
+    trackEvent('engagement_nachricht_schreiben', { page: 'caregiver_detail', platform: 'mobile' });
+
     if (!caregiver) return;
 
     if (!user) {
@@ -118,11 +121,13 @@ export default function Mobile() {
 
   function handleRoomPrev() {
     if (!roomImages.length) return;
+    trackEvent('engagement_raeumlichkeiten_anschauen', { page: 'caregiver_detail', platform: 'mobile', direction: 'prev' });
     setRoomIndex((current) => (current - 1 + roomImages.length) % roomImages.length);
   }
 
   function handleRoomNext() {
     if (!roomImages.length) return;
+    trackEvent('engagement_raeumlichkeiten_anschauen', { page: 'caregiver_detail', platform: 'mobile', direction: 'next' });
     setRoomIndex((current) => (current + 1) % roomImages.length);
   }
 
@@ -257,6 +262,7 @@ export default function Mobile() {
           {conceptUrl ? (
             <a
               href={conceptUrl}
+              onClick={() => trackEvent('engagement_konzeption_durchlesen', { page: 'caregiver_detail', platform: 'mobile' })}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full rounded-full border border-brand-200 px-4 py-2 text-center text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
