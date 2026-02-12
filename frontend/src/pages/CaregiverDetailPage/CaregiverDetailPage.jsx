@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import ImageLightbox from '../components/ImageLightbox.jsx';
 import { assetUrl } from '../utils/file.js';
 import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../utils/availability.js';
+import { trackEvent } from '../utils/analytics.js';
 
 function SectionHeading({ title, description }) {
   return (
@@ -83,6 +84,8 @@ function CaregiverDetailPage() {
   }, [caregiver]);
 
   function handleStartConversation() {
+    trackEvent('engagement_nachricht_schreiben', { page: 'caregiver_detail', platform: 'web' });
+
     if (!caregiver) {
       return;
     }
@@ -126,6 +129,7 @@ function CaregiverDetailPage() {
     if (!roomImages.length) {
       return;
     }
+    trackEvent('engagement_raeumlichkeiten_anschauen', { page: 'caregiver_detail', platform: 'web', direction: 'prev' });
     setRoomIndex((current) => (current - 1 + roomImages.length) % roomImages.length);
   }
 
@@ -133,6 +137,7 @@ function CaregiverDetailPage() {
     if (!roomImages.length) {
       return;
     }
+    trackEvent('engagement_raeumlichkeiten_anschauen', { page: 'caregiver_detail', platform: 'web', direction: 'next' });
     setRoomIndex((current) => (current + 1) % roomImages.length);
   }
 
@@ -239,6 +244,7 @@ function CaregiverDetailPage() {
             {conceptUrl ? (
               <a
                 href={conceptUrl}
+                onClick={() => trackEvent('engagement_konzeption_durchlesen', { page: 'caregiver_detail', platform: 'web' })}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
