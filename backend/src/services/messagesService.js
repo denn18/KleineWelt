@@ -93,17 +93,13 @@ export async function sendMessage({ conversationId, senderId, recipientId, body,
   }
 
   const expectedConversationId = buildCanonicalConversationId(senderId, recipientId);
-  if (conversationId !== expectedConversationId) {
-    const error = new Error('Ungültige conversationId.');
-    error.status = 400;
-    throw error;
-  }
+  const normalizedConversationId = conversationId === expectedConversationId ? conversationId : expectedConversationId;
 
-  await assertConversationAccess({ conversationId, userId: senderId });
+  await assertConversationAccess({ conversationId: normalizedConversationId, userId: senderId });
 
-  const storedAttachments = await storeAttachments(conversationId, attachments);
+  const storedAttachments = await storeAttachments(normalizedConversationId, attachments);
   const document = buildMessageDocument({
-    conversationId,
+    conversationId: normalizedConversationId,
     senderId,
     recipientId,
     body: textBody,
@@ -117,7 +113,7 @@ export async function sendMessage({ conversationId, senderId, recipientId, body,
     recipientId,
     senderId,
     messageBody: textBody || (storedAttachments.length ? 'Es wurden neue Anhänge gesendet.' : ''),
-    conversationId,
+    conversationId: normalizedConversationId,
   }).catch((error) => {
     console.error('Konnte Empfänger nicht benachrichtigen:', error);
   });
