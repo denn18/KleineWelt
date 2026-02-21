@@ -99,6 +99,11 @@ function CaregiverDetailPage() {
     });
   }
 
+  function handleLoginClick() {
+    trackEvent('engagement_login_page', { page: 'caregiver_detail', platform: 'web', location: 'contact' });
+    navigate('/login', { state: { from: location.pathname } });
+  }
+
   useEffect(() => {
     if (caregiver?.id) {
       setRoomIndex(0);
@@ -472,7 +477,16 @@ function CaregiverDetailPage() {
             {formattedAddress ? <p>Adresse: {formattedAddress}</p> : null}
           </div>
         ) : (
-          <p className="text-sm text-slate-500">Kontaktdaten nach Anmeldung oder Registrierung sichtbar.</p>
+          <div className="flex flex-col items-start gap-3">
+            <p className="text-sm text-slate-500">Kontaktdaten nach Anmeldung oder Registrierung sichtbar.</p>
+            <button
+              type="button"
+              onClick={handleLoginClick}
+              className="rounded-full border border-brand-200 px-6 py-3 text-center text-sm font-semibold text-brand-700 transition duration-200 hover:-translate-y-0.5 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-800 hover:shadow-sm"
+            >
+              Anmelden
+            </button>
+          </div>
         )}
       </section>
       {lightboxImage ? <ImageLightbox image={lightboxImage} onClose={closeLightbox} /> : null}

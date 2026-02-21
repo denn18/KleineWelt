@@ -31,7 +31,7 @@ export default function HomePageMobile() {
       logout();
     } else {
       console.info('Navigation zur Login-Seite von Home CTA (Mobile)');
-      trackEvent('cta_click', { label: 'Anmelden', location: 'hero' });
+      trackEvent('engagement_login_page', { page: 'home', platform: 'mobile', location: 'hero' });
       navigate('/login');
     }
   }
