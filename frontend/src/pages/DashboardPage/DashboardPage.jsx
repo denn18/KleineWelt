@@ -312,7 +312,7 @@ function DashboardPage() {
         </div>
         <button
           type="submit"
-          className="rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-brand-700"
+          className="rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md"
         >
           Suche aktualisieren
         </button>

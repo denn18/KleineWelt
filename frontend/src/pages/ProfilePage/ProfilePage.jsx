@@ -423,7 +423,7 @@ function ParentProfileEditor({ profile, onSave, saving }) {
       <div className="flex flex-col gap-3">
         <button
           type="submit"
-          className="self-start rounded-full bg-brand-600 px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-300"
+          className="self-start rounded-full bg-brand-600 px-8 py-3 text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg disabled:cursor-not-allowed disabled:bg-brand-300"
           disabled={saving}
         >
           {saving ? 'Speichern…' : 'Profil speichern'}
@@ -1639,7 +1639,7 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
       <div className="flex flex-col gap-3">
         <button
           type="submit"
-          className="self-start rounded-full bg-brand-600 px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-300"
+          className="self-start rounded-full bg-brand-600 px-8 py-3 text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg disabled:cursor-not-allowed disabled:bg-brand-300"
           disabled={saving}
         >
           {saving ? 'Speichern…' : 'Profil speichern'}

@@ -482,7 +482,7 @@ function CaregiverDetailPage() {
             <button
               type="button"
               onClick={handleLoginClick}
-              className="rounded-full border border-brand-200 px-6 py-3 text-center text-sm font-semibold text-brand-700 transition duration-200 hover:-translate-y-0.5 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-800 hover:shadow-sm"
+              className="rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md"
             >
               Anmelden
             </button>
