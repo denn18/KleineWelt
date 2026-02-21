@@ -38,7 +38,10 @@ function NavigationBar() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-brand-100 bg-white/80 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
-        <Link to="/" className="text-2xl font-semibold text-brand-700">
+        <Link
+          to="/"
+          className="rounded-full px-3 py-1 text-2xl font-semibold text-brand-700 transition duration-200 hover:-translate-y-0.5 hover:bg-brand-50 hover:text-brand-800 hover:shadow-sm"
+        >
           Wimmel Welt
         </Link>
         <nav className="hidden items-center gap-6 text-sm font-medium text-slate-700 md:flex">
