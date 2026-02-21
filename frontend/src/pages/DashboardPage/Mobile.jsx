@@ -264,7 +264,7 @@ function DashboardPageMobile() {
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
             onFocus={() => setSuggestionsOpen(true)}
-            placeholder="aktuell nur 33332, Gütersloh :)"
+            placeholder="hier Postleitzahl eingeben"
             className="rounded-2xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
           />
         </label>
