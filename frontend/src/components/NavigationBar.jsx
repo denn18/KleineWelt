@@ -47,7 +47,7 @@ function NavigationBar() {
               key={link.to}
               to={link.to}
               className={({ isActive }) =>
-                `rounded-full px-4 py-2 transition hover:bg-brand-100 hover:text-brand-800 ${
+                `rounded-full px-4 py-2 transition duration-200 hover:-translate-y-0.5 hover:bg-brand-100 hover:text-brand-800 hover:shadow-sm ${
                   isActive ? 'bg-brand-600 text-white shadow-sm' : ''
                 }`
               }
@@ -59,7 +59,7 @@ function NavigationBar() {
             <button
               type="button"
               onClick={handleLogout}
-              className="rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+              className="rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-600 transition duration-200 hover:-translate-y-0.5 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700 hover:shadow-sm"
             >
               Logout
             </button>
@@ -82,7 +82,7 @@ function NavigationBar() {
                 to={link.to}
                 onClick={() => setMobileOpen(false)}
                 className={({ isActive }) =>
-                  `rounded-full px-4 py-2 text-sm font-medium transition hover:bg-brand-100 hover:text-brand-800 ${
+                  `rounded-full px-4 py-2 text-sm font-medium transition duration-200 hover:bg-brand-100 hover:text-brand-800 hover:shadow-sm ${
                     isActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-700'
                   }`
                 }
@@ -94,7 +94,7 @@ function NavigationBar() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                className="rounded-full border border-brand-200 px-4 py-2 text-sm font-semibold text-brand-600 transition duration-200 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700 hover:shadow-sm"
               >
                 Logout
               </button>

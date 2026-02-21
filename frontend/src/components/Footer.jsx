@@ -6,13 +6,13 @@ function Footer() {
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-4 text-center text-sm text-slate-600 sm:flex-row sm:text-left">
         <p>&copy; {new Date().getFullYear()} Wimmel Welt. Alle Rechte vorbehalten.</p>
         <div className="flex gap-4">
-          <Link className="hover:text-brand-600" to="/datenschutz">
+          <Link className="transition duration-200 hover:-translate-y-0.5 hover:text-brand-600" to="/datenschutz">
             Datenschutz
           </Link>
-          <Link className="hover:text-brand-600" to="/impressum">
+          <Link className="transition duration-200 hover:-translate-y-0.5 hover:text-brand-600" to="/impressum">
             Impressum
           </Link>
-          <Link className="hover:text-brand-600" to="/kontakt">
+          <Link className="transition duration-200 hover:-translate-y-0.5 hover:text-brand-600" to="/kontakt">
             Kontakt
           </Link>
         </div>

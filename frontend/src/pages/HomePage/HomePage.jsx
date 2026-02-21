@@ -57,14 +57,14 @@ function HomePage() {
                 trackEvent('cta_click', { label: 'Kindertagespflege finden', location: 'hero' });
                 trackEvent('engagement_kindertagespflege_finden', { page: 'home', platform: 'web', location: 'hero' });
               }}
-              className="rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:bg-brand-700"
+              className="rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg"
             >
               Kindertagespflege finden
             </Link>
             <button
               type="button"
               onClick={handleAuthButtonClick}
-              className="rounded-full border border-brand-200 px-6 py-3 text-center text-sm font-semibold text-brand-700 transition hover:border-brand-400 hover:text-brand-800"
+              className="rounded-full border border-brand-200 px-6 py-3 text-center text-sm font-semibold text-brand-700 transition duration-200 hover:-translate-y-0.5 hover:border-brand-400 hover:bg-brand-50 hover:text-brand-800 hover:shadow-sm"
             >
               {user ? 'Abmelden' : 'Anmelden'}
             </button>
