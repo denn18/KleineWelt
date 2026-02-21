@@ -81,7 +81,10 @@ function HomePage() {
 
       <section className="grid gap-8 sm:grid-cols-3">
         {features.map((feature) => (
-          <article key={feature.title} className="flex flex-col gap-3 rounded-2xl bg-white/80 p-6 shadow">
+          <article
+            key={feature.title}
+            className="flex flex-col gap-3 rounded-2xl bg-white/80 p-6 shadow transition duration-300 md:hover:-translate-y-1 md:hover:shadow-lg"
+          >
             <h2 className="text-xl font-semibold text-brand-700">{feature.title}</h2>
             <p className="text-sm leading-relaxed text-slate-600">{feature.description}</p>
           </article>
