@@ -83,7 +83,7 @@ function LoginPage() {
         </label>
         <button
           type="submit"
-          className="rounded-full bg-brand-600 px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-300"
+          className="rounded-full bg-brand-600 px-8 py-3 text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg disabled:cursor-not-allowed disabled:bg-brand-300"
           disabled={submitting}
         >
           {submitting ? 'Wird geprüft…' : 'Einloggen'}
@@ -99,7 +99,7 @@ function LoginPage() {
       </form>
       <p className="text-center text-sm text-slate-600">
         Neu bei Kleine Welt?{' '}
-        <Link to="/anmelden" className="font-semibold text-brand-600 hover:text-brand-700">
+        <Link to="/anmelden" className="font-semibold text-brand-600 transition duration-200 hover:text-brand-700 hover:underline">
           Jetzt kostenlos registrieren
         </Link>
       </p>
