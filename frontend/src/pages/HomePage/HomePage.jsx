@@ -33,7 +33,7 @@ function HomePage() {
       logout();
     } else {
       console.info('Navigation zur Login-Seite von Home CTA');
-      trackEvent('cta_click', { label: 'Anmelden', location: 'hero' });
+      trackEvent('engagement_login_page', { page: 'home', platform: 'web', location: 'hero' });
       navigate('/login');
     }
   }
