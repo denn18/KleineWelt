@@ -99,7 +99,7 @@ function LoginPage() {
       </form>
       <p className="text-center text-sm text-slate-600">
         Neu bei Kleine Welt?{' '}
-        <Link to="/anmelden" className="font-semibold text-brand-600 transition duration-200 hover:text-brand-700 hover:underline">
+        <Link to="/anmelden" className="font-semibold text-brand-600 transition duration-200 hover:text-brand-700 hover:underline hover:decoration-2 hover:underline-offset-2">
           Jetzt kostenlos registrieren
         </Link>
       </p>
