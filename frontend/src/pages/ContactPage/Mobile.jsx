@@ -62,7 +62,7 @@ export default function Mobile() {
           <button
             type="button"
             onClick={handleCopyEmail}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-brand-700"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg"
           >
             <DocumentDuplicateIcon className="h-5 w-5" aria-hidden="true" />
             {copied ? 'Kopiert!' : 'E-Mail kopieren'}
@@ -119,7 +119,7 @@ export default function Mobile() {
 
         <button
           type="submit"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-brand-700"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg"
         >
           Nachricht senden
         </button>
