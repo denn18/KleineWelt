@@ -3,7 +3,7 @@ import { CheckCircleIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outl
 import IconUploadButton from '../components/IconUploadButton.jsx';
 import { trackEvent } from '../utils/analytics.js';
 
-const CONTACT_EMAIL = 'wimmel-welt@info.de';
+const CONTACT_EMAIL = 'info@wimmel-welt.de';
 
 function ContactPage() {
   const [copied, setCopied] = useState(false);
