@@ -15,6 +15,8 @@ import ContactPage from './pages/ContactPage/index.jsx';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage/index.jsx';
 import ImprintPage from './pages/ImprintPage/index.jsx';
 import Kindertagespflegegruppe from './pages/Kindertagespflegegruppe.jsx';
+import BetreuungsgruppeErstellenPage from './pages/BetreuungsgruppeErstellenPage.jsx';
+import BetreuungsgruppeChatPage from './pages/BetreuungsgruppeChatPage.jsx';
 
 function App() {
   return (
@@ -51,6 +53,22 @@ function App() {
           element={
             <ProtectedRoute>
               <Kindertagespflegegruppe />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="betreuungsgruppe/erstellen"
+          element={
+            <ProtectedRoute>
+              <BetreuungsgruppeErstellenPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="betreuungsgruppe/chat"
+          element={
+            <ProtectedRoute>
+              <BetreuungsgruppeChatPage />
             </ProtectedRoute>
           }
         />
