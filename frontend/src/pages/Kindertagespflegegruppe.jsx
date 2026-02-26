@@ -1,12 +1,36 @@
+import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from './context/AuthContext.jsx';
-import { isGroupMember, readCareGroup } from '../utils/careGroupStorage.js';
+import { isGroupMember, readCareGroup, saveCareGroup } from '../utils/careGroupStorage.js';
 
 function Kindertagespflegegruppe() {
   const { user } = useAuth();
-  const group = readCareGroup();
+  const [group, setGroup] = useState(() => readCareGroup());
+  const [loading, setLoading] = useState(true);
 
-  if (!user) {
+  useEffect(() => {
+    async function syncGroup() {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await axios.get('/api/care-groups/me');
+        setGroup(response.data || null);
+        saveCareGroup(response.data || null);
+      } catch (_error) {
+        setGroup(readCareGroup());
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    syncGroup().catch(() => setLoading(false));
+  }, [user]);
+
+  if (!user || loading) {
     return null;
   }
 

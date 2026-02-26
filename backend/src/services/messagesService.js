@@ -5,6 +5,7 @@ import {
   serializeMessage,
 } from '../models/Message.js';
 import { storeBase64File } from '../utils/fileStorage.js';
+import { careGroupsCollection } from '../models/CareGroup.js';
 import { notifyRecipientOfMessage } from './notificationService.js';
 
 let messagesCollectionOverride = null;
