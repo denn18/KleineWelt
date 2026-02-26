@@ -1,12 +1,32 @@
+import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext.jsx';
-import { isGroupMember, readCareGroup } from '../utils/careGroupStorage.js';
+import { useAuth } from '../context/AuthContext.jsx';
+import { isGroupMember, loadCareGroup } from '../utils/careGroupStorage.js';
 
 function Kindertagespflegegruppe() {
   const { user } = useAuth();
-  const group = readCareGroup();
+  const [group, setGroup] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!user) {
+  useEffect(() => {
+    async function fetchGroup() {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+
+      const nextGroup = await loadCareGroup(user.id);
+      setGroup(nextGroup);
+      setLoading(false);
+    }
+
+    fetchGroup().catch((error) => {
+      console.error(error);
+      setLoading(false);
+    });
+  }, [user?.id]);
+
+  if (!user || loading) {
     return null;
   }
 
