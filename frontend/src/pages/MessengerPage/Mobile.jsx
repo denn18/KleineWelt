@@ -302,70 +302,76 @@ function Mobile() {
             <div className="space-y-3 pb-4">
               {messages.map((message) => {
                 const isOwn = message.senderId === user.id;
-                const bubbleClasses = isOwn ? 'bg-brand-600 text-white' : 'bg-brand-50 text-slate-700';
+                const bubbleClasses = isOwn ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-700';
                 const metaClasses = isOwn ? 'text-white/80' : 'text-slate-500';
 
                 return (
-                  <div key={message.id} className={`flex flex-col gap-1 ${isOwn ? 'items-end' : 'items-start'}`}>
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-500">
+                  <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                    <div className="max-w-[88%]">
+                      <p
+                        className={`mb-1 text-[10px] font-semibold uppercase tracking-wide ${
+                          isOwn ? 'text-right text-brand-600' : 'text-slate-500'
+                        }`}
+                      >
                       {isOwn ? 'Du' : partnerName || message.senderId}
-                    </span>
+                      </p>
 
-                    <div className={`max-w-[88%] rounded-2xl px-4 py-2 ${bubbleClasses}`}>
-                      {message.body ? <p className="whitespace-pre-wrap text-base leading-6">{message.body}</p> : null}
+                      <div className={`rounded-2xl px-4 py-2 shadow ${bubbleClasses}`}>
+                        {message.body ? <p className="whitespace-pre-wrap text-base leading-6">{message.body}</p> : null}
 
-                      {Array.isArray(message.attachments) && message.attachments.length ? (
-                        <div className="mt-2 flex flex-col gap-2">
-                          {message.attachments.map((attachment) => {
-                            const url = assetUrl(attachment);
-                            const isImage = attachment.mimeType?.startsWith('image/');
-                            const label = attachment.fileName || attachment.name || 'Anhang';
-                            const key = attachment.key || attachment.url || label;
-                            const attachmentClasses = isOwn ? 'border-white/30 bg-white/10' : 'border-brand-100 bg-white';
+                        {Array.isArray(message.attachments) && message.attachments.length ? (
+                          <div className="mt-2 flex flex-col gap-2">
+                            {message.attachments.map((attachment) => {
+                              const url = assetUrl(attachment);
+                              const isImage = attachment.mimeType?.startsWith('image/');
+                              const label = attachment.fileName || attachment.name || 'Anhang';
+                              const key = attachment.key || attachment.url || label;
+                              const attachmentClasses = isOwn ? 'border-white/30 bg-white/10' : 'border-brand-100 bg-white';
 
-                            return (
-                              <div
-                                key={key}
-                                className={`flex items-center gap-3 rounded-xl border px-3 py-2 text-left ${attachmentClasses}`}
-                              >
-                                {isImage ? (
-                                  <button
-                                    type="button"
-                                    onClick={() => openLightbox(url, label)}
-                                    className="h-14 w-14 overflow-hidden rounded-lg border border-brand-100 bg-brand-50"
-                                  >
-                                    <img src={url} alt={label} className="h-full w-full object-cover" />
-                                  </button>
-                                ) : (
-                                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-                                    <PaperClipIcon className="h-6 w-6" />
-                                  </div>
-                                )}
-
-                                <div className="flex flex-1 flex-col text-sm">
-                                  <span className="font-semibold">{label}</span>
-                                  {attachment.size ? (
-                                    <span className="text-xs text-slate-500">{Math.round(attachment.size / 1024)} KB</span>
-                                  ) : null}
-                                  {url ? (
-                                    <a
-                                      href={url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      download
-                                      className={`text-xs font-semibold ${isOwn ? 'text-white' : 'text-brand-600'} hover:underline`}
+                              return (
+                                <div
+                                  key={key}
+                                  className={`flex items-center gap-3 rounded-xl border px-3 py-2 text-left ${attachmentClasses}`}
+                                >
+                                  {isImage ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => openLightbox(url, label)}
+                                      className="h-14 w-14 overflow-hidden rounded-lg border border-brand-100 bg-brand-50"
                                     >
-                                      Herunterladen
-                                    </a>
-                                  ) : null}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : null}
+                                      <img src={url} alt={label} className="h-full w-full object-cover" />
+                                    </button>
+                                  ) : (
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                                      <PaperClipIcon className="h-6 w-6" />
+                                    </div>
+                                  )}
 
-                      <span className={`mt-1 block text-[10px] ${metaClasses}`}>{formatTime(message.createdAt)}</span>
+                                  <div className="flex flex-1 flex-col text-sm">
+                                    <span className="font-semibold">{label}</span>
+                                    {attachment.size ? (
+                                      <span className="text-xs text-slate-500">{Math.round(attachment.size / 1024)} KB</span>
+                                    ) : null}
+                                    {url ? (
+                                      <a
+                                        href={url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        download
+                                        className={`text-xs font-semibold ${isOwn ? 'text-white' : 'text-brand-600'} hover:underline`}
+                                      >
+                                        Herunterladen
+                                      </a>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : null}
+
+                        <span className={`mt-1 block text-[10px] ${metaClasses}`}>{formatTime(message.createdAt)}</span>
+                      </div>
                     </div>
                   </div>
                 );
