@@ -212,14 +212,6 @@ export async function listGroupMessages({ conversationId, userId }) {
     throw error;
   }
 
-  const caregiverId = conversationId.replace('caregroup--', '');
-  const activeGroup = await careGroupsCollection().findOne({ caregiverId });
-  if (!activeGroup || ![caregiverId, ...(activeGroup.participantIds || [])].includes(userId)) {
-    const error = new Error('Betreuungsgruppe wurde aufgelöst oder du bist kein Mitglied mehr.');
-    error.status = 404;
-    throw error;
-  }
-
   await assertGroupConversationAccess({ conversationId, userId });
 
   const cursor = getMessagesCollection()
@@ -243,26 +235,11 @@ export async function sendGroupMessage({ caregiverId, senderId, participantIds =
   const normalizedConversationId = buildGroupConversationId(caregiverId);
   await assertGroupConversationAccess({ conversationId: normalizedConversationId, userId: senderId });
 
-  const activeGroup = await careGroupsCollection().findOne({ caregiverId });
-  const activeParticipants = Array.from(new Set([...(activeGroup?.participantIds || participantIds || [])].filter(Boolean)));
-  if (!activeGroup) {
-    const error = new Error('Betreuungsgruppe wurde nicht gefunden.');
-    error.status = 404;
-    throw error;
-  }
-
-  const allowedMembers = [caregiverId, ...activeParticipants];
-  if (!allowedMembers.includes(senderId)) {
-    const error = new Error('Du bist kein Mitglied der Betreuungsgruppe.');
-    error.status = 403;
-    throw error;
-  }
-
   const storedAttachments = await storeAttachments(normalizedConversationId, attachments);
   const document = buildGroupMessageDocument({
     conversationId: normalizedConversationId,
     senderId,
-    participantIds: activeParticipants,
+    participantIds,
     body: textBody,
     attachments: storedAttachments,
   });
@@ -270,7 +247,7 @@ export async function sendGroupMessage({ caregiverId, senderId, participantIds =
   const result = await getMessagesCollection().insertOne(document);
   const serialized = serializeMessage({ _id: result.insertedId, ...document });
 
-  const recipients = Array.from(new Set(activeParticipants.filter((id) => id && id !== senderId)));
+  const recipients = Array.from(new Set((participantIds || []).filter((id) => id && id !== senderId)));
 
   await Promise.allSettled(
     recipients.map((recipientId) =>

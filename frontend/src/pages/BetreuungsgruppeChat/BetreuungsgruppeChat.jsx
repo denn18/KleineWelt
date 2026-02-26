@@ -31,32 +31,12 @@ function BetreuungsgruppeChat() {
   const [draft, setDraft] = useState('');
   const [messages, setMessages] = useState([]);
   const [pendingFiles, setPendingFiles] = useState([]);
-  const [feedback, setFeedback] = useState('');
 
   const isCaregiver = user?.role === 'caregiver' && group?.caregiverId === user?.id;
 
   useEffect(() => {
-    async function syncGroup() {
-      if (!user) return;
-
-      try {
-        const response = await axios.get('/api/care-groups/me');
-        if (!response.data) {
-          setGroup(null);
-          saveCareGroup(null);
-          setMessages([]);
-          return;
-        }
-
-        saveCareGroup(response.data);
-        setGroup(response.data);
-      } catch (_error) {
-        setGroup(readCareGroup());
-      }
-    }
-
-    syncGroup().catch(() => true);
-  }, [user]);
+    setGroup(readCareGroup());
+  }, []);
 
   useEffect(() => {
     async function loadProfiles() {
@@ -64,7 +44,7 @@ function BetreuungsgruppeChat() {
         return;
       }
 
-      const ids = [group.caregiverId, ...(group.participantIds || [])].filter(Boolean);
+      const ids = [group.caregiverId, ...group.participantIds].filter(Boolean);
       const entries = await Promise.all(
         ids.map(async (id) => {
           try {
@@ -93,8 +73,8 @@ function BetreuungsgruppeChat() {
         const response = await axios.get(`/api/messages/group/${conversationId}`);
         setMessages(response.data ?? []);
       } catch (error) {
-        setFeedback('Gruppennachrichten konnten nicht vollständig geladen werden.');
-        setMessages([]);
+        console.error('Gruppennachrichten konnten nicht geladen werden, fallback auf localStorage', error);
+        setMessages(group.messages ?? []);
       }
     }
 
@@ -110,7 +90,7 @@ function BetreuungsgruppeChat() {
     event.preventDefault();
     const trimmed = draft.trim();
 
-    if ((!trimmed && pendingFiles.length === 0) || !group) {
+    if ((!trimmed && pendingFiles.length === 0) || !isCaregiver || !group) {
       return;
     }
 
@@ -131,27 +111,18 @@ function BetreuungsgruppeChat() {
       });
 
       setMessages((current) => [...current, response.data]);
+      saveCareGroup({
+        ...group,
+        participantIds: group.participantIds,
+        updatedAt: new Date().toISOString(),
+      });
       setDraft('');
       setPendingFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     } catch (error) {
-      setFeedback(error.response?.data?.message || 'Gruppennachricht konnte nicht gesendet werden.');
-    }
-  }
-
-  async function handleLeaveGroup() {
-    if (!window.confirm('Möchtest du die Betreuungsgruppe wirklich verlassen?')) {
-      return;
-    }
-
-    try {
-      await axios.post('/api/care-groups/me/leave');
-      saveCareGroup(null);
-      navigate('/betreuungsgruppe');
-    } catch (error) {
-      setFeedback(error.response?.data?.message || 'Betreuungsgruppe konnte nicht verlassen werden.');
+      console.error('Gruppennachricht konnte nicht gesendet werden', error);
     }
   }
 
@@ -164,14 +135,22 @@ function BetreuungsgruppeChat() {
       <section className="mx-auto flex w-full max-w-4xl flex-col gap-4 rounded-3xl bg-white/90 p-6 shadow-lg sm:p-8">
         <h1 className="text-2xl font-semibold text-brand-700">Gruppenchat</h1>
         <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          Es gibt aktuell keine Betreuungsgruppe.
+          Es gibt aktuell keine Betreuungsgruppe. Bitte zuerst eine Gruppe erstellen.
         </p>
+        {user.role === 'caregiver' ? (
+          <button
+            type="button"
+            onClick={() => navigate('/betreuungsgruppe/erstellen')}
+            className="w-fit rounded-full bg-brand-600 px-5 py-3 text-sm font-semibold text-white"
+          >
+            Betreuungsgruppe erstellen
+          </button>
+        ) : null}
       </section>
     );
   }
 
   if (!isGroupMember(group, user.id)) {
-    saveCareGroup(null);
     return (
       <section className="mx-auto flex w-full max-w-4xl flex-col gap-4 rounded-3xl bg-white/90 p-6 shadow-lg sm:p-8">
         <h1 className="text-2xl font-semibold text-brand-700">Gruppenchat</h1>
@@ -189,27 +168,16 @@ function BetreuungsgruppeChat() {
     <section className="mx-auto flex w-full max-w-6xl flex-col gap-6 rounded-3xl bg-white/85 p-6 shadow-lg sm:p-8">
       <header className="flex items-center justify-between gap-3">
         <h1 className="text-3xl font-semibold text-brand-700">Messenger</h1>
-        <div className="flex gap-2">
-          {isCaregiver ? (
-            <button
-              type="button"
-              onClick={() => navigate('/betreuungsgruppe/erstellen')}
-              className="rounded-full border border-brand-200 px-5 py-3 text-sm font-semibold text-brand-700 transition hover:border-brand-400"
-            >
-              Betreuungsgruppe bearbeiten
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleLeaveGroup}
-              className="rounded-full border border-red-200 px-5 py-3 text-sm font-semibold text-red-700 transition hover:border-red-400"
-            >
-              Gruppe verlassen
-            </button>
-          )}
-        </div>
+        {isCaregiver ? (
+          <button
+            type="button"
+            onClick={() => navigate('/betreuungsgruppe/erstellen')}
+            className="rounded-full border border-brand-200 px-5 py-3 text-sm font-semibold text-brand-700 transition hover:border-brand-400"
+          >
+            Betreuungsgruppe bearbeiten
+          </button>
+        ) : null}
       </header>
-      {feedback ? <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">{feedback}</p> : null}
 
       <div className="rounded-3xl border border-brand-100 bg-white p-5 shadow">
         <header className="mb-4 flex items-center gap-4 rounded-2xl bg-brand-600 px-4 py-3 text-white">
@@ -274,12 +242,13 @@ function BetreuungsgruppeChat() {
           <input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder={isCaregiver ? 'Nachricht schreiben…' : 'Nachricht schreiben…'}
-            className="w-full rounded-full border border-brand-200 px-5 py-3 text-sm focus:border-brand-400 focus:outline-none"
+            placeholder={isCaregiver ? 'Nachricht schreiben…' : 'Nur Lesen'}
+            disabled={!isCaregiver}
+            className="w-full rounded-full border border-brand-200 px-5 py-3 text-sm focus:border-brand-400 focus:outline-none disabled:cursor-not-allowed disabled:bg-slate-100"
           />
           <button
             type="submit"
-            disabled={!draft.trim() && pendingFiles.length === 0}
+            disabled={!isCaregiver || (!draft.trim() && pendingFiles.length === 0)}
             className="rounded-full bg-brand-500 px-8 py-3 text-base font-semibold text-white shadow hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-brand-300"
           >
             Senden

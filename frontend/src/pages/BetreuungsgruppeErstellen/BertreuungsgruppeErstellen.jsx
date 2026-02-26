@@ -69,33 +69,10 @@ function BertreuungsgruppeErstellen() {
   const [profiles, setProfiles] = useState({});
   const [selectedParticipantIds, setSelectedParticipantIds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [feedback, setFeedback] = useState('');
 
   const existingGroup = readCareGroup();
   const isCaregiver = user?.role === 'caregiver';
   const isEditMode = isCaregiver && existingGroup?.caregiverId === user?.id;
-
-  useEffect(() => {
-    async function syncGroupFromServer() {
-      if (!user) {
-        return;
-      }
-
-      try {
-        const response = await axios.get('/api/care-groups/me');
-        if (response.data) {
-          saveCareGroup({ ...existingGroup, ...response.data });
-          setSelectedParticipantIds(response.data.participantIds || []);
-        } else {
-          saveCareGroup(null);
-        }
-      } catch (_error) {
-        // offline fallback
-      }
-    }
-
-    syncGroupFromServer().catch(() => true);
-  }, [user]);
 
   useEffect(() => {
     async function loadData() {
@@ -132,7 +109,6 @@ function BertreuungsgruppeErstellen() {
 
         setProfiles(Object.fromEntries(profileEntries));
       } catch (error) {
-        setFeedback('Backend aktuell nicht erreichbar. Bitte später erneut versuchen.');
         console.error('Daten konnten nicht geladen werden', error);
       } finally {
         setLoading(false);
@@ -174,37 +150,23 @@ function BertreuungsgruppeErstellen() {
     );
   }
 
-  async function handleSaveGroup() {
+  function handleSaveGroup() {
     if (!isCaregiver || selectedParticipantIds.length === 0) {
       return;
     }
 
-    try {
-      const response = await axios.put('/api/care-groups/me', {
-        participantIds: selectedParticipantIds,
-        daycareName,
-        logoImageUrl: caregiverProfile?.logoImageUrl || existingGroup?.logoImageUrl || null,
-      });
+    const nextGroup = {
+      caregiverId: user.id,
+      participantIds: selectedParticipantIds,
+      daycareName,
+      logoImageUrl: caregiverProfile?.logoImageUrl || existingGroup?.logoImageUrl || '',
+      messages: existingGroup?.messages || [],
+      createdAt: isEditMode ? existingGroup.createdAt : new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
 
-      saveCareGroup(response.data);
-      navigate('/betreuungsgruppe/chat');
-    } catch (error) {
-      setFeedback(error.response?.data?.message || 'Betreuungsgruppe konnte nicht gespeichert werden.');
-    }
-  }
-
-  async function handleDeleteGroup() {
-    if (!window.confirm('Möchtest du die Betreuungsgruppe wirklich komplett löschen? Diese Aktion kann nicht rückgängig gemacht werden.')) {
-      return;
-    }
-
-    try {
-      await axios.delete('/api/care-groups/me');
-      saveCareGroup(null);
-      navigate('/betreuungsgruppe/erstellen');
-    } catch (error) {
-      setFeedback(error.response?.data?.message || 'Betreuungsgruppe konnte nicht gelöscht werden.');
-    }
+    saveCareGroup(nextGroup);
+    navigate('/betreuungsgruppe/chat');
   }
 
   if (!user) {
@@ -228,10 +190,14 @@ function BertreuungsgruppeErstellen() {
         <h1 className="text-3xl font-semibold text-brand-700">
           {isEditMode ? 'Betreuungsgruppe bearbeiten' : 'Betreuungsgruppe erstellen'}
         </h1>
+        <p className="text-sm text-slate-600">
+          {isEditMode
+            ? 'Teilnehmer entfernen oder neue Elternaccounts hinzufügen.'
+            : 'Erstelle als Kindertagespflegeperson eine eigene Gruppenunterhaltung.'}
+        </p>
       </header>
 
       {loading ? <p className="text-sm text-slate-500">Daten werden geladen…</p> : null}
-      {feedback ? <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">{feedback}</p> : null}
 
       <div className="grid gap-5 rounded-3xl border border-brand-100 bg-white p-6 shadow">
         <div className="rounded-2xl border border-brand-100 bg-brand-50/60 p-4">
@@ -260,6 +226,7 @@ function BertreuungsgruppeErstellen() {
 
           <div className="rounded-2xl border border-brand-100 p-4">
             <h2 className="mb-3 text-sm font-semibold text-brand-700">Gruppenbeschreibung</h2>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Betreuungszeiten</p>
             <ul className="space-y-2 text-sm text-slate-700">
               {careTimesLabel.map((line) => (
                 <li key={line} className="rounded-xl bg-brand-50 px-3 py-2">
@@ -301,15 +268,13 @@ function BertreuungsgruppeErstellen() {
           >
             {isEditMode ? 'Änderungen speichern' : 'Betreuungsgruppe erstellen'}
           </button>
-          {isEditMode ? (
-            <button
-              type="button"
-              onClick={handleDeleteGroup}
-              className="rounded-full border border-red-200 px-5 py-3 text-sm font-semibold text-red-700 transition hover:border-red-400"
-            >
-              Betreuungsgruppe löschen
-            </button>
-          ) : null}
+          <button
+            type="button"
+            onClick={() => navigate('/betreuungsgruppe/chat')}
+            className="rounded-full border border-brand-200 px-5 py-3 text-sm font-semibold text-brand-700 transition hover:border-brand-400"
+          >
+            Zurück
+          </button>
         </div>
       </div>
     </section>
