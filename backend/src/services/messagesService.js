@@ -1,5 +1,11 @@
-import { buildMessageDocument, messagesCollection, serializeMessage } from '../models/Message.js';
+import {
+  buildGroupMessageDocument,
+  buildMessageDocument,
+  messagesCollection,
+  serializeMessage,
+} from '../models/Message.js';
 import { storeBase64File } from '../utils/fileStorage.js';
+import { careGroupsCollection } from '../models/CareGroup.js';
 import { notifyRecipientOfMessage } from './notificationService.js';
 
 let messagesCollectionOverride = null;
@@ -16,6 +22,28 @@ function createForbiddenError(message = 'Du hast keine Berechtigung für diese U
 
 function buildCanonicalConversationId(userA, userB) {
   return [userA, userB].sort().join('--');
+}
+
+
+function buildGroupConversationId(caregiverId) {
+  return `caregroup--${caregiverId}`;
+}
+
+async function assertGroupConversationAccess({ conversationId, userId }) {
+  const ownConversationMessage = await getMessagesCollection().findOne({
+    conversationId,
+    participants: userId,
+    isGroupMessage: true,
+  });
+
+  if (ownConversationMessage) {
+    return;
+  }
+
+  const existingConversation = await getMessagesCollection().findOne({ conversationId, isGroupMessage: true });
+  if (existingConversation) {
+    throw createForbiddenError();
+  }
 }
 
 async function assertConversationAccess({ conversationId, userId }) {
@@ -130,7 +158,7 @@ export async function listConversationsForUser(userId) {
 
   const cursor = getMessagesCollection()
     .aggregate([
-      { $match: { participants: userId } },
+      { $match: { participants: userId, isGroupMessage: { $ne: true } } },
       { $sort: { createdAt: -1 } },
       {
         $group: {
@@ -175,3 +203,87 @@ export async function deleteConversation({ conversationId, userId }) {
   await getMessagesCollection().deleteMany({ conversationId, participants: userId });
   return true;
 }
+
+
+export async function listGroupMessages({ conversationId, userId }) {
+  if (!conversationId || !userId) {
+    const error = new Error('Missing required message fields.');
+    error.status = 400;
+    throw error;
+  }
+
+  const caregiverId = conversationId.replace('caregroup--', '');
+  const activeGroup = await careGroupsCollection().findOne({ caregiverId });
+  if (!activeGroup || ![caregiverId, ...(activeGroup.participantIds || [])].includes(userId)) {
+    const error = new Error('Betreuungsgruppe wurde aufgelöst oder du bist kein Mitglied mehr.');
+    error.status = 404;
+    throw error;
+  }
+
+  await assertGroupConversationAccess({ conversationId, userId });
+
+  const cursor = getMessagesCollection()
+    .find({ conversationId, participants: userId, isGroupMessage: true })
+    .sort({ createdAt: 1 });
+  const documents = await cursor.toArray();
+
+  return documents.map(serializeMessage);
+}
+
+export async function sendGroupMessage({ caregiverId, senderId, participantIds = [], body, attachments = [] }) {
+  const textBody = typeof body === 'string' ? body.trim() : '';
+  const hasAttachments = Array.isArray(attachments) && attachments.length > 0;
+
+  if (!caregiverId || !senderId || (!textBody && !hasAttachments)) {
+    const error = new Error('Missing required message fields.');
+    error.status = 400;
+    throw error;
+  }
+
+  const normalizedConversationId = buildGroupConversationId(caregiverId);
+  await assertGroupConversationAccess({ conversationId: normalizedConversationId, userId: senderId });
+
+  const activeGroup = await careGroupsCollection().findOne({ caregiverId });
+  const activeParticipants = Array.from(new Set([...(activeGroup?.participantIds || participantIds || [])].filter(Boolean)));
+  if (!activeGroup) {
+    const error = new Error('Betreuungsgruppe wurde nicht gefunden.');
+    error.status = 404;
+    throw error;
+  }
+
+  const allowedMembers = [caregiverId, ...activeParticipants];
+  if (!allowedMembers.includes(senderId)) {
+    const error = new Error('Du bist kein Mitglied der Betreuungsgruppe.');
+    error.status = 403;
+    throw error;
+  }
+
+  const storedAttachments = await storeAttachments(normalizedConversationId, attachments);
+  const document = buildGroupMessageDocument({
+    conversationId: normalizedConversationId,
+    senderId,
+    participantIds: activeParticipants,
+    body: textBody,
+    attachments: storedAttachments,
+  });
+
+  const result = await getMessagesCollection().insertOne(document);
+  const serialized = serializeMessage({ _id: result.insertedId, ...document });
+
+  const recipients = Array.from(new Set(activeParticipants.filter((id) => id && id !== senderId)));
+
+  await Promise.allSettled(
+    recipients.map((recipientId) =>
+      notifyRecipientOfMessage({
+        recipientId,
+        senderId,
+        messageBody: textBody || (storedAttachments.length ? 'Es wurden neue Anhänge gesendet.' : ''),
+        conversationId: normalizedConversationId,
+      }),
+    ),
+  );
+
+  return serialized;
+}
+
+export { buildGroupConversationId };
