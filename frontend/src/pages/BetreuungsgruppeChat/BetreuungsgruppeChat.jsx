@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from './context/AuthContext.jsx';
-import { assetUrl } from './utils/file.js';
-import { isGroupMember, readCareGroup, saveCareGroup } from '../utils/careGroupStorage.js';
+import { MdAttachFile } from 'react-icons/md';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { assetUrl, readFileAsDataUrl } from '../../utils/file.js';
+import { isGroupMember, readCareGroup, saveCareGroup } from '../../utils/careGroupStorage.js';
 
 function formatDisplayName(profile) {
   if (!profile) {
@@ -12,12 +13,24 @@ function formatDisplayName(profile) {
   return [profile.firstName, profile.lastName].filter(Boolean).join(' ').trim() || profile.name || 'Kontakt';
 }
 
-function BetreuungsgruppeChatPage() {
+function formatMessageTime(timestamp) {
+  return new Date(timestamp).toLocaleString('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function BetreuungsgruppeChat() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
   const [group, setGroup] = useState(() => readCareGroup());
   const [profiles, setProfiles] = useState({});
   const [draft, setDraft] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [pendingFiles, setPendingFiles] = useState([]);
 
   const isCaregiver = user?.role === 'caregiver' && group?.caregiverId === user?.id;
 
@@ -37,7 +50,7 @@ function BetreuungsgruppeChatPage() {
           try {
             const response = await axios.get(`/api/users/${id}`);
             return [id, response.data];
-          } catch (error) {
+          } catch (_error) {
             return [id, null];
           }
         }),
@@ -48,36 +61,69 @@ function BetreuungsgruppeChatPage() {
     loadProfiles().catch((error) => console.error(error));
   }, [group]);
 
+  useEffect(() => {
+    async function loadMessages() {
+      if (!group || !user || !isGroupMember(group, user.id)) {
+        return;
+      }
+
+      const conversationId = `caregroup--${group.caregiverId}`;
+
+      try {
+        const response = await axios.get(`/api/messages/group/${conversationId}`);
+        setMessages(response.data ?? []);
+      } catch (error) {
+        console.error('Gruppennachrichten konnten nicht geladen werden, fallback auf localStorage', error);
+        setMessages(group.messages ?? []);
+      }
+    }
+
+    loadMessages().catch((error) => console.error(error));
+  }, [group, user]);
+
   const selectedProfiles = useMemo(
     () => (group?.participantIds ?? []).map((id) => profiles[id]).filter(Boolean),
     [group?.participantIds, profiles],
   );
 
-  function handleSendMessage(event) {
+  async function handleSendMessage(event) {
     event.preventDefault();
     const trimmed = draft.trim();
 
-    if (!trimmed || !isCaregiver || !group) {
+    if ((!trimmed && pendingFiles.length === 0) || !isCaregiver || !group) {
       return;
     }
 
-    const nextMessage = {
-      id: `${Date.now()}-${Math.random()}`,
-      senderId: user.id,
-      body: trimmed,
-      createdAt: new Date().toISOString(),
-      senderLabel: 'Du',
-    };
+    try {
+      const attachments = await Promise.all(
+        pendingFiles.map(async (file) => ({
+          data: await readFileAsDataUrl(file),
+          name: file.name,
+          mimeType: file.type || null,
+          size: file.size,
+        })),
+      );
 
-    const nextGroup = {
-      ...group,
-      messages: [...group.messages, nextMessage],
-      updatedAt: new Date().toISOString(),
-    };
+      const response = await axios.post(`/api/messages/group/${group.caregiverId}`, {
+        participantIds: group.participantIds,
+        body: trimmed,
+        attachments,
+      });
 
-    const saved = saveCareGroup(nextGroup);
-    setGroup(saved);
-    setDraft('');
+      setMessages((current) => [...current, response.data]);
+      saveCareGroup({
+        ...group,
+        participantIds: group.participantIds,
+        updatedAt: new Date().toISOString(),
+      });
+      setDraft('');
+      setPendingFiles([]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      console.error('Gruppennachricht konnte nicht gesendet werden', error);
+    }
   }
 
   if (!user) {
@@ -145,7 +191,7 @@ function BetreuungsgruppeChatPage() {
         </header>
 
         <div className="flex min-h-[420px] max-h-[520px] flex-col gap-3 overflow-y-auto rounded-2xl border border-brand-100 bg-slate-50 p-4">
-          {group.messages.map((message) => {
+          {messages.map((message) => {
             const isOwnMessage = message.senderId === user.id;
             const senderName = profiles[message.senderId] ? formatDisplayName(profiles[message.senderId]) : message.senderLabel || 'Kontakt';
 
@@ -156,15 +202,19 @@ function BetreuungsgruppeChatPage() {
                     {isOwnMessage ? 'Du' : senderName}
                   </p>
                   <div className={`rounded-3xl px-4 py-3 shadow ${isOwnMessage ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-700'}`}>
-                    <p className="whitespace-pre-wrap text-sm">{message.body}</p>
-                    <p className={`mt-2 text-xs ${isOwnMessage ? 'text-white/80' : 'text-slate-500'}`}>
-                      {new Date(message.createdAt).toLocaleString('de-DE', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
+                    {message.body ? <p className="whitespace-pre-wrap text-sm">{message.body}</p> : null}
+                    {(message.attachments || []).length ? (
+                      <ul className="mt-2 space-y-1 text-xs underline">
+                        {message.attachments.map((attachment) => (
+                          <li key={`${message.id}-${attachment.key || attachment.url}`}>
+                            <a href={assetUrl(attachment)} target="_blank" rel="noreferrer">
+                              {attachment.fileName || 'Anhang öffnen'}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    <p className={`mt-2 text-xs ${isOwnMessage ? 'text-white/80' : 'text-slate-500'}`}>{formatMessageTime(message.createdAt)}</p>
                   </div>
                 </div>
               </div>
@@ -172,7 +222,23 @@ function BetreuungsgruppeChatPage() {
           })}
         </div>
 
-        <form onSubmit={handleSendMessage} className="mt-4 flex flex-col gap-3 sm:flex-row">
+        <form onSubmit={handleSendMessage} className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={!isCaregiver}
+            className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-brand-300 text-brand-700 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-60"
+            aria-label="Datei anhängen"
+          >
+            <MdAttachFile className="text-2xl" />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={(event) => setPendingFiles(Array.from(event.target.files || []))}
+          />
           <input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
@@ -182,15 +248,16 @@ function BetreuungsgruppeChatPage() {
           />
           <button
             type="submit"
-            disabled={!isCaregiver || !draft.trim()}
+            disabled={!isCaregiver || (!draft.trim() && pendingFiles.length === 0)}
             className="rounded-full bg-brand-500 px-8 py-3 text-base font-semibold text-white shadow hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-brand-300"
           >
             Senden
           </button>
         </form>
+        {pendingFiles.length ? <p className="mt-2 text-xs text-slate-500">Anhänge: {pendingFiles.map((file) => file.name).join(', ')}</p> : null}
       </div>
     </section>
   );
 }
 
-export default BetreuungsgruppeChatPage;
+export default BetreuungsgruppeChat;

@@ -63,3 +63,21 @@ export function buildMessageDocument({ conversationId, senderId, recipientId, bo
     updatedAt: now,
   };
 }
+
+export function buildGroupMessageDocument({ conversationId, senderId, participantIds = [], body, attachments = [] }) {
+  const now = new Date();
+  const normalizedParticipants = Array.from(new Set([senderId, ...participantIds].filter(Boolean)));
+
+  return {
+    conversationId,
+    participants: normalizedParticipants,
+    senderId,
+    recipientId: null,
+    body,
+    attachments: normalizeAttachments(attachments),
+    readBy: [senderId],
+    isGroupMessage: true,
+    createdAt: now,
+    updatedAt: now,
+  };
+}

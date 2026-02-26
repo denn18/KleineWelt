@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from './context/AuthContext.jsx';
-import { assetUrl } from './utils/file.js';
-import { readCareGroup, saveCareGroup } from '../utils/careGroupStorage.js';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { assetUrl } from '../../utils/file.js';
+import { readCareGroup, saveCareGroup } from '../../utils/careGroupStorage.js';
 
 function formatDisplayName(profile) {
   if (!profile) {
@@ -61,7 +61,7 @@ function ParticipantCard({ profile, selected, onToggle }) {
   );
 }
 
-function BetreuungsgruppeErstellenPage() {
+function BertreuungsgruppeErstellen() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [caregiverProfile, setCaregiverProfile] = useState(null);
@@ -101,7 +101,7 @@ function BetreuungsgruppeErstellenPage() {
             try {
               const response = await axios.get(`/api/users/${id}`);
               return [id, response.data];
-            } catch (error) {
+            } catch (_error) {
               return [id, null];
             }
           }),
@@ -155,24 +155,17 @@ function BetreuungsgruppeErstellenPage() {
       return;
     }
 
-    const introMessage = {
-      id: `${Date.now()}-system`,
-      senderId: user.id,
-      body: 'Willkommen in der Betreuungsgruppe. Hier werden künftig wichtige Infos geteilt.',
-      createdAt: new Date().toISOString(),
-      senderLabel: 'System',
-    };
-
-    saveCareGroup({
+    const nextGroup = {
       caregiverId: user.id,
       participantIds: selectedParticipantIds,
       daycareName,
       logoImageUrl: caregiverProfile?.logoImageUrl || existingGroup?.logoImageUrl || '',
-      messages: isEditMode ? existingGroup.messages : [introMessage],
+      messages: existingGroup?.messages || [],
       createdAt: isEditMode ? existingGroup.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-    });
+    };
 
+    saveCareGroup(nextGroup);
     navigate('/betreuungsgruppe/chat');
   }
 
@@ -288,4 +281,4 @@ function BetreuungsgruppeErstellenPage() {
   );
 }
 
-export default BetreuungsgruppeErstellenPage;
+export default BertreuungsgruppeErstellen;
