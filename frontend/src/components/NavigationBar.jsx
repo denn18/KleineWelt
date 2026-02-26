@@ -16,6 +16,10 @@ function NavigationBar() {
 
     if (user) {
       items.push({ to: '/nachrichten', label: 'Nachrichten' });
+      items.push({ to: '/betreuungsgruppe', label: 'Betreuungsgruppe' });
+      if (user.role === 'caregiver') {
+        items.push({ to: '/betreuungsgruppe#kontakte', label: 'Kontakte' });
+      }
       items.push({ to: '/profil', label: 'Profil' });
     } else {
       items.push({ to: '/anmelden', label: 'Registrieren' });
