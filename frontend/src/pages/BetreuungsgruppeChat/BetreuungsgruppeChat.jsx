@@ -4,7 +4,7 @@ import axios from 'axios';
 import { MdAttachFile } from 'react-icons/md';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { assetUrl, readFileAsDataUrl } from '../../utils/file.js';
-import { isGroupMember, readCareGroup, saveCareGroup } from '../../utils/careGroupStorage.js';
+import { isGroupMember, loadCareGroup, saveCareGroup } from '../../utils/careGroupStorage.js';
 
 function formatDisplayName(profile) {
   if (!profile) {
@@ -26,7 +26,7 @@ function BetreuungsgruppeChat() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
-  const [group, setGroup] = useState(() => readCareGroup());
+  const [group, setGroup] = useState(null);
   const [profiles, setProfiles] = useState({});
   const [draft, setDraft] = useState('');
   const [messages, setMessages] = useState([]);
@@ -35,8 +35,17 @@ function BetreuungsgruppeChat() {
   const isCaregiver = user?.role === 'caregiver' && group?.caregiverId === user?.id;
 
   useEffect(() => {
-    setGroup(readCareGroup());
-  }, []);
+    async function loadGroup() {
+      if (!user?.id) {
+        return;
+      }
+
+      const nextGroup = await loadCareGroup(user.id);
+      setGroup(nextGroup);
+    }
+
+    loadGroup().catch((error) => console.error(error));
+  }, [user?.id]);
 
   useEffect(() => {
     async function loadProfiles() {
@@ -111,11 +120,7 @@ function BetreuungsgruppeChat() {
       });
 
       setMessages((current) => [...current, response.data]);
-      saveCareGroup({
-        ...group,
-        participantIds: group.participantIds,
-        updatedAt: new Date().toISOString(),
-      });
+      saveCareGroup({ ...group, updatedAt: new Date().toISOString() });
       setDraft('');
       setPendingFiles([]);
       if (fileInputRef.current) {

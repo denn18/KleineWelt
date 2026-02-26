@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { assetUrl } from '../../utils/file.js';
-import { readCareGroup, saveCareGroup } from '../../utils/careGroupStorage.js';
+import { loadCareGroup, persistCareGroup, removeCareGroup } from '../../utils/careGroupStorage.js';
 
 function formatDisplayName(profile) {
   if (!profile) {
@@ -68,9 +68,9 @@ function BertreuungsgruppeErstellen() {
   const [conversations, setConversations] = useState([]);
   const [profiles, setProfiles] = useState({});
   const [selectedParticipantIds, setSelectedParticipantIds] = useState([]);
+  const [existingGroup, setExistingGroup] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const existingGroup = readCareGroup();
   const isCaregiver = user?.role === 'caregiver';
   const isEditMode = isCaregiver && existingGroup?.caregiverId === user?.id;
 
@@ -82,22 +82,25 @@ function BertreuungsgruppeErstellen() {
 
       setLoading(true);
       try {
-        const [messagesResponse, caregiverResponse] = await Promise.all([
+        const [messagesResponse, caregiverResponse, group] = await Promise.all([
           axios.get('/api/messages'),
           axios.get(`/api/caregivers/${user.id}`),
+          loadCareGroup(user.id),
         ]);
 
         const messageOverview = messagesResponse.data ?? [];
         setConversations(messageOverview);
         setCaregiverProfile(caregiverResponse.data ?? null);
+        setExistingGroup(group);
+        setSelectedParticipantIds(group?.participantIds ?? []);
 
         const partnerIds = messageOverview
           .map((conversation) => conversation.participants?.find((id) => id !== user.id))
           .filter(Boolean);
 
-        const uniquePartnerIds = Array.from(new Set(partnerIds));
+        const requiredIds = Array.from(new Set([...(group?.participantIds ?? []), ...partnerIds]));
         const profileEntries = await Promise.all(
-          uniquePartnerIds.map(async (id) => {
+          requiredIds.map(async (id) => {
             try {
               const response = await axios.get(`/api/users/${id}`);
               return [id, response.data];
@@ -118,27 +121,20 @@ function BertreuungsgruppeErstellen() {
     loadData().catch((error) => console.error(error));
   }, [isCaregiver, user]);
 
-  useEffect(() => {
-    if (isEditMode) {
-      setSelectedParticipantIds(existingGroup.participantIds ?? []);
-    }
-  }, [isEditMode, existingGroup?.participantIds]);
+  const contacts = useMemo(() => {
+    const participants = conversations
+      .map((conversation) => {
+        const partnerId = conversation.participants?.find((id) => id !== user?.id);
+        return profiles[partnerId];
+      })
+      .filter(Boolean);
 
-  const contacts = useMemo(
-    () =>
-      conversations
-        .map((conversation) => {
-          const partnerId = conversation.participants?.find((id) => id !== user?.id);
-          return profiles[partnerId];
-        })
-        .filter(Boolean),
-    [conversations, profiles, user?.id],
-  );
+    const selected = selectedParticipantIds.map((id) => profiles[id]).filter(Boolean);
+    const unique = new Map([...participants, ...selected].map((profile) => [profile.id, profile]));
+    return Array.from(unique.values());
+  }, [conversations, profiles, selectedParticipantIds, user?.id]);
 
-  const participantCandidates = useMemo(
-    () => contacts.filter((profile) => profile.role === 'parent'),
-    [contacts],
-  );
+  const participantCandidates = useMemo(() => contacts.filter((profile) => profile.role === 'parent'), [contacts]);
 
   const selectedProfiles = selectedParticipantIds.map((id) => profiles[id]).filter(Boolean);
   const careTimesLabel = useMemo(() => formatCareTimes(caregiverProfile?.careTimes), [caregiverProfile?.careTimes]);
@@ -150,7 +146,7 @@ function BertreuungsgruppeErstellen() {
     );
   }
 
-  function handleSaveGroup() {
+  async function handleSaveGroup() {
     if (!isCaregiver || selectedParticipantIds.length === 0) {
       return;
     }
@@ -160,13 +156,23 @@ function BertreuungsgruppeErstellen() {
       participantIds: selectedParticipantIds,
       daycareName,
       logoImageUrl: caregiverProfile?.logoImageUrl || existingGroup?.logoImageUrl || '',
-      messages: existingGroup?.messages || [],
       createdAt: isEditMode ? existingGroup.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
 
-    saveCareGroup(nextGroup);
+    await persistCareGroup(nextGroup);
     navigate('/betreuungsgruppe/chat');
+  }
+
+  async function handleDeleteGroup() {
+    if (!isEditMode) {
+      return;
+    }
+
+    await removeCareGroup(user.id);
+    navigate('/betreuungsgruppe/erstellen');
+    setExistingGroup(null);
+    setSelectedParticipantIds([]);
   }
 
   if (!user) {
@@ -268,6 +274,15 @@ function BertreuungsgruppeErstellen() {
           >
             {isEditMode ? 'Änderungen speichern' : 'Betreuungsgruppe erstellen'}
           </button>
+          {isEditMode ? (
+            <button
+              type="button"
+              onClick={handleDeleteGroup}
+              className="rounded-full border border-rose-300 px-5 py-3 text-sm font-semibold text-rose-700 transition hover:border-rose-500"
+            >
+              Gruppe löschen
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => navigate('/betreuungsgruppe/chat')}
