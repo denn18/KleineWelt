@@ -1,8 +1,10 @@
 import {
   deleteConversation,
   listConversationsForUser,
+  listGroupMessages,
   listMessages,
   markConversationAsRead,
+  sendGroupMessage,
   sendMessage,
 } from '../services/messagesService.js';
 
@@ -66,3 +68,36 @@ export async function deleteConversationById(req, res) {
     res.status(status).json({ message: 'Konnte Unterhaltung nicht löschen.' });
   }
 }
+
+
+export async function getGroupMessages(req, res) {
+  try {
+    const messages = await listGroupMessages({
+      conversationId: req.params.conversationId,
+      userId: req.user.id,
+    });
+    res.json(messages);
+  } catch (error) {
+    console.error('Failed to load group messages', error);
+    const status = error.status || 500;
+    res.status(status).json({ message: 'Konnte Gruppennachrichten nicht laden.' });
+  }
+}
+
+export async function postGroupMessage(req, res) {
+  try {
+    const message = await sendGroupMessage({
+      caregiverId: req.params.caregiverId,
+      senderId: req.user.id,
+      participantIds: req.body.participantIds,
+      body: req.body.body,
+      attachments: req.body.attachments,
+    });
+    res.status(201).json(message);
+  } catch (error) {
+    console.error('Failed to send group message', error);
+    const status = error.status || 500;
+    res.status(status).json({ message: 'Konnte Gruppennachricht nicht senden.' });
+  }
+}
+
