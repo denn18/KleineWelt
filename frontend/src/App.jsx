@@ -14,6 +14,7 @@ import CaregiverDetailPage from './pages/CaregiverDetailPage/index.jsx';
 import ContactPage from './pages/ContactPage/index.jsx';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage/index.jsx';
 import ImprintPage from './pages/ImprintPage/index.jsx';
+import Kindertagespflegegruppe from './pages/Kindertagespflegegruppe.jsx';
 
 function App() {
   return (
@@ -42,6 +43,14 @@ function App() {
           element={
             <ProtectedRoute>
               <MessagesOverviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="betreuungsgruppe"
+          element={
+            <ProtectedRoute>
+              <Kindertagespflegegruppe />
             </ProtectedRoute>
           }
         />
