@@ -11,6 +11,7 @@ import MessagesOverviewPage from './pages/MessagesOverviewPage/index.jsx';
 import MessengerPage from './pages/MessengerPage/index.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import CaregiverDetailPage from './pages/CaregiverDetailPage/index.jsx';
+import CityCaregiverPage from './pages/CityCaregiverPage/index.jsx';
 import ContactPage from './pages/ContactPage/index.jsx';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage/index.jsx';
 import ImprintPage from './pages/ImprintPage/index.jsx';
@@ -28,7 +29,8 @@ function App() {
         <Route path="anmelden/eltern" element={<ParentSignupPage />} />
         <Route path="familienzentrum" element={<DashboardPage />} />
         <Route path="kindertagespflege/:citySlug/:daycareSlug" element={<CaregiverDetailPage />} />
-        <Route path="kindertagespflege/:id" element={<CaregiverDetailPage />} />
+        <Route path="kindertagespflege/:citySlug" element={<CityCaregiverPage />} />
+        <Route path="kindertagespflege/profil/:id" element={<CaregiverDetailPage />} />
         <Route path="kontakt" element={<ContactPage />} />
         <Route path="datenschutz" element={<PrivacyPolicyPage />} />
         <Route path="impressum" element={<ImprintPage />} />
