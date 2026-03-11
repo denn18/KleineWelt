@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   getCaregiverById,
+  getCaregiverByProfilePath,
   getCaregiverLocations,
   getCaregivers,
   patchCaregiver,
@@ -12,6 +13,7 @@ const router = Router();
 router.get('/', getCaregivers);
 router.get('/locations', getCaregiverLocations);
 router.post('/', postCaregiver);
+router.get('/profile/:citySlug/:daycareSlug', getCaregiverByProfilePath);
 router.get('/:id', getCaregiverById);
 router.patch('/:id', patchCaregiver);
 

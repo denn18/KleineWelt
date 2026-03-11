@@ -8,6 +8,7 @@ import ImageLightbox from '../components/ImageLightbox.jsx';
 import { assetUrl } from '../utils/file.js';
 import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../utils/availability.js';
 import { trackEvent } from '../utils/analytics.js';
+import { buildCaregiverProfileUrl } from '../../utils/caregiverProfilePath.js';
 
 function calculateAge(value) {
   if (!value) return null;
@@ -521,7 +522,7 @@ function DashboardPageMobile() {
                 {/* Actions */}
                 <div className="flex flex-col gap-2">
                   <Link
-                    to={`/kindertagespflege/${caregiver.id}`}
+                    to={buildCaregiverProfileUrl(caregiver)}
                     onClick={(event) => {
                       event.stopPropagation();
                       trackEvent('engagement_kindertagespflege_kennenlernen', { page: 'dashboard', platform: 'mobile', area: 'list' });
@@ -695,7 +696,7 @@ function DashboardPageMobile() {
 
             <div className="flex flex-col gap-2">
               <Link
-                to={`/kindertagespflege/${selectedCaregiver.id}`}
+                to={buildCaregiverProfileUrl(selectedCaregiver)}
                 onClick={() => trackEvent('engagement_kindertagespflege_kennenlernen', { page: 'dashboard', platform: 'mobile', area: 'detail' })}
                 className="w-full rounded-full border border-brand-600 px-4 py-3 text-center text-sm font-semibold text-brand-600 transition hover:bg-brand-600 hover:text-white"
               >
