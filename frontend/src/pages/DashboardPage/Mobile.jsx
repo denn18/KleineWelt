@@ -93,21 +93,29 @@ function DashboardPageMobile() {
         params: Object.keys(params).length ? params : undefined,
       });
 
-      setCaregivers(response.data);
+      const routeFilteredCaregivers = filters.citySlug
+        ? response.data.filter((entry) => slugify(entry.city) === filters.citySlug)
+        : response.data;
+
+      setCaregivers(routeFilteredCaregivers);
       if (filters.citySlug) {
-        const cityName = response.data.find((entry) => entry.city)?.city ?? '';
+        const cityName = routeFilteredCaregivers.find((entry) => entry.city)?.city ?? '';
         setResolvedCityName(cityName);
       }
 
-      if (response.data.length) {
-        setSelectedCaregiver((current) => current ?? response.data[0]);
+      if (routeFilteredCaregivers.length) {
+        setSelectedCaregiver((current) =>
+          current && routeFilteredCaregivers.some((entry) => entry.id === current.id)
+            ? current
+            : routeFilteredCaregivers[0],
+        );
       } else {
         setSelectedCaregiver(null);
       }
 
       setRoomImageIndexes((current) => {
         const next = { ...current };
-        response.data.forEach((caregiver) => {
+        routeFilteredCaregivers.forEach((caregiver) => {
           next[caregiver.id] = next[caregiver.id] ?? 0;
         });
         return next;
