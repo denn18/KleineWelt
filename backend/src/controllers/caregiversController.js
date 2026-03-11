@@ -4,6 +4,7 @@ import {
   findCaregiverByProfilePath,
   listCaregiverLocations,
   listCaregivers,
+  resolveCityByPostalCode,
   updateCaregiver,
 } from '../services/caregiversService.js';
 import {
@@ -135,12 +136,26 @@ export async function getCaregivers(req, res) {
     const caregivers = await listCaregivers({
       postalCode: req.query.postalCode,
       city: req.query.city,
+      citySlug: req.query.citySlug,
       search: req.query.search,
     });
     res.json(caregivers);
   } catch (error) {
     console.error('Failed to load caregivers', error);
     res.status(500).json({ message: 'Konnte Tagespflegepersonen nicht laden.' });
+  }
+}
+
+export async function getCityByPostalCode(req, res) {
+  try {
+    const result = await resolveCityByPostalCode(req.params.postalCode);
+    if (!result) {
+      return res.status(404).json({ message: 'Für diese Postleitzahl wurde keine Stadt gefunden.' });
+    }
+    return res.json(result);
+  } catch (error) {
+    console.error('Failed to resolve city by postal code', error);
+    return res.status(500).json({ message: 'Konnte Stadt nicht bestimmen.' });
   }
 }
 

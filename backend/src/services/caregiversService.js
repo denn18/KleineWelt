@@ -7,6 +7,7 @@ import {
 } from '../models/Caregiver.js';
 import { hashPasswordIfPresent } from '../utils/passwords.js';
 import { escapeRegex } from '../utils/regex.js';
+import { slugify } from '../utils/slug.js';
 
 
 async function ensureUniqueProfilePath(basePath, excludedId = null) {
@@ -47,6 +48,10 @@ function buildLegacyPaths(existing, nextProfilePath) {
 export async function listCaregivers(filters = {}) {
   const conditions = [];
 
+  if (filters.citySlug) {
+    conditions.push({ citySlug: filters.citySlug });
+  }
+
   if (filters.postalCode) {
     conditions.push({ postalCode: filters.postalCode });
   }
@@ -74,6 +79,48 @@ export async function listCaregivers(filters = {}) {
   const documents = await cursor.toArray();
 
   return documents.map(serializeCaregiver);
+}
+
+export async function resolveCityByPostalCode(postalCode) {
+  const normalizedPostalCode = `${postalCode ?? ''}`.trim();
+  if (!/^\d{5}$/.test(normalizedPostalCode)) {
+    return null;
+  }
+
+  const cityFrequency = await caregiversCollection()
+    .aggregate([
+      {
+        $match: {
+          postalCode: normalizedPostalCode,
+          city: { $type: 'string', $ne: '' },
+        },
+      },
+      {
+        $group: {
+          _id: '$city',
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: {
+          count: -1,
+          _id: 1,
+        },
+      },
+      { $limit: 1 },
+    ])
+    .toArray();
+
+  const city = cityFrequency[0]?._id?.trim();
+  if (!city) {
+    return null;
+  }
+
+  return {
+    city,
+    citySlug: slugify(city),
+    postalCode: normalizedPostalCode,
+  };
 }
 
 export async function listCaregiverLocations(searchTerm = '') {

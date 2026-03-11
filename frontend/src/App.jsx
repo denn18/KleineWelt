@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout.jsx';
 import HomePage from './pages/HomePage/index.jsx';
 import RoleSelectionPage from './pages/RoleSelectionPage/index.jsx';
@@ -27,7 +27,9 @@ function App() {
         <Route path="anmelden" element={<RoleSelectionPage />} />
         <Route path="anmelden/tagespflegeperson" element={<CaregiverSignupPage />} />
         <Route path="anmelden/eltern" element={<ParentSignupPage />} />
-        <Route path="familienzentrum" element={<DashboardPage />} />
+        <Route path="familienzentrum" element={<Navigate to="/kindertagespflege" replace />} />
+        <Route path="kindertagespflege" element={<DashboardPage />} />
+        <Route path="kindertagespflege/:citySlug" element={<DashboardPage />} />
         <Route path="kindertagespflege/:citySlug/:daycareSlug" element={<CaregiverDetailPage />} />
         <Route path="kindertagespflege/:id" element={<CaregiverDetailPage />} />
         <Route path="kontakt" element={<ContactPage />} />

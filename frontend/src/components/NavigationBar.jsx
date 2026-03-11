@@ -16,7 +16,7 @@ function NavigationBar() {
   const links = useMemo(() => {
     const items = [
       { to: '/', label: 'Startseite' },
-      { to: '/familienzentrum', label: 'Kindertagespflege finden' },
+      { to: '/kindertagespflege', label: 'Kindertagespflege finden' },
     ];
 
     if (user) {

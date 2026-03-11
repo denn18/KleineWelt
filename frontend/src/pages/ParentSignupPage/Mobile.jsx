@@ -126,7 +126,7 @@ function ParentSignupPageMobile() {
         });
 
         timeoutRef.current = setTimeout(() => {
-          navigate('/familienzentrum', {
+          navigate('/kindertagespflege', {
             replace: true,
             state: { fromRegistration: true, role: response.data?.role || 'parent' },
           });

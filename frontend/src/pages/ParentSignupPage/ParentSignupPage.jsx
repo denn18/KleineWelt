@@ -109,7 +109,7 @@ function ParentSignupPage() {
           message: 'Registrierung erfolgreich! Du wirst jetzt zum Familienzentrum weitergeleitet.',
         });
         setTimeout(() => {
-          navigate('/familienzentrum', {
+          navigate('/kindertagespflege', {
             replace: true,
             state: { fromRegistration: true, role: response.data?.role || 'parent' },
           });

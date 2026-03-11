@@ -52,7 +52,7 @@ function HomePage() {
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link
-              to="/familienzentrum"
+              to="/kindertagespflege"
               onClick={() => {
                 trackEvent('cta_click', { label: 'Kindertagespflege finden', location: 'hero' });
                 trackEvent('engagement_kindertagespflege_finden', { page: 'home', platform: 'web', location: 'hero' });
