@@ -73,17 +73,20 @@ function DashboardPage() {
   const { citySlug: routeCitySlug } = useParams();
 
   useEffect(() => {
-    setSearchTerm('');
     if (routeCitySlug) {
+      setSearchTerm(formatCityFromSlug(routeCitySlug));
       setFilters({ postalCode: '', city: '', citySlug: routeCitySlug, search: '' });
       return;
     }
 
+    setSearchTerm('');
     setResolvedCityName('');
     setFilters({ postalCode: '', city: '', citySlug: '', search: '' });
   }, [location.key, routeCitySlug]);
 
   useEffect(() => {
+    let ignore = false;
+
     async function fetchCaregivers() {
       const params = Object.fromEntries(
         Object.entries(filters)
@@ -98,10 +101,17 @@ function DashboardPage() {
         ? response.data.filter((entry) => slugify(entry.city) === filters.citySlug)
         : response.data;
 
+      if (ignore) {
+        return;
+      }
+
       setCaregivers(routeFilteredCaregivers);
       if (filters.citySlug) {
         const cityName = routeFilteredCaregivers.find((entry) => entry.city)?.city ?? '';
         setResolvedCityName(cityName);
+        if (cityName) {
+          setSearchTerm(cityName);
+        }
       }
       if (routeFilteredCaregivers.length) {
         setSelectedCaregiver(routeFilteredCaregivers[0]);
@@ -125,8 +135,14 @@ function DashboardPage() {
     }
 
     fetchCaregivers().catch((error) => {
-      console.error('Failed to load caregivers', error);
+      if (!ignore) {
+        console.error('Failed to load caregivers', error);
+      }
     });
+
+    return () => {
+      ignore = true;
+    };
   }, [filters]);
 
   useEffect(() => {
