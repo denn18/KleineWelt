@@ -8,42 +8,6 @@ import {
 import { hashPasswordIfPresent } from '../utils/passwords.js';
 import { escapeRegex } from '../utils/regex.js';
 
-
-async function ensureUniqueProfilePath(basePath, excludedId = null) {
-  const normalized = `${basePath ?? ''}`.trim();
-  const fallback = normalized || 'unbekannt/kindertagespflege';
-
-  let candidate = fallback;
-  let counter = 2;
-
-  while (true) {
-    const query = { profilePath: candidate };
-    if (excludedId) {
-      query._id = { $ne: excludedId };
-    }
-
-    const existing = await caregiversCollection().findOne(query, { projection: { _id: 1 } });
-    if (!existing) {
-      return candidate;
-    }
-
-    const [city, daycare] = fallback.split('/');
-    candidate = `${city}/${daycare}-${counter}`;
-    counter += 1;
-  }
-}
-
-function buildLegacyPaths(existing, nextProfilePath) {
-  const legacy = Array.isArray(existing?.legacyProfilePaths) ? existing.legacyProfilePaths : [];
-  const merged = [...legacy];
-
-  if (existing?.profilePath && existing.profilePath !== nextProfilePath && !merged.includes(existing.profilePath)) {
-    merged.push(existing.profilePath);
-  }
-
-  return merged;
-}
-
 export async function listCaregivers(filters = {}) {
   const conditions = [];
 
@@ -145,9 +109,6 @@ export async function createCaregiver(data) {
   }
 
   const document = await hashPasswordIfPresent(buildCaregiverDocument(data));
-  const uniqueProfilePath = await ensureUniqueProfilePath(document.profilePath);
-  document.profilePath = uniqueProfilePath;
-
   const result = await caregiversCollection().insertOne(document);
 
   return serializeCaregiver({ _id: result.insertedId, ...document });
@@ -163,45 +124,15 @@ export async function findCaregiverById(id) {
   return serializeCaregiver(document);
 }
 
-
-export async function findCaregiverByProfilePath(citySlug, daycareSlug) {
-  const profilePath = `${citySlug}/${daycareSlug}`;
-  const document = await caregiversCollection().findOne({
-    $or: [{ profilePath }, { legacyProfilePaths: profilePath }],
-  });
-
-  if (!document) {
-    return null;
-  }
-
-  return {
-    caregiver: serializeCaregiver(document),
-    canonicalProfilePath: document.profilePath,
-    requestedProfilePath: profilePath,
-    isLegacyPath: document.profilePath !== profilePath,
-  };
-}
-
 export async function updateCaregiver(id, data) {
   const objectId = toObjectId(id);
   if (!objectId) {
     return null;
   }
 
-  const existing = await caregiversCollection().findOne({ _id: objectId });
-  if (!existing) {
-    return null;
-  }
-
   const update = await hashPasswordIfPresent(buildCaregiverUpdate(data));
   if (Object.keys(update).length <= 1) {
     return findCaregiverById(id);
-  }
-
-  if (update.profilePath) {
-    const uniqueProfilePath = await ensureUniqueProfilePath(update.profilePath, objectId);
-    update.profilePath = uniqueProfilePath;
-    update.legacyProfilePaths = buildLegacyPaths(existing, uniqueProfilePath);
   }
 
   await caregiversCollection().updateOne({ _id: objectId }, { $set: update });
