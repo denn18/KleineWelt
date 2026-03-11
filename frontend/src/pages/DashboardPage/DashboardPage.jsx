@@ -94,26 +94,30 @@ function DashboardPage() {
       const response = await axios.get('/api/caregivers', {
         params: Object.keys(params).length ? params : undefined,
       });
-      setCaregivers(response.data);
+      const routeFilteredCaregivers = filters.citySlug
+        ? response.data.filter((entry) => slugify(entry.city) === filters.citySlug)
+        : response.data;
+
+      setCaregivers(routeFilteredCaregivers);
       if (filters.citySlug) {
-        const cityName = response.data.find((entry) => entry.city)?.city ?? '';
+        const cityName = routeFilteredCaregivers.find((entry) => entry.city)?.city ?? '';
         setResolvedCityName(cityName);
       }
-      if (response.data.length) {
-        setSelectedCaregiver(response.data[0]);
+      if (routeFilteredCaregivers.length) {
+        setSelectedCaregiver(routeFilteredCaregivers[0]);
       } else {
         setSelectedCaregiver(null);
       }
       setCollapsedCards((current) => {
         const next = {};
-        response.data.forEach((caregiver) => {
+        routeFilteredCaregivers.forEach((caregiver) => {
           next[caregiver.id] = current[caregiver.id] ?? true;
         });
         return next;
       });
       setRoomImageIndexes((current) => {
         const next = {};
-        response.data.forEach((caregiver) => {
+        routeFilteredCaregivers.forEach((caregiver) => {
           next[caregiver.id] = current[caregiver.id] ?? 0;
         });
         return next;
