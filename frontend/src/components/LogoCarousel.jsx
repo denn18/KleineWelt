@@ -44,11 +44,12 @@ function LogoCarousel() {
 
   return (
     <section className="space-y-6">
-      <h2 className="text-2xl font-semibold text-brand-700">Kindertagespflegen auf Kleine Welt</h2>
+      <h2 className="text-2xl font-semibold text-brand-700">Unsere Kindertagespflegepersonen</h2>
 
       <div className="relative overflow-hidden rounded-2xl">
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-brand-50 to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-brand-50 to-transparent" />
+        {/* verblasster Overflow erstmal weg */}
+        {/* <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-brand-50 to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-brand-50 to-transparent" /> */}
 
         <div className="animate-scroll flex w-max items-center gap-12 py-2">
           {doubledLogos.map((logo, index) => (

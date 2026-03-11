@@ -125,7 +125,7 @@ function HomePage() {
         </div>
       </section>
 
-      <LogoCarousel />
+     
 
       <section className="rounded-3xl bg-white/85 p-8 shadow-lg backdrop-blur">
         <h2 className="text-2xl font-semibold text-brand-700">Städte und Regionen</h2>
@@ -170,7 +170,9 @@ function HomePage() {
           </article>
         ))}
       </section>
+           <LogoCarousel />
     </div>
+    
   );
 }
 

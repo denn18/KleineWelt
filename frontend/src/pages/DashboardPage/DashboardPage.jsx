@@ -207,8 +207,8 @@ function DashboardPage() {
   }, [filters, resolvedCityName]);
 
   const pageTitle = routeCitySlug
-    ? `Kindertagespflegepersonen in ${resolvedCityName || formatCityFromSlug(routeCitySlug)}`
-    : 'Kindertagespflege';
+    ? `Tagesmütter und Väter in ${resolvedCityName || formatCityFromSlug(routeCitySlug)}`
+    : 'Familienzentrum';
 
   useEffect(() => {
     if (!routeCitySlug) {
@@ -217,7 +217,7 @@ function DashboardPage() {
 
     const cityForSeo = resolvedCityName || formatCityFromSlug(routeCitySlug);
     const previousTitle = document.title;
-    document.title = `Kindertagespflege in ${cityForSeo} | Kleine Welt`;
+    document.title = `Tagesmütter & Väter in ${cityForSeo} | Wimmel Welt`;
 
     let meta = document.querySelector('meta[name="description"]');
     const created = !meta;

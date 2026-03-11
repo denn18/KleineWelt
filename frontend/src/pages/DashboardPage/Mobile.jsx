@@ -197,7 +197,7 @@ function DashboardPageMobile() {
 
     const cityForSeo = resolvedCityName || formatCityFromSlug(routeCitySlug);
     const previousTitle = document.title;
-    document.title = `Kindertagespflege in ${cityForSeo} | Kleine Welt`;
+    document.title = `Tagesmütter & Väter in ${cityForSeo} | Wimmel Welt`;
 
     let meta = document.querySelector('meta[name="description"]');
     const created = !meta;
@@ -230,8 +230,8 @@ function DashboardPageMobile() {
   }, [filters, resolvedCityName]);
 
   const pageTitle = routeCitySlug
-    ? `Kindertagespflegepersonen in ${resolvedCityName || formatCityFromSlug(routeCitySlug)}`
-    : 'Kindertagespflege';
+    ? `Tagesmütter & Väter in ${resolvedCityName || formatCityFromSlug(routeCitySlug)}`
+    : 'Familienzentrum';
 
   const selectedLogo = selectedCaregiver?.logoImageUrl ? assetUrl(selectedCaregiver.logoImageUrl) : '';
   const selectedProfileImage = selectedCaregiver?.profileImageUrl ? assetUrl(selectedCaregiver.profileImageUrl) : '';

@@ -19,7 +19,8 @@ function NavigationBar() {
 
   const links = useMemo(() => {
     const items = [
-      { to: '/', label: 'Startseite' },
+      // Startseite Label erstmal weg
+      // { to: '/', label: 'Startseite' },
       { to: '/kindertagespflege', label: 'Kindertagespflege finden' },
     ];
 
