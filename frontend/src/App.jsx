@@ -27,6 +27,7 @@ function App() {
         <Route path="anmelden/tagespflegeperson" element={<CaregiverSignupPage />} />
         <Route path="anmelden/eltern" element={<ParentSignupPage />} />
         <Route path="familienzentrum" element={<DashboardPage />} />
+        <Route path="kindertagespflege/:citySlug/:daycareSlug" element={<CaregiverDetailPage />} />
         <Route path="kindertagespflege/:id" element={<CaregiverDetailPage />} />
         <Route path="kontakt" element={<ContactPage />} />
         <Route path="datenschutz" element={<PrivacyPolicyPage />} />
