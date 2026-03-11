@@ -4,7 +4,7 @@ import Mobile from './Mobile.jsx';
 
 const MOBILE_BREAKPOINT = 768;
 
-function DashboardPageWrapper() {
+function DashboardPageWrapper(props) {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < MOBILE_BREAKPOINT);
 
   useEffect(() => {
@@ -16,7 +16,7 @@ function DashboardPageWrapper() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  return isMobile ? <Mobile /> : <Desktop />;
+  return isMobile ? <Mobile {...props} /> : <Desktop {...props} />;
 }
 
 export default DashboardPageWrapper;
