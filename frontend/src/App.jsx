@@ -14,6 +14,7 @@ import CaregiverDetailPage from './pages/CaregiverDetailPage/index.jsx';
 import ContactPage from './pages/ContactPage/index.jsx';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage/index.jsx';
 import ImprintPage from './pages/ImprintPage/index.jsx';
+import FAQPage from './pages/FAQPage/index.jsx';
 import Kindertagespflegegruppe from './pages/Kindertagespflegegruppe.jsx';
 import BetreuungsgruppeErstellenPage from './pages/BetreuungsgruppeErstellen/index.jsx';
 import BetreuungsgruppeChatPage from './pages/BetreuungsgruppeChat/index.jsx';
@@ -30,6 +31,7 @@ function App() {
         <Route path="kindertagespflege/:citySlug/:daycareSlug" element={<CaregiverDetailPage />} />
         <Route path="kindertagespflege/:id" element={<CaregiverDetailPage />} />
         <Route path="kontakt" element={<ContactPage />} />
+        <Route path="faq" element={<FAQPage />} />
         <Route path="datenschutz" element={<PrivacyPolicyPage />} />
         <Route path="impressum" element={<ImprintPage />} />
         <Route path="login" element={<LoginPage />} />
