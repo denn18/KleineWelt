@@ -9,8 +9,7 @@
     "start": "node src/server.js",
     "generate:vapid": "node src/scripts/generateVapidKeys.js",
     "lint": "eslint .",
-    "test": "node --test",
-    "migrate:caregiver-slugs": "node src/scripts/migrateCaregiverSlugs.js"
+    "test": "node --test"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.940.0",
