@@ -1,6 +1,7 @@
 import {
   createCaregiver,
   findCaregiverById,
+  findCaregiverByProfilePath,
   listCaregiverLocations,
   listCaregivers,
   updateCaregiver,
@@ -207,6 +208,27 @@ export async function postCaregiver(req, res) {
     console.error('Failed to create caregiver', error);
     const status = error.status || 500;
     res.status(status).json({ message: 'Konnte Profil nicht speichern.' });
+  }
+}
+
+
+export async function getCaregiverByProfilePath(req, res) {
+  try {
+    const result = await findCaregiverByProfilePath(req.params.citySlug, req.params.daycareSlug);
+    if (!result) {
+      return res.status(404).json({ message: 'Tagespflegeperson wurde nicht gefunden.' });
+    }
+
+    const { caregiver, canonicalProfilePath, requestedProfilePath, isLegacyPath } = result;
+    res.json({
+      ...caregiver,
+      canonicalProfilePath,
+      requestedProfilePath,
+      isLegacyPath,
+    });
+  } catch (error) {
+    console.error('Failed to load caregiver by profile path', error);
+    res.status(500).json({ message: 'Konnte Profil nicht laden.' });
   }
 }
 

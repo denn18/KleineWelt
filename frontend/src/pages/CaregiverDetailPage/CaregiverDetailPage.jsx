@@ -41,7 +41,7 @@ function ScheduleList({ entries, emptyLabel }) {
 }
 
 function CaregiverDetailPage() {
-  const { id } = useParams();
+  const { id, citySlug, daycareSlug } = useParams();
   const [caregiver, setCaregiver] = useState(null);
   const [status, setStatus] = useState({ loading: true, error: null });
   const [roomIndex, setRoomIndex] = useState(0);
@@ -54,11 +54,26 @@ function CaregiverDetailPage() {
     let ignore = false;
     setStatus({ loading: true, error: null });
 
-    axios
-      .get(`/api/caregivers/${id}`)
+    const request = citySlug && daycareSlug
+      ? axios.get(`/api/caregivers/profile/${citySlug}/${daycareSlug}`)
+      : axios.get(`/api/caregivers/${id}`);
+
+    request
       .then((response) => {
         if (!ignore) {
-          setCaregiver(response.data);
+          const payload = response.data;
+
+          if (payload?.canonicalProfilePath && payload?.requestedProfilePath && payload.isLegacyPath) {
+            navigate(`/kindertagespflege/${payload.canonicalProfilePath}`, { replace: true });
+            return;
+          }
+
+          if (!citySlug && payload?.profilePath) {
+            navigate(`/kindertagespflege/${payload.profilePath}`, { replace: true });
+            return;
+          }
+
+          setCaregiver(payload);
           setStatus({ loading: false, error: null });
         }
       })
@@ -73,7 +88,7 @@ function CaregiverDetailPage() {
     return () => {
       ignore = true;
     };
-  }, [id]);
+  }, [id, citySlug, daycareSlug, navigate]);
 
   const formattedAddress = useMemo(() => {
     if (!caregiver) {
@@ -110,6 +125,41 @@ function CaregiverDetailPage() {
       setLightboxImage(null);
     }
   }, [caregiver?.id]);
+
+
+  useEffect(() => {
+    if (!caregiver) {
+      return undefined;
+    }
+
+    const city = caregiver.city || 'deiner Stadt';
+    const daycareName = caregiver.daycareName || caregiver.name || 'Kindertagespflege';
+    const title = `${daycareName} in ${city} | Kleine Welt`;
+    // SEO: Individuelle Meta Description je Profilseite mit Stadtbezug.
+    const description = `${daycareName} ist eine Kindertagespflege in ${city}. Informiere dich über Betreuungszeiten, Konzept und freie Plätze auf Kleine Welt.`;
+
+    const previousTitle = document.title;
+    document.title = title;
+
+    let meta = document.querySelector('meta[name="description"]');
+    const created = !meta;
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'description');
+      document.head.appendChild(meta);
+    }
+    const previousDescription = meta.getAttribute('content');
+    meta.setAttribute('content', description);
+
+    return () => {
+      document.title = previousTitle;
+      if (created) {
+        meta.remove();
+      } else if (previousDescription) {
+        meta.setAttribute('content', previousDescription);
+      }
+    };
+  }, [caregiver]);
 
   const roomImages = useMemo(
     () => (caregiver?.roomImages ?? []).map((imageUrl) => assetUrl(imageUrl)),

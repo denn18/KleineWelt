@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { getDatabase } from '../config/database.js';
 import { normalizeFileReference } from '../utils/fileStorage.js';
+import { buildCaregiverSlugParts } from '../utils/slug.js';
 
 const COLLECTION_NAME = 'caregivers';
 
@@ -204,6 +205,13 @@ export function buildCaregiverDocument(data) {
   const closedDays = Array.isArray(data.closedDays)
     ? data.closedDays.map((day) => day?.trim()).filter(Boolean)
     : [];
+  const slugParts = buildCaregiverSlugParts({
+    city: data.city?.trim() || null,
+    daycareName: data.daycareName?.trim() || null,
+    name: fullName || data.name?.trim(),
+    firstName: data.firstName,
+    lastName: data.lastName,
+  });
 
   return {
     name: fullName || data.name?.trim(),
@@ -215,6 +223,10 @@ export function buildCaregiverDocument(data) {
     postalCode: data.postalCode?.trim(),
     city: data.city?.trim() || null,
     daycareName: data.daycareName?.trim() || null,
+    citySlug: slugParts.citySlug,
+    daycareSlug: slugParts.daycareSlug,
+    profilePath: slugParts.profilePath,
+    legacyProfilePaths: [],
     availableSpots,
     childrenCount,
     age,
@@ -360,6 +372,27 @@ export function buildCaregiverUpdate(data) {
   }
   if (data.conceptUrl !== undefined) {
     update.conceptUrl = data.conceptUrl;
+  }
+
+  const slugRelevant =
+    data.city !== undefined ||
+    data.daycareName !== undefined ||
+    data.name !== undefined ||
+    data.firstName !== undefined ||
+    data.lastName !== undefined;
+
+  if (slugRelevant) {
+    const slugParts = buildCaregiverSlugParts({
+      city: update.city !== undefined ? update.city : data.city,
+      daycareName: update.daycareName !== undefined ? update.daycareName : data.daycareName,
+      name: update.name !== undefined ? update.name : data.name,
+      firstName: update.firstName !== undefined ? update.firstName : data.firstName,
+      lastName: update.lastName !== undefined ? update.lastName : data.lastName,
+    });
+
+    update.citySlug = slugParts.citySlug;
+    update.daycareSlug = slugParts.daycareSlug;
+    update.profilePath = slugParts.profilePath;
   }
 
   return update;
