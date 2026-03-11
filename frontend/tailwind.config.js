@@ -3,6 +3,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        card: '#ffffff',
         brand: {
           50: '#f1f7fb',
           100: '#dceafd',

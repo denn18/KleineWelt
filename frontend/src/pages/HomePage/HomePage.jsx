@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import heroImage from '../assets/hero-family.svg';
 import { useAuth } from '../context/AuthContext.jsx';
 import { trackEvent } from '../utils/analytics.js';
-
+import LogoCarousel from '../../components/LogoCarousel.jsx';
 
 
 const features = [
@@ -78,6 +78,8 @@ function HomePage() {
           <img src={heroImage} alt="Familie" className="max-h-80 w-full object-contain" />
         </div>
       </section>
+
+      <LogoCarousel />
 
       <section className="grid gap-8 sm:grid-cols-3">
         {features.map((feature) => (
