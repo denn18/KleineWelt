@@ -8,7 +8,6 @@ import { assetUrl } from '../utils/file.js';
 import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../utils/availability.js';
 import { trackEvent } from '../utils/analytics.js';
 import { buildCaregiverProfileUrl } from '../../utils/caregiverProfilePath.js';
-import { toReadableCityName } from '../../utils/citySlug.js';
 
 function calculateAge(value) {
   if (!value) {
@@ -46,7 +45,7 @@ function calculateYearsSince(value) {
   return years >= 0 ? years : null;
 }
 
-function DashboardPage({ citySlug = null }) {
+function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({ postalCode: '', city: '', search: '' });
   const [caregivers, setCaregivers] = useState([]);
@@ -62,19 +61,7 @@ function DashboardPage({ citySlug = null }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Bei einer Ortsseite sperren wir den Stadtfilter auf den Slug aus der URL,
-  // damit die Landingpage immer nur passende Profile dieser Stadt zeigt.
-  const isCityLandingPage = Boolean(citySlug);
-  const readableCityName = useMemo(() => toReadableCityName(citySlug), [citySlug]);
-
   useEffect(() => {
-    if (isCityLandingPage) {
-      const lockedCity = readableCityName;
-      setSearchTerm(lockedCity);
-      setFilters({ postalCode: '', city: lockedCity, search: '' });
-      return;
-    }
-
     setSearchTerm('');
     setFilters((current) => {
       if (!current.postalCode && !current.city && !current.search) {
@@ -82,16 +69,12 @@ function DashboardPage({ citySlug = null }) {
       }
       return { postalCode: '', city: '', search: '' };
     });
-  }, [location.key, isCityLandingPage, readableCityName]);
+  }, [location.key]);
 
   useEffect(() => {
     async function fetchCaregivers() {
-      const effectiveFilters = isCityLandingPage
-        ? { postalCode: '', city: readableCityName, search: '' }
-        : filters;
-
       const params = Object.fromEntries(
-        Object.entries(effectiveFilters)
+        Object.entries(filters)
           .filter(([, value]) => Boolean(value))
           .map(([key, value]) => [key, value])
       );
@@ -124,7 +107,7 @@ function DashboardPage({ citySlug = null }) {
     fetchCaregivers().catch((error) => {
       console.error('Failed to load caregivers', error);
     });
-  }, [filters, isCityLandingPage, readableCityName]);
+  }, [filters]);
 
   useEffect(() => {
     if (!searchTerm || searchTerm.trim().length < 2) {
@@ -175,9 +158,6 @@ function DashboardPage({ citySlug = null }) {
   const caregiversForMap = useMemo(() => caregivers.filter((caregiver) => caregiver.location), [caregivers]);
 
   const activeLocation = useMemo(() => {
-    if (isCityLandingPage) {
-      return readableCityName;
-    }
     if (filters.postalCode || filters.city) {
       return [filters.postalCode, filters.city].filter(Boolean).join(' ');
     }
@@ -185,7 +165,7 @@ function DashboardPage({ citySlug = null }) {
       return filters.search;
     }
     return '';
-  }, [filters, isCityLandingPage, readableCityName]);
+  }, [filters]);
 
   const selectedLogo = selectedCaregiver?.logoImageUrl ? assetUrl(selectedCaregiver.logoImageUrl) : '';
   const selectedProfileImage = selectedCaregiver?.profileImageUrl ? assetUrl(selectedCaregiver.profileImageUrl) : '';
@@ -254,12 +234,6 @@ function DashboardPage({ citySlug = null }) {
 
   function handleSearchSubmit(event) {
     event.preventDefault();
-
-    if (isCityLandingPage) {
-      setFilters({ postalCode: '', city: readableCityName, search: '' });
-      setSuggestionsOpen(false);
-      return;
-    }
     const trimmed = searchTerm.trim();
     if (!trimmed) {
       setFilters({ postalCode: '', city: '', search: '' });
@@ -283,11 +257,9 @@ function DashboardPage({ citySlug = null }) {
   return (
     <section className="flex flex-col gap-8">
       <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-semibold text-brand-700">{isCityLandingPage ? `Kindertagespflegepersonen in ${readableCityName}` : 'Familienzentrum'}</h1>
+        <h1 className="text-3xl font-semibold text-brand-700">Familienzentrum</h1>
         <p className="text-sm text-slate-600">
-          {isCityLandingPage
-            ? `Entdecke Kindertagespflegepersonen in ${readableCityName}, vergleiche Profile und finde die passende Betreuung.`
-            : 'Finde Tagespflegepersonen in deiner Nähe, vergleiche Profile und starte persönliche Gespräche.'}
+          Finde Tagespflegepersonen in deiner Nähe, vergleiche Profile und starte persönliche Gespräche.
         </p>
       </header>
 
@@ -301,7 +273,6 @@ function DashboardPage({ citySlug = null }) {
             <input
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              disabled={isCityLandingPage}
               onFocus={() => setSuggestionsOpen(true)}
               //Später wieder in PLZ eingeben ändern!!!!!
               placeholder="hier Postleitzahl eingeben"
@@ -342,10 +313,9 @@ function DashboardPage({ citySlug = null }) {
         </div>
         <button
           type="submit"
-          className="rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
-          disabled={isCityLandingPage}
+          className="rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-md"
         >
-          {isCityLandingPage ? `Ort: ${readableCityName}` : 'Suche aktualisieren'}
+          Suche aktualisieren
         </button>
       </form>
 
