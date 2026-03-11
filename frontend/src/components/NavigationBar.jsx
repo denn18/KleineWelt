@@ -7,6 +7,7 @@ function NavigationBar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [infoDropdownOpen, setInfoDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const closeDropdownTimeoutRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -44,6 +45,14 @@ function NavigationBar() {
   }, []);
 
   useEffect(() => {
+    return () => {
+      if (closeDropdownTimeoutRef.current) {
+        window.clearTimeout(closeDropdownTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     setInfoDropdownOpen(false);
   }, [location.pathname]);
 
@@ -55,6 +64,25 @@ function NavigationBar() {
     logout();
     setMobileOpen(false);
     navigate('/');
+  }
+
+  function openInfoDropdown() {
+    if (closeDropdownTimeoutRef.current) {
+      window.clearTimeout(closeDropdownTimeoutRef.current);
+      closeDropdownTimeoutRef.current = null;
+    }
+    setInfoDropdownOpen(true);
+  }
+
+  function closeInfoDropdownWithDelay() {
+    if (closeDropdownTimeoutRef.current) {
+      window.clearTimeout(closeDropdownTimeoutRef.current);
+    }
+
+    closeDropdownTimeoutRef.current = window.setTimeout(() => {
+      setInfoDropdownOpen(false);
+      closeDropdownTimeoutRef.current = null;
+    }, 300);
   }
 
   return (
@@ -83,8 +111,8 @@ function NavigationBar() {
           <div
             ref={dropdownRef}
             className="relative"
-            onMouseEnter={() => setInfoDropdownOpen(true)}
-            onMouseLeave={() => setInfoDropdownOpen(false)}
+            onMouseEnter={openInfoDropdown}
+            onMouseLeave={closeInfoDropdownWithDelay}
           >
             <button
               type="button"
