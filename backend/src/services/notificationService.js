@@ -29,7 +29,7 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, messageB
       '',
       `${senderName} hat dir eine neue Nachricht auf Kleine Welt gesendet.`,
       textPreview ? `\n${textPreview}\n` : '',
-      'Du kannst direkt in deinem Familienzentrum antworten: https://app.kleine-welt.local/familienzentrum',
+      'Du kannst direkt in deinem Familienzentrum antworten: https://app.kleine-welt.local/kindertagespflege',
       '',
       'Herzliche Grüße',
       'Dein Kleine Welt Team',

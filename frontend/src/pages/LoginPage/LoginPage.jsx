@@ -19,7 +19,7 @@ function LoginPage() {
     setSubmitting(true);
     try {
       const user = await login(identifier, password);
-      const redirectTo = location.state?.from || '/familienzentrum';
+      const redirectTo = location.state?.from || '/kindertagespflege';
       trackEvent('login_success', { page_path: pagePath });
       setSuccessMessage('Willkommen zurück! Du wirst zum Familienzentrum weitergeleitet.');
       setTimeout(() => {

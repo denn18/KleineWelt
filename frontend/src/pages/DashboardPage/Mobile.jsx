@@ -1,6 +1,6 @@
 // frontend/src/pages/DashboardPage/DashboardPageMobile.jsx
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 // import MapView from '../components/MapView.jsx'; Google Maps API später einrichten, kostet Geld
 import { useAuth } from '../context/AuthContext.jsx';
@@ -8,7 +8,7 @@ import ImageLightbox from '../components/ImageLightbox.jsx';
 import { assetUrl } from '../utils/file.js';
 import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../utils/availability.js';
 import { trackEvent } from '../utils/analytics.js';
-import { buildCaregiverProfileUrl } from '../../utils/caregiverProfilePath.js';
+import { buildCaregiverProfileUrl, slugify } from '../../utils/caregiverProfilePath.js';
 
 function calculateAge(value) {
   if (!value) return null;
@@ -38,10 +38,20 @@ function calculateYearsSince(value) {
   return years >= 0 ? years : null;
 }
 
+
+function formatCityFromSlug(slug) {
+  return `${slug ?? ''}`
+    .split('-')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 function DashboardPageMobile() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({ postalCode: '', city: '', search: '' });
+  const [filters, setFilters] = useState({ postalCode: '', city: '', citySlug: '', search: '' });
   const [caregivers, setCaregivers] = useState([]);
+  const [resolvedCityName, setResolvedCityName] = useState('');
   const [selectedCaregiver, setSelectedCaregiver] = useState(null);
 
   const [roomImageIndexes, setRoomImageIndexes] = useState({});
@@ -56,15 +66,19 @@ function DashboardPageMobile() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { citySlug: routeCitySlug } = useParams();
 
   // Reset when route changes (same as web)
   useEffect(() => {
     setSearchTerm('');
-    setFilters((current) => {
-      if (!current.postalCode && !current.city && !current.search) return current;
-      return { postalCode: '', city: '', search: '' };
-    });
-  }, [location.key]);
+    if (routeCitySlug) {
+      setFilters({ postalCode: '', city: '', citySlug: routeCitySlug, search: '' });
+      return;
+    }
+
+    setResolvedCityName('');
+    setFilters({ postalCode: '', city: '', citySlug: '', search: '' });
+  }, [location.key, routeCitySlug]);
 
   // Fetch caregivers (same logic as web)
   useEffect(() => {
@@ -80,6 +94,10 @@ function DashboardPageMobile() {
       });
 
       setCaregivers(response.data);
+      if (filters.citySlug) {
+        const cityName = response.data.find((entry) => entry.city)?.city ?? '';
+        setResolvedCityName(cityName);
+      }
 
       if (response.data.length) {
         setSelectedCaregiver((current) => current ?? response.data[0]);
@@ -148,11 +166,48 @@ function DashboardPageMobile() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!routeCitySlug) {
+      return undefined;
+    }
+
+    const cityForSeo = resolvedCityName || formatCityFromSlug(routeCitySlug);
+    const previousTitle = document.title;
+    document.title = `Kindertagespflege in ${cityForSeo} | Kleine Welt`;
+
+    let meta = document.querySelector('meta[name="description"]');
+    const created = !meta;
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'description');
+      document.head.appendChild(meta);
+    }
+    const previousDescription = meta.getAttribute('content');
+    meta.setAttribute(
+      'content',
+      `Finde alle Kindertagespflegepersonen in ${cityForSeo} auf Kleine Welt – mit Profilen, freien Plätzen und direkter Kontaktmöglichkeit.`,
+    );
+
+    return () => {
+      document.title = previousTitle;
+      if (created) {
+        meta.remove();
+      } else if (previousDescription) {
+        meta.setAttribute('content', previousDescription);
+      }
+    };
+  }, [routeCitySlug, resolvedCityName]);
+
   const activeLocation = useMemo(() => {
+    if (filters.citySlug) return resolvedCityName || filters.citySlug;
     if (filters.postalCode || filters.city) return [filters.postalCode, filters.city].filter(Boolean).join(' ');
     if (filters.search) return filters.search;
     return '';
-  }, [filters]);
+  }, [filters, resolvedCityName]);
+
+  const pageTitle = routeCitySlug
+    ? `Kindertagespflegepersonen in ${resolvedCityName || formatCityFromSlug(routeCitySlug)}`
+    : 'Kindertagespflege';
 
   const selectedLogo = selectedCaregiver?.logoImageUrl ? assetUrl(selectedCaregiver.logoImageUrl) : '';
   const selectedProfileImage = selectedCaregiver?.profileImageUrl ? assetUrl(selectedCaregiver.profileImageUrl) : '';
@@ -207,16 +262,20 @@ function DashboardPageMobile() {
   function handleSuggestionSelect(suggestion) {
     const label = [suggestion.postalCode, suggestion.city].filter(Boolean).join(' ');
     setSearchTerm(label);
-    setFilters({ postalCode: suggestion.postalCode ?? '', city: suggestion.city ?? '', search: '' });
+    if (suggestion.city) {
+      navigate(`/kindertagespflege/${slugify(suggestion.city)}`);
+    } else {
+      setFilters({ postalCode: suggestion.postalCode ?? '', city: suggestion.city ?? '', citySlug: '', search: '' });
+    }
     setSuggestionsOpen(false);
   }
 
-  function handleSearchSubmit(event) {
+  async function handleSearchSubmit(event) {
     event.preventDefault();
     const trimmed = searchTerm.trim();
 
     if (!trimmed) {
-      setFilters({ postalCode: '', city: '', search: '' });
+      navigate('/kindertagespflege');
       setSuggestionsOpen(false);
       return;
     }
@@ -225,10 +284,18 @@ function DashboardPageMobile() {
     const first = parts[0];
 
     if (/^\d{5}$/.test(first)) {
-      const cityName = parts.slice(1).join(' ').trim();
-      setFilters({ postalCode: first, city: cityName, search: '' });
+      try {
+        const response = await axios.get(`/api/caregivers/postal-code/${first}/city`);
+        if (response?.data?.citySlug) {
+          navigate(`/kindertagespflege/${response.data.citySlug}`);
+        } else {
+          setFilters({ postalCode: first, city: '', citySlug: '', search: '' });
+        }
+      } catch (_error) {
+        setFilters({ postalCode: first, city: '', citySlug: '', search: '' });
+      }
     } else {
-      setFilters({ postalCode: '', city: '', search: trimmed });
+      setFilters({ postalCode: '', city: '', citySlug: '', search: trimmed });
     }
 
     trackEvent('engagement_postleitzahl_suche', { page: 'dashboard', platform: 'mobile', search_value: trimmed || 'empty' });
@@ -247,7 +314,7 @@ function DashboardPageMobile() {
     <section className="mx-auto flex w-full max-w-[640px] flex-col gap-5 px-4 pb-10 pt-4">
       {/* Header */}
       <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-extrabold text-brand-700">Familienzentrum</h1>
+        <h1 className="text-2xl font-extrabold text-brand-700">{pageTitle}</h1>
         <p className="text-sm text-slate-600">
           Finde Tagespflegepersonen in deiner Nähe, vergleiche Profile und starte persönliche Gespräche.
         </p>
@@ -522,7 +589,7 @@ function DashboardPageMobile() {
                 {/* Actions */}
                 <div className="flex flex-col gap-2">
                   <Link
-                    to={buildCaregiverProfileUrl(caregiver)}
+                    to={buildCaregiverProfileUrl(caregiver, { citySlug: routeCitySlug })}
                     onClick={(event) => {
                       event.stopPropagation();
                       trackEvent('engagement_kindertagespflege_kennenlernen', { page: 'dashboard', platform: 'mobile', area: 'list' });
@@ -696,7 +763,7 @@ function DashboardPageMobile() {
 
             <div className="flex flex-col gap-2">
               <Link
-                to={buildCaregiverProfileUrl(selectedCaregiver)}
+                to={buildCaregiverProfileUrl(selectedCaregiver, { citySlug: routeCitySlug })}
                 onClick={() => trackEvent('engagement_kindertagespflege_kennenlernen', { page: 'dashboard', platform: 'mobile', area: 'detail' })}
                 className="w-full rounded-full border border-brand-600 px-4 py-3 text-center text-sm font-semibold text-brand-600 transition hover:bg-brand-600 hover:text-white"
               >

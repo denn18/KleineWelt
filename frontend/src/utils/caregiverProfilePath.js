@@ -5,7 +5,7 @@ const UMLAUT_MAP = {
   ß: 'ss',
 };
 
-function slugify(value) {
+export function slugify(value) {
   return `${value ?? ''}`
     .trim()
     .toLowerCase()
@@ -16,12 +16,18 @@ function slugify(value) {
     .replace(/^-|-$/g, '');
 }
 
-export function buildCaregiverProfileUrl(caregiver) {
+export function buildCaregiverProfileUrl(caregiver, options = {}) {
+  const cityFromContext = slugify(options.citySlug);
+
   if (caregiver?.profilePath) {
+    const [, daycareSlugFromProfile] = `${caregiver.profilePath}`.split('/');
+    if (cityFromContext && daycareSlugFromProfile) {
+      return `/kindertagespflege/${cityFromContext}/${daycareSlugFromProfile}`;
+    }
     return `/kindertagespflege/${caregiver.profilePath}`;
   }
 
-  const citySlug = slugify(caregiver?.city) || 'unbekannt';
+  const citySlug = cityFromContext || slugify(caregiver?.city) || 'unbekannt';
   const daycareSlug = slugify(caregiver?.daycareName || caregiver?.name) || 'kindertagespflege';
 
   return `/kindertagespflege/${citySlug}/${daycareSlug}`;
