@@ -1,12 +1,17 @@
-import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Bars3Icon } from '@heroicons/react/24/outline';
-import { useMemo, useState } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Bars3Icon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 
 function NavigationBar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [infoDropdownOpen, setInfoDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
+
+  const isInfoActive = location.pathname === '/faq' || location.pathname === '/anmelden';
 
   const links = useMemo(() => {
     const items = [
@@ -19,12 +24,28 @@ function NavigationBar() {
       items.push({ to: '/betreuungsgruppe', label: 'Betreuungsgruppe' });
       items.push({ to: '/profil', label: 'Profil' });
     } else {
-      items.push({ to: '/anmelden', label: 'Registrieren' });
       items.push({ to: '/login', label: 'Login' });
     }
 
     return items;
   }, [user]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setInfoDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    setInfoDropdownOpen(false);
+  }, [location.pathname]);
 
   function handleLogout() {
     const confirmed = window.confirm('Möchtest du dich wirklich ausloggen?');
@@ -59,6 +80,42 @@ function NavigationBar() {
               {link.label}
             </NavLink>
           ))}
+          <div
+            ref={dropdownRef}
+            className="relative"
+            onMouseEnter={() => setInfoDropdownOpen(true)}
+            onMouseLeave={() => setInfoDropdownOpen(false)}
+          >
+            <button
+              type="button"
+              onClick={() => setInfoDropdownOpen((value) => !value)}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 transition duration-200 hover:-translate-y-0.5 hover:bg-brand-100 hover:text-brand-800 hover:shadow-sm ${
+                isInfoActive ? 'bg-brand-600 text-white shadow-sm hover:bg-brand-700 hover:text-white' : ''
+              }`}
+            >
+              Infos
+              <ChevronDownIcon
+                className={`h-4 w-4 transition-transform duration-200 ${infoDropdownOpen ? 'rotate-180' : ''}`}
+                aria-hidden="true"
+              />
+            </button>
+            {infoDropdownOpen ? (
+              <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-brand-100 bg-white p-2 shadow-lg">
+                <Link
+                  to="/faq"
+                  className="block rounded-xl px-3 py-2 text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-700"
+                >
+                  Häufige Fragen
+                </Link>
+                <Link
+                  to="/anmelden"
+                  className="block rounded-xl px-3 py-2 text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-700"
+                >
+                  Registrieren
+                </Link>
+              </div>
+            ) : null}
+          </div>
           {user ? (
             <button
               type="button"
@@ -94,6 +151,28 @@ function NavigationBar() {
                 {link.label}
               </NavLink>
             ))}
+            <NavLink
+              to="/faq"
+              onClick={() => setMobileOpen(false)}
+              className={({ isActive }) =>
+                `rounded-full px-4 py-2 text-sm font-medium transition duration-200 hover:bg-brand-100 hover:text-brand-800 hover:shadow-sm ${
+                  isActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-700'
+                }`
+              }
+            >
+              Häufige Fragen
+            </NavLink>
+            <NavLink
+              to="/anmelden"
+              onClick={() => setMobileOpen(false)}
+              className={({ isActive }) =>
+                `rounded-full px-4 py-2 text-sm font-medium transition duration-200 hover:bg-brand-100 hover:text-brand-800 hover:shadow-sm ${
+                  isActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-700'
+                }`
+              }
+            >
+              Registrieren
+            </NavLink>
             {user ? (
               <button
                 type="button"
