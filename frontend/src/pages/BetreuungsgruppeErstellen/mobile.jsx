@@ -204,7 +204,7 @@ function MobileBetreuungsgruppeErstellen() {
               onClick={handleDeleteGroup}
               className="rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-center text-sm font-semibold text-rose-700 transition hover:border-rose-500"
             >
-              Gruppe lösen
+              Gruppe löschen
             </button>
             <button
               type="button"
