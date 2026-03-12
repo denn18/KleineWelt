@@ -292,6 +292,15 @@ function BetreuungsgruppeChat() {
                 <p className="text-xs font-bold tracking-widest text-brand-500">GRUPPENCHAT</p>
                 <h1 className="truncate text-lg font-semibold text-slate-800">{daycareName}</h1>
               </div>
+              {isCaregiver ? (
+                <button
+                  type="button"
+                  onClick={() => navigate('/betreuungsgruppe/erstellen')}
+                  className="rounded-full border border-brand-200 bg-white px-4 py-2 text-sm font-semibold text-brand-700"
+                >
+                  Gruppe bearbeiten
+                </button>
+              ) : null}
             </div>
           </header>
 
