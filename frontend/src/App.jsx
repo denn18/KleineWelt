@@ -18,6 +18,7 @@ import FAQPage from './pages/FAQPage/index.jsx';
 import Kindertagespflegegruppe from './pages/Kindertagespflegegruppe.jsx';
 import BetreuungsgruppeErstellenPage from './pages/BetreuungsgruppeErstellen/index.jsx';
 import BetreuungsgruppeChatPage from './pages/BetreuungsgruppeChat/index.jsx';
+import ContactsPage from './pages/ContactsPage/index.jsx';
 
 function App() {
   return (
@@ -82,6 +83,14 @@ function App() {
           element={
             <ProtectedRoute>
               <MessengerPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="kontakte"
+          element={
+            <ProtectedRoute>
+              <ContactsPage />
             </ProtectedRoute>
           }
         />
