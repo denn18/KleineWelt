@@ -5,6 +5,8 @@ import { MdAttachFile } from 'react-icons/md';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { assetUrl, readFileAsDataUrl } from '../../utils/file.js';
 import { isGroupMember, loadCareGroup, saveCareGroup } from '../../utils/careGroupStorage.js';
+import HomePage from '../HomePage/HomePage.jsx';
+import HomePageMobile from '../HomePage/Mobile.jsx';
 
 function formatDisplayName(profile) {
   if (!profile) {
@@ -283,14 +285,16 @@ function BetreuungsgruppeChat() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => navigate(-1)}
+                //Früher  onClick={() => navigate(-1)}
+                //Jetzt direkt auf homepage
+                onClick={() => navigate("/")}
                 className="rounded-full border border-brand-200 bg-white px-4 py-2 text-sm font-semibold text-brand-700"
               >
                 ← Zurück
               </button>
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold tracking-widest text-brand-500">GRUPPENCHAT</p>
-                <h1 className="truncate text-lg font-semibold text-slate-800">{daycareName}</h1>
+                <h1 className=" text-lg font-semibold text-slate-800">{daycareName}</h1>
               </div>
               {isCaregiver ? (
                 <button

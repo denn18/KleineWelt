@@ -219,7 +219,7 @@ function MobileBetreuungsgruppeErstellen() {
 
         <main className="flex-1 overflow-y-auto bg-slate-200 px-4 py-5">
           <div className="rounded-2xl border border-slate-300 bg-slate-100 p-4">
-            <p className="mb-3 text-center text-sm font-semibold text-slate-500">Aus Nachrichten</p>
+            <p className="mb-3 text-center text-sm font-semibold text-slate-500">Elternaccounts aus Nachrichten hinzufügen oder entfernen</p>
             {loading ? <p className="text-center text-xs text-slate-500">Daten werden geladen…</p> : null}
             <div className="space-y-2">
               {participantCandidates.map((profile) => (
