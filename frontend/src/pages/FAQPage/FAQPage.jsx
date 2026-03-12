@@ -68,10 +68,6 @@ const faqData = [
         q: 'Warum sollte ich mein Kind bei einer Tagesmutter oder einem Tagesvater betreuen lassen?',
         a: 'Im Vergleich zum Kindergarten sind die Gruppen meist kleiner. Dadurch können Kinder individueller begleitet und gefördert werden.',
       },
-      {
-        q: 'Können nur Eltern aus meiner Stadt mein Profil sehen?',
-        a: 'Nein. Eltern können Kindertagespflegepersonen in jeder beliebigen Stadt sehen. Das ist bewusst so, damit Familien zum Beispiel bei einem geplanten Umzug frühzeitig suchen können.',
-      },
     ],
   },
   {
@@ -79,7 +75,7 @@ const faqData = [
     icon: UserGroupIcon,
     questions: [
       {
-        q: 'Was ist Wimmel Welt?',
+        q: 'Was ist die "Wimmel Welt" ?',
         a: 'Wimmel Welt ist eine digitale Plattform, auf der Kindertagespflegepersonen ihre freien Betreuungsplätze sichtbar machen können, damit Eltern schneller eine passende Betreuung finden.',
       },
       {
@@ -96,7 +92,7 @@ const faqData = [
       },
       {
         q: 'Kostet die Nutzung der Plattform etwas?',
-        a: 'Ja. Die Nutzung kostet aktuell 20 €.',
+        a: 'Aktuell ist die Nutzung kostenlos',
       },
       {
         q: 'Wie können Eltern mich kontaktieren?',
@@ -108,11 +104,11 @@ const faqData = [
       },
       {
         q: 'In welchen Städten ist Wimmel Welt verfügbar?',
-        a: 'Wimmel Welt wird aktuell ausgebaut und ist bereits in Gütersloh aktiv, wo erste Betreuungsanfragen von Eltern an Kindertagespflegepersonen gesendet wurden.',
+        a: 'Wimmel Welt wird aktuell ausgebaut und ist bereits in Gütersloh aktiv. Weitere Städte sind geplant',
       },
       {
         q: 'Muss ich eine Pflegeerlaubnis haben, um mich anzumelden?',
-        a: 'Ja. Nur qualifizierte Kindertagespflegepersonen mit gültiger Pflegeerlaubnis dürfen Betreuungsangebote einstellen. Bei der Profilerstellung wird die jeweilige Kommune zur Verifizierung kontaktiert.',
+        a: 'Ja. Nur qualifizierte Kindertagespflegepersonen mit gültiger Pflegeerlaubnis dürfen Betreuungsangebote einstellen.',
       },
       {
         q: 'Wie hilft mir Wimmel Welt dabei, neue Familien zu finden?',
@@ -216,7 +212,7 @@ function FAQPage() {
         })}
       </div>
 
-      <div className="rounded-3xl bg-gradient-to-r from-brand-600 to-brand-500 p-6 text-white shadow-lg">
+      <div className="rounded-3xl color:brand bg-gradient-to-r from-brand-600 to-brand-500 p-6 text-white shadow-lg">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-wide text-brand-100">Noch Fragen?</p>
@@ -234,7 +230,7 @@ function FAQPage() {
               to="/kindertagespflege"
               className="inline-flex items-center rounded-full border border-white/50 px-4 py-2 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-white/10"
             >
-              Tagespflege finden
+              Kindertagespflege finden
             </Link>
           </div>
         </div>

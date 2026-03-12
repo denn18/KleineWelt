@@ -124,10 +124,20 @@ function HomePage() {
           <img src={heroImage} alt="Familie" className="max-h-80 w-full object-contain" />
         </div>
       </section>
+       <section className="grid gap-8 sm:grid-cols-3">
+        {features.map((feature) => (
+          <article
+            key={feature.title}
+            className="flex flex-col gap-3 rounded-2xl bg-white/80 p-6 shadow transition duration-300 md:hover:-translate-y-1 md:hover:shadow-lg"
+          >
+            <h2 className="text-xl font-semibold text-brand-700">{feature.title}</h2>
+            <p className="text-sm leading-relaxed text-slate-600">{feature.description}</p>
+          </article>
+        ))}
+      </section>
+           <LogoCarousel />
 
-     
-
-      <section className="rounded-3xl bg-white/85 p-8 shadow-lg backdrop-blur">
+           <section className="rounded-3xl bg-white/85 p-8 shadow-lg backdrop-blur">
         <h2 className="text-2xl font-semibold text-brand-700">Städte und Regionen</h2>
         <p className="mt-2 text-sm text-slate-600">
           Entdecke Kindertagespflegepersonen aus deiner Nähe und springe direkt zur passenden Stadtseite.
@@ -158,19 +168,6 @@ function HomePage() {
           </p>
         )}
       </section>
-
-      <section className="grid gap-8 sm:grid-cols-3">
-        {features.map((feature) => (
-          <article
-            key={feature.title}
-            className="flex flex-col gap-3 rounded-2xl bg-white/80 p-6 shadow transition duration-300 md:hover:-translate-y-1 md:hover:shadow-lg"
-          >
-            <h2 className="text-xl font-semibold text-brand-700">{feature.title}</h2>
-            <p className="text-sm leading-relaxed text-slate-600">{feature.description}</p>
-          </article>
-        ))}
-      </section>
-           <LogoCarousel />
     </div>
     
   );
