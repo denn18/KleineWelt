@@ -58,7 +58,6 @@ function DashboardPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({ postalCode: '', city: '', citySlug: '', search: '' });
   const [caregivers, setCaregivers] = useState([]);
-  const [availableCities, setAvailableCities] = useState([]);
   const [resolvedCityName, setResolvedCityName] = useState('');
   const [selectedCaregiver, setSelectedCaregiver] = useState(null);
   const [collapsedCards, setCollapsedCards] = useState({});
@@ -101,20 +100,12 @@ function DashboardPage() {
       const routeFilteredCaregivers = filters.citySlug
         ? response.data.filter((entry) => slugify(entry.city) === filters.citySlug)
         : response.data;
-      const distinctCities = Array.from(
-        new Set(
-          response.data
-            .map((entry) => `${entry.city ?? ''}`.trim())
-            .filter(Boolean),
-        ),
-      ).sort((firstCity, secondCity) => firstCity.localeCompare(secondCity, 'de'));
 
       if (ignore) {
         return;
       }
 
       setCaregivers(routeFilteredCaregivers);
-      setAvailableCities(distinctCities);
       if (filters.citySlug) {
         const cityName = routeFilteredCaregivers.find((entry) => entry.city)?.city ?? '';
         setResolvedCityName(cityName);
@@ -726,26 +717,6 @@ function DashboardPage() {
               ) : null}
             </div>
           </div>
-
-          <section className="rounded-3xl bg-white/80 p-6 shadow">
-            <h2 className="text-2xl font-semibold text-brand-700">Städte und Regionen</h2>
-            {availableCities.length ? (
-              <div className="mt-4 flex flex-wrap gap-3">
-                {availableCities.map((city) => (
-                  <Link
-                    key={city}
-                    to={`/kindertagespflege/${slugify(city)}`}
-                    className="rounded-full border border-brand-200 px-5 py-2 text-base font-semibold text-brand-700 transition hover:border-brand-400 hover:bg-brand-50"
-                  >
-                    {city}
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <p className="mt-3 text-sm text-slate-500">Aktuell sind noch keine Städte verfügbar.</p>
-            )}
-          </section>
-
           {/*  Google Maps API hier später vernünftig einrichten, kostet Geld
           <div className="rounded-3xl bg-white/80 p-6 shadow">
             <h2 className="text-xl font-semibold text-brand-700">Live-Karte</h2>
