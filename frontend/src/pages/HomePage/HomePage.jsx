@@ -1,8 +1,11 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import heroImage from '../assets/hero-family.svg';
 import { useAuth } from '../context/AuthContext.jsx';
 import { trackEvent } from '../utils/analytics.js';
 import LogoCarousel from '../../components/LogoCarousel.jsx';
+import { slugify } from '../../utils/caregiverProfilePath.js';
 
 
 const features = [
@@ -26,6 +29,49 @@ const features = [
 function HomePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [cities, setCities] = useState([]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    axios
+      .get('/api/caregivers')
+      .then((response) => {
+        if (ignore) {
+          return;
+        }
+
+        const cityMap = new Map();
+        response.data.forEach((caregiver) => {
+          const normalizedCity = `${caregiver.city ?? ''}`.trim();
+          if (!normalizedCity) {
+            return;
+          }
+          const citySlug = slugify(normalizedCity);
+          if (!citySlug || cityMap.has(citySlug)) {
+            return;
+          }
+          cityMap.set(citySlug, normalizedCity);
+        });
+
+        const sortedCities = [...cityMap.entries()]
+          .map(([slug, name]) => ({ slug, name }))
+          .sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+        setCities(sortedCities);
+      })
+      .catch((error) => {
+        console.error('Städte und Regionen konnten nicht geladen werden', error);
+        if (!ignore) {
+          setCities([]);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const hasCities = useMemo(() => cities.length > 0, [cities]);
 
   function handleAuthButtonClick() {
     if (user) {
@@ -80,6 +126,38 @@ function HomePage() {
       </section>
 
       <LogoCarousel />
+
+      <section className="rounded-3xl bg-white/85 p-8 shadow-lg backdrop-blur">
+        <h2 className="text-2xl font-semibold text-brand-700">Städte und Regionen</h2>
+        <p className="mt-2 text-sm text-slate-600">
+          Entdecke Kindertagespflegepersonen aus deiner Nähe und springe direkt zur passenden Stadtseite.
+        </p>
+
+        {hasCities ? (
+          <div className="mt-6 flex flex-wrap gap-3">
+            {cities.map((city) => (
+              <Link
+                key={city.slug}
+                to={`/kindertagespflege/${city.slug}`}
+                onClick={() => {
+                  trackEvent('engagement_city_button_click', {
+                    page: 'home',
+                    platform: 'web',
+                    city: city.slug,
+                  });
+                }}
+                className="rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 transition duration-200 hover:-translate-y-0.5 hover:border-brand-400 hover:bg-brand-100"
+              >
+                {city.name}
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            Aktuell werden die Städte geladen.
+          </p>
+        )}
+      </section>
 
       <section className="grid gap-8 sm:grid-cols-3">
         {features.map((feature) => (
