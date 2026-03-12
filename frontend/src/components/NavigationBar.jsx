@@ -12,7 +12,10 @@ function NavigationBar() {
   const location = useLocation();
   const { user, logout } = useAuth();
 
-  const isInfoActive = location.pathname === '/faq' || location.pathname === '/anmelden';
+  const isInfoActive =
+    location.pathname === '/faq' ||
+    location.pathname === '/anmelden' ||
+    (user?.role === 'caregiver' && location.pathname === '/kontakte');
 
   const links = useMemo(() => {
     const items = [
@@ -141,6 +144,14 @@ function NavigationBar() {
                 >
                   Registrieren
                 </Link>
+                {user?.role === 'caregiver' ? (
+                  <Link
+                    to="/kontakte"
+                    className="block rounded-xl px-3 py-2 text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-700"
+                  >
+                    Kontakte
+                  </Link>
+                ) : null}
               </div>
             ) : null}
           </div>
@@ -201,6 +212,19 @@ function NavigationBar() {
             >
               Registrieren
             </NavLink>
+            {user?.role === 'caregiver' ? (
+              <NavLink
+                to="/kontakte"
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  `rounded-full px-4 py-2 text-sm font-medium transition duration-200 hover:bg-brand-100 hover:text-brand-800 hover:shadow-sm ${
+                    isActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-700'
+                  }`
+                }
+              >
+                Kontakte
+              </NavLink>
+            ) : null}
             {user ? (
               <button
                 type="button"
