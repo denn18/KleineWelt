@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { assetUrl } from '../../utils/file.js';
-import { loadCareGroup, persistCareGroup } from '../../utils/careGroupStorage.js';
+import { loadCareGroup, persistCareGroup, removeCareGroup } from '../../utils/careGroupStorage.js';
 
 function formatDisplayName(profile) {
   if (!profile) {
@@ -61,6 +61,7 @@ function MobileBetreuungsgruppeErstellen() {
   const [loading, setLoading] = useState(true);
 
   const isCaregiver = user?.role === 'caregiver';
+  const isEditMode = isCaregiver && existingGroup?.caregiverId === user?.id;
 
   useEffect(() => {
     async function loadData() {
@@ -146,6 +147,28 @@ function MobileBetreuungsgruppeErstellen() {
     navigate('/betreuungsgruppe/chat');
   }
 
+  async function handleDeleteGroup() {
+    if (!isEditMode) {
+      navigate('/betreuungsgruppe/erstellen', { replace: true });
+      return;
+    }
+
+    await removeCareGroup(user.id);
+    setExistingGroup(null);
+    setSelectedParticipantIds([]);
+    navigate('/betreuungsgruppe/erstellen', { replace: true });
+  }
+
+  useEffect(() => {
+    if (loading || !isCaregiver) {
+      return;
+    }
+
+    if (!existingGroup) {
+      navigate('/betreuungsgruppe/erstellen', { replace: true });
+    }
+  }, [existingGroup, isCaregiver, loading, navigate]);
+
   if (!user) {
     return null;
   }
@@ -165,7 +188,9 @@ function MobileBetreuungsgruppeErstellen() {
     <section className="fixed inset-0 z-[90] bg-[#F3F7FF]">
       <div className="flex h-full flex-col pb-[env(safe-area-inset-bottom)]">
         <header className="border-b border-brand-100 bg-white px-4 pb-4 pt-5">
-          <h1 className="text-2xl font-semibold text-brand-700">Betreuungsgruppe bearbeiten</h1>
+          <h1 className="text-2xl font-semibold text-brand-700">
+            {isEditMode ? 'Betreuungsgruppe bearbeiten' : 'Betreuungsgruppe erstellen'}
+          </h1>
           <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-3">
             <button
               type="button"
@@ -174,7 +199,13 @@ function MobileBetreuungsgruppeErstellen() {
             >
               zurück
             </button>
-            <div className="rounded-xl bg-brand-50 px-3 py-2 text-center text-sm font-semibold text-brand-700">Mitglieder hinzufügen</div>
+            <button
+              type="button"
+              onClick={handleDeleteGroup}
+              className="rounded-xl border border-rose-300 bg-rose-50 px-3 py-2 text-center text-sm font-semibold text-rose-700 transition hover:border-rose-500"
+            >
+              Gruppe lösen
+            </button>
             <button
               type="button"
               onClick={handleContinue}
