@@ -42,7 +42,7 @@ function ScheduleList({ entries, emptyLabel }) {
 }
 
 export default function Mobile() {
-  const { id } = useParams();
+  const { id, citySlug, daycareSlug } = useParams();
   const [caregiver, setCaregiver] = useState(null);
   const [status, setStatus] = useState({ loading: true, error: null });
   const [roomIndex, setRoomIndex] = useState(0);
@@ -56,11 +56,26 @@ export default function Mobile() {
     let ignore = false;
     setStatus({ loading: true, error: null });
 
-    axios
-      .get(`/api/caregivers/${id}`)
+    const request = citySlug && daycareSlug
+      ? axios.get(`/api/caregivers/profile/${citySlug}/${daycareSlug}`)
+      : axios.get(`/api/caregivers/${id}`);
+
+    request
       .then((response) => {
         if (!ignore) {
-          setCaregiver(response.data);
+          const payload = response.data;
+
+          if (payload?.canonicalProfilePath && payload?.requestedProfilePath && payload.isLegacyPath) {
+            navigate(`/kindertagespflege/${payload.canonicalProfilePath}`, { replace: true });
+            return;
+          }
+
+          if (!citySlug && payload?.profilePath) {
+            navigate(`/kindertagespflege/${payload.profilePath}`, { replace: true });
+            return;
+          }
+
+          setCaregiver(payload);
           setStatus({ loading: false, error: null });
         }
       })
@@ -75,7 +90,7 @@ export default function Mobile() {
     return () => {
       ignore = true;
     };
-  }, [id]);
+  }, [id, citySlug, daycareSlug, navigate]);
 
   const formattedAddress = useMemo(() => {
     if (!caregiver) return '';
