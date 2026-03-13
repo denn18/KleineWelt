@@ -97,6 +97,10 @@ function BetreuungsgruppeChat() {
   const messageBottomRef = useRef(null);
   const mobileComposerRef = useRef(null);
 
+  function scrollToLatestMessage(behavior = 'auto') {
+    messageBottomRef.current?.scrollIntoView({ behavior, block: 'end' });
+  }
+
   useBodyOverflowHidden(isMobile);
   const keyboardInset = useKeyboardInset();
 
@@ -172,11 +176,23 @@ function BetreuungsgruppeChat() {
     }
 
     const timeoutId = window.setTimeout(() => {
-      messageBottomRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
+      scrollToLatestMessage();
     }, 30);
 
     return () => window.clearTimeout(timeoutId);
   }, [group, user, messages.length]);
+
+  useEffect(() => {
+    if (!isMobile) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      scrollToLatestMessage(keyboardInset > 0 ? 'smooth' : 'auto');
+    }, 60);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [isMobile, keyboardInset, composerHeight]);
 
   useEffect(() => {
     async function loadMessages() {
@@ -234,6 +250,10 @@ function BetreuungsgruppeChat() {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+
+      window.setTimeout(() => {
+        scrollToLatestMessage('smooth');
+      }, 30);
     } catch (error) {
       console.error('Gruppennachricht konnte nicht gesendet werden', error);
     }
@@ -392,6 +412,7 @@ function BetreuungsgruppeChat() {
               <input
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
+                onFocus={() => scrollToLatestMessage('smooth')}
                 placeholder={isCaregiver ? 'Nachricht schreiben…' : 'Nur Lesen'}
                 disabled={!isCaregiver}
                 className="h-11 min-w-0 flex-1 rounded-full border border-brand-200 px-4 text-base focus:border-brand-400 focus:outline-none disabled:cursor-not-allowed disabled:bg-slate-100"
