@@ -12,6 +12,9 @@ function Footer() {
           <Link className="transition duration-200 hover:-translate-y-0.5 hover:text-brand-600" to="/impressum">
             Impressum
           </Link>
+          <Link className="transition duration-200 hover:-translate-y-0.5 hover:text-brand-600" to="/faq">
+            FAQ
+          </Link>
           <Link className="transition duration-200 hover:-translate-y-0.5 hover:text-brand-600" to="/kontakt">
             Kontakt
           </Link>
