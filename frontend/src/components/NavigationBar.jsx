@@ -13,7 +13,6 @@ function NavigationBar() {
   const { user, logout } = useAuth();
 
   const isInfoActive =
-    location.pathname === '/faq' ||
     location.pathname === '/anmelden' ||
     (user?.role === 'caregiver' && location.pathname === '/kontakte');
 
@@ -133,18 +132,14 @@ function NavigationBar() {
             </button>
             {infoDropdownOpen ? (
               <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-brand-100 bg-white p-2 shadow-lg">
-                <Link
-                  to="/faq"
-                  className="block rounded-xl px-3 py-2 text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-700"
-                >
-                  Häufige Fragen
-                </Link>
-                <Link
-                  to="/anmelden"
-                  className="block rounded-xl px-3 py-2 text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-700"
-                >
-                  Registrieren
-                </Link>
+                {!user ? (
+                  <Link
+                    to="/anmelden"
+                    className="block rounded-xl px-3 py-2 text-sm text-slate-700 transition hover:bg-brand-50 hover:text-brand-700"
+                  >
+                    Registrieren
+                  </Link>
+                ) : null}
                 {user?.role === 'caregiver' ? (
                   <Link
                     to="/kontakte"
@@ -191,28 +186,19 @@ function NavigationBar() {
                 {link.label}
               </NavLink>
             ))}
-            <NavLink
-              to="/faq"
-              onClick={() => setMobileOpen(false)}
-              className={({ isActive }) =>
-                `rounded-full px-4 py-2 text-sm font-medium transition duration-200 hover:bg-brand-100 hover:text-brand-800 hover:shadow-sm ${
-                  isActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-700'
-                }`
-              }
-            >
-              Häufige Fragen
-            </NavLink>
-            <NavLink
-              to="/anmelden"
-              onClick={() => setMobileOpen(false)}
-              className={({ isActive }) =>
-                `rounded-full px-4 py-2 text-sm font-medium transition duration-200 hover:bg-brand-100 hover:text-brand-800 hover:shadow-sm ${
-                  isActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-700'
-                }`
-              }
-            >
-              Registrieren
-            </NavLink>
+            {!user ? (
+              <NavLink
+                to="/anmelden"
+                onClick={() => setMobileOpen(false)}
+                className={({ isActive }) =>
+                  `rounded-full px-4 py-2 text-sm font-medium transition duration-200 hover:bg-brand-100 hover:text-brand-800 hover:shadow-sm ${
+                    isActive ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-700'
+                  }`
+                }
+              >
+                Registrieren
+              </NavLink>
+            ) : null}
             {user?.role === 'caregiver' ? (
               <NavLink
                 to="/kontakte"
