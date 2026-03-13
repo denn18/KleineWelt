@@ -98,6 +98,12 @@ function BetreuungsgruppeChat() {
   const mobileComposerRef = useRef(null);
 
   function scrollToLatestMessage(behavior = 'auto') {
+    const listElement = messageListRef.current;
+
+    if (listElement) {
+      listElement.scrollTo({ top: listElement.scrollHeight, behavior });
+    }
+
     messageBottomRef.current?.scrollIntoView({ behavior, block: 'end' });
   }
 
@@ -193,6 +199,18 @@ function BetreuungsgruppeChat() {
 
     return () => window.clearTimeout(timeoutId);
   }, [isMobile, keyboardInset, composerHeight]);
+
+  useEffect(() => {
+    if (!isMobile || keyboardInset <= 0) {
+      return;
+    }
+
+    const rafId = window.requestAnimationFrame(() => {
+      scrollToLatestMessage('auto');
+    });
+
+    return () => window.cancelAnimationFrame(rafId);
+  }, [isMobile, keyboardInset]);
 
   useEffect(() => {
     async function loadMessages() {
