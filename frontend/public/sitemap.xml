@@ -2,42 +2,92 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://wimmel-welt.de/</loc>
+    <lastmod>2026-03-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.wimmel-welt.de/anmelden</loc>
+    <loc>https://wimmel-welt.de/anmelden</loc>
+    <lastmod>2026-02-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.wimmel-welt.de/anmelden/tagespflegeperson</loc>
+    <loc>https://wimmel-welt.de/anmelden/eltern</loc>
+    <lastmod>2026-02-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.wimmel-welt.de/anmelden/eltern</loc>
+    <loc>https://wimmel-welt.de/anmelden/tagespflegeperson</loc>
+    <lastmod>2026-02-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.wimmel-welt.de/login</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <loc>https://wimmel-welt.de/datenschutz</loc>
+    <lastmod>2025-12-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://www.wimmel-welt.de/familienzentrum</loc>
+    <loc>https://wimmel-welt.de/faq</loc>
+    <lastmod>2026-01-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://wimmel-welt.de/familienzentrum</loc>
+    <lastmod>2026-02-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://wimmel-welt.de/impressum</loc>
+    <lastmod>2025-12-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://wimmel-welt.de/kindertagespflege</loc>
+    <lastmod>2026-03-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://wimmel-welt.de/kindertagespflege/bielefeld</loc>
+    <lastmod>2026-03-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.wimmel-welt.de/profil</loc>
+    <loc>https://wimmel-welt.de/kindertagespflege/guetersloh</loc>
+    <lastmod>2026-03-11</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.wimmel-welt.de/nachrichten</loc>
+    <loc>https://wimmel-welt.de/kindertagespflege/herzberg</loc>
+    <lastmod>2026-03-10</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://wimmel-welt.de/kindertagespflege/schloss-holte-stukenbrock</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://wimmel-welt.de/kindertagespflege/spenge-wallenbrueck</loc>
+    <lastmod>2026-03-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://wimmel-welt.de/kontakt</loc>
+    <lastmod>2026-01-30</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
 </urlset>
