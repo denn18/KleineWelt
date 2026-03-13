@@ -71,7 +71,7 @@ const faqData = [
     ],
   },
   {
-    category: 'Für Tagespflegepersonen',
+    category: 'Für Kindertagespflegepersonen',
     icon: UserGroupIcon,
     questions: [
       {
@@ -212,7 +212,7 @@ function FAQPage() {
         })}
       </div>
 
-      <div className="rounded-3xl color:brand bg-gradient-to-r from-brand-600 to-brand-500 p-6 text-white shadow-lg">
+      <div className="rounded-3xl color:brand bg-gradient-to-r from-brand-600 to-brand-600 p-6 text-white shadow-lg">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-wide text-brand-100">Noch Fragen?</p>

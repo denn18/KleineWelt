@@ -138,6 +138,26 @@ export default function HomePageMobile() {
         </p>
       </section>
 
+    
+       {/* Feature Karten mit Erklärung */}
+      <section className="grid gap-4">
+        {features.map((feature) => (
+          <article
+            key={feature.title}
+            className="flex flex-col gap-2 rounded-2xl bg-white/80 p-5 shadow"
+          >
+            <h2 className="text-lg font-semibold text-brand-700">
+              {feature.title}
+            </h2>
+            <p className="text-sm leading-relaxed text-slate-600">
+              {feature.description}
+            </p>
+          </article>
+        ))}
+      </section>
+
+
+      {/* Stäfte und Regionen Kachel für SEO Optimierung */}
       <section className="rounded-3xl bg-white/85 p-5 shadow-lg backdrop-blur">
         <h2 className="text-xl font-semibold text-brand-700">Städte und Regionen</h2>
         <p className="mt-2 text-sm text-slate-600">
@@ -168,23 +188,6 @@ export default function HomePageMobile() {
             Aktuell werden die Städte geladen.
           </p>
         )}
-      </section>
-
-      {/* Features */}
-      <section className="grid gap-4">
-        {features.map((feature) => (
-          <article
-            key={feature.title}
-            className="flex flex-col gap-2 rounded-2xl bg-white/80 p-5 shadow"
-          >
-            <h2 className="text-lg font-semibold text-brand-700">
-              {feature.title}
-            </h2>
-            <p className="text-sm leading-relaxed text-slate-600">
-              {feature.description}
-            </p>
-          </article>
-        ))}
       </section>
     </div>
   );
