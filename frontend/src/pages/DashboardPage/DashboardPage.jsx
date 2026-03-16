@@ -250,7 +250,7 @@ function DashboardPage() {
 
   const pageTitle = routeCitySlug
     ? `Tagesmütter und Väter in ${resolvedCityName || formatCityFromSlug(routeCitySlug)}`
-    : 'Familienzentrum';
+    : 'Kindertagespflege finden';
 
   const footerCityPrompt = useMemo(() => {
     if (resolvedCityName) {
@@ -299,7 +299,7 @@ function DashboardPage() {
     const previousDescription = meta.getAttribute('content');
     meta.setAttribute(
       'content',
-      `Finde alle Kindertagespflegepersonen in ${cityForSeo} auf Kleine Welt – mit Profilen, freien Plätzen und direkter Kontaktmöglichkeit.`,
+      `Finde alle Tagesmütter und Väter in ${cityForSeo} auf Wimmel Welt – mit Profilen, freien Plätzen und direkter Kontaktmöglichkeit.`,
     );
 
     return () => {
@@ -416,7 +416,7 @@ function DashboardPage() {
       <header className="flex flex-col gap-2">
         <h1 className="text-3xl font-semibold text-brand-700">{pageTitle}</h1>
         <p className="text-sm text-slate-600">
-          Finde Tagespflegepersonen in deiner Nähe, vergleiche Profile und starte persönliche Gespräche.
+          Finde Tagesmütter und Väter in deiner Nähe, vergleiche Profile und starte persönliche Gespräche.
         </p>
       </header>
 
@@ -979,6 +979,15 @@ function DashboardPage() {
       </section>
       {lightboxImage ? <ImageLightbox image={lightboxImage} onClose={closeLightbox} /> : null}
     </section>
+    
+
+      
+
+
+      
+
+
+    
   );
 }
 
