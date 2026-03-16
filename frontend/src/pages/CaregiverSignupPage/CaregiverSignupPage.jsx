@@ -84,7 +84,6 @@ function CaregiverSignupPage() {
   const [profileImage, setProfileImage] = useState({ preview: '', dataUrl: null, fileName: '' });
   const [logoImage, setLogoImage] = useState({ preview: '', dataUrl: null, fileName: '' });
   const [conceptFile, setConceptFile] = useState({ dataUrl: null, fileName: '' });
-  const [contractDocuments, setContractDocuments] = useState([]);
   const [roomGallery, setRoomGallery] = useState([]);
   const [status, setStatus] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -200,34 +199,6 @@ function CaregiverSignupPage() {
     setConceptFile({ dataUrl, fileName: file.name });
   }
 
-  function handleAddContractDocument() {
-    setContractDocuments((current) => [
-      ...current,
-      { id: generateTempId(), name: '', fileData: null, fileName: '' },
-    ]);
-  }
-
-  function handleRemoveContractDocument(id) {
-    setContractDocuments((current) => current.filter((document) => document.id !== id));
-  }
-
-  function updateContractDocument(id, field, value) {
-    setContractDocuments((current) =>
-      current.map((document) => (document.id === id ? { ...document, [field]: value } : document))
-    );
-  }
-
-  async function handleContractDocumentFileChange(id, event) {
-    const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
-    const dataUrl = await readFileAsDataUrl(file);
-    updateContractDocument(id, 'fileData', dataUrl);
-    updateContractDocument(id, 'fileName', file.name);
-    event.target.value = '';
-  }
-
   function generateTempId() {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
       return crypto.randomUUID();
@@ -327,12 +298,6 @@ function CaregiverSignupPage() {
         careTimes: formState.careTimes,
         dailySchedule: formState.dailySchedule,
         mealPlan: formState.mealPlan,
-        contractDocuments: contractDocuments
-          .map((document) => ({
-            name: document.name?.trim(),
-            file: document.fileData ? { dataUrl: document.fileData, fileName: document.fileName } : null,
-          }))
-          .filter((document) => document.name && document.file),
         roomImages: roomGallery.map((image) => ({ dataUrl: image.dataUrl, fileName: image.fileName })),
         closedDays: formState.closedDays,
       });
@@ -368,7 +333,6 @@ function CaregiverSignupPage() {
       setProfileImage({ preview: '', dataUrl: null, fileName: '' });
       setLogoImage({ preview: '', dataUrl: null, fileName: '' });
       setConceptFile({ dataUrl: null, fileName: '' });
-      setContractDocuments([]);
       setRoomGallery([]);
       setRoomGalleryOffset(0);
       setClosedDayInput('');
@@ -732,64 +696,6 @@ function CaregiverSignupPage() {
               </span>
             </div>
           </div>
-          <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-brand-700">Vertragsunterlagen</h2>
-                <p className="text-xs text-slate-500">
-                  Füge optionale Vertragsunterlagen hinzu. Dokumente nur im PDF-Format hochladen.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleAddContractDocument}
-                className="rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
-              >
-                1 Dokument hinzufügen
-              </button>
-            </div>
-            {contractDocuments.length ? (
-              <div className="flex flex-col gap-4">
-                {contractDocuments.map((document) => (
-                  <div
-                    key={document.id}
-                    className="grid gap-4 rounded-2xl border border-brand-100 bg-white/70 p-4 sm:grid-cols-[2fr,1fr] sm:items-center"
-                  >
-                    <label className="flex flex-col gap-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
-                      Name des Dokuments
-                      <input
-                        value={document.name}
-                        onChange={(event) => updateContractDocument(document.id, 'name', event.target.value)}
-                        className="rounded-xl border border-brand-200 px-3 py-2 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
-                        placeholder="z. B. Betreuungsvertrag"
-                      />
-                    </label>
-                    <div className="flex flex-col gap-2 text-sm">
-                      <IconUploadButton
-                        label="PDF hochladen"
-                        accept="application/pdf"
-                        onChange={(event) => handleContractDocumentFileChange(document.id, event)}
-                      />
-                      <span className="text-xs text-slate-500">
-                        {document.fileName ? `Ausgewählt: ${document.fileName}` : 'Noch kein Dokument ausgewählt.'}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveContractDocument(document.id)}
-                        className="self-start text-xs font-semibold text-rose-600 hover:text-rose-700"
-                      >
-                        Dokument entfernen
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="rounded-2xl border border-dashed border-brand-200 bg-white/60 px-4 py-6 text-sm text-slate-500">
-                Noch keine Vertragsunterlagen hinzugefügt. Nutze den Button, um ein Dokument hochzuladen.
-              </p>
-            )}
-          </section>
         </section>
         <section className="grid gap-3 rounded-2xl border border-brand-100 bg-white/80 p-6">
           <div>

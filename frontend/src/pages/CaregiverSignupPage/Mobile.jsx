@@ -81,7 +81,6 @@ export default function Mobile() {
   const [profileImage, setProfileImage] = useState({ preview: '', dataUrl: null, fileName: '' });
   const [logoImage, setLogoImage] = useState({ preview: '', dataUrl: null, fileName: '' });
   const [conceptFile, setConceptFile] = useState({ dataUrl: null, fileName: '' });
-  const [contractDocuments, setContractDocuments] = useState([]);
   const [roomGallery, setRoomGallery] = useState([]);
   const [roomGalleryOffset, setRoomGalleryOffset] = useState(0);
 
@@ -173,32 +172,6 @@ export default function Mobile() {
     setConceptFile({ dataUrl, fileName: file.name });
   }
 
-  function handleAddContractDocument() {
-    setContractDocuments((current) => [
-      ...current,
-      { id: generateTempId(), name: '', fileData: null, fileName: '' },
-    ]);
-  }
-
-  function handleRemoveContractDocument(id) {
-    setContractDocuments((current) => current.filter((document) => document.id !== id));
-  }
-
-  function updateContractDocument(id, field, value) {
-    setContractDocuments((current) =>
-      current.map((document) => (document.id === id ? { ...document, [field]: value } : document))
-    );
-  }
-
-  async function handleContractDocumentFileChange(id, event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const dataUrl = await readFileAsDataUrl(file);
-    updateContractDocument(id, 'fileData', dataUrl);
-    updateContractDocument(id, 'fileName', file.name);
-    event.target.value = '';
-  }
-
   async function handleRoomImagesChange(event) {
     const files = Array.from(event.target.files ?? []);
     if (!files.length) return;
@@ -286,12 +259,6 @@ export default function Mobile() {
         careTimes: formState.careTimes,
         dailySchedule: formState.dailySchedule,
         mealPlan: formState.mealPlan,
-        contractDocuments: contractDocuments
-          .map((document) => ({
-            name: document.name?.trim(),
-            file: document.fileData ? { dataUrl: document.fileData, fileName: document.fileName } : null,
-          }))
-          .filter((document) => document.name && document.file),
 
         roomImages: roomGallery.map((img) => ({ dataUrl: img.dataUrl, fileName: img.fileName })),
         closedDays: formState.closedDays,
@@ -319,7 +286,6 @@ export default function Mobile() {
       setProfileImage({ preview: '', dataUrl: null, fileName: '' });
       setLogoImage({ preview: '', dataUrl: null, fileName: '' });
       setConceptFile({ dataUrl: null, fileName: '' });
-      setContractDocuments([]);
       setRoomGallery([]);
       setRoomGalleryOffset(0);
       setClosedDayInput('');
@@ -534,59 +500,6 @@ export default function Mobile() {
                 : 'Optional, hilft Familien bei der Entscheidungsfindung.'}
             </span>
           </div>
-
-          <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-base font-semibold text-brand-700">Vertragsunterlagen</h2>
-                <p className="mt-1 text-xs text-slate-500">Optional – nur PDF hochladen.</p>
-              </div>
-              <button
-                type="button"
-                onClick={handleAddContractDocument}
-                className="rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-600"
-              >
-                + Dokument
-              </button>
-            </div>
-
-            {contractDocuments.length ? (
-              <div className="grid gap-3">
-                {contractDocuments.map((document) => (
-                  <div key={document.id} className="grid gap-2 rounded-2xl border border-brand-100 bg-white/80 p-3">
-                    <label className="grid gap-1 text-xs font-semibold uppercase tracking-wide text-slate-600">
-                      Name des Dokuments
-                      <input
-                        value={document.name}
-                        onChange={(event) => updateContractDocument(document.id, 'name', event.target.value)}
-                        className="rounded-xl border border-brand-200 px-3 py-2 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
-                        placeholder="z. B. Betreuungsvertrag"
-                      />
-                    </label>
-                    <IconUploadButton
-                      label="PDF hochladen"
-                      accept="application/pdf"
-                      onChange={(event) => handleContractDocumentFileChange(document.id, event)}
-                    />
-                    <span className="text-xs text-slate-500">
-                      {document.fileName ? `Ausgewählt: ${document.fileName}` : 'Noch kein Dokument ausgewählt.'}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveContractDocument(document.id)}
-                      className="self-start text-xs font-semibold text-rose-600"
-                    >
-                      Dokument entfernen
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="rounded-2xl border border-dashed border-brand-200 bg-white/60 px-4 py-4 text-xs text-slate-500">
-                Noch keine Vertragsunterlagen hinzugefügt.
-              </p>
-            )}
-          </section>
         </section>
 
         {/* Räume */}
