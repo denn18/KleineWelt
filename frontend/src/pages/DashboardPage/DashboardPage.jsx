@@ -63,6 +63,7 @@ function DashboardPage() {
   const [collapsedCards, setCollapsedCards] = useState({});
   const [roomImageIndexes, setRoomImageIndexes] = useState({});
   const [suggestions, setSuggestions] = useState([]);
+  const [cities, setCities] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState(null);
@@ -181,6 +182,47 @@ function DashboardPage() {
   }, [searchTerm]);
 
   useEffect(() => {
+    let ignore = false;
+
+    axios
+      .get('/api/caregivers')
+      .then((response) => {
+        if (ignore) {
+          return;
+        }
+
+        const cityMap = new Map();
+        response.data.forEach((caregiver) => {
+          const normalizedCity = `${caregiver.city ?? ''}`.trim();
+          if (!normalizedCity) {
+            return;
+          }
+          const citySlug = slugify(normalizedCity);
+          if (!citySlug || cityMap.has(citySlug)) {
+            return;
+          }
+          cityMap.set(citySlug, normalizedCity);
+        });
+
+        const sortedCities = [...cityMap.entries()]
+          .map(([slug, name]) => ({ slug, name }))
+          .sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+
+        setCities(sortedCities);
+      })
+      .catch((error) => {
+        console.error('Städte und Regionen konnten nicht geladen werden', error);
+        if (!ignore) {
+          setCities([]);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  useEffect(() => {
     function handleClickOutside(event) {
       if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
         setSuggestionsOpen(false);
@@ -209,6 +251,34 @@ function DashboardPage() {
   const pageTitle = routeCitySlug
     ? `Tagesmütter und Väter in ${resolvedCityName || formatCityFromSlug(routeCitySlug)}`
     : 'Familienzentrum';
+
+  const footerCityPrompt = useMemo(() => {
+    if (resolvedCityName) {
+      return resolvedCityName;
+    }
+
+    if (filters.citySlug) {
+      return formatCityFromSlug(filters.citySlug);
+    }
+
+    if (filters.city) {
+      return filters.city;
+    }
+
+    if (filters.postalCode) {
+      return filters.postalCode;
+    }
+
+    return 'deiner Region';
+  }, [filters.city, filters.citySlug, filters.postalCode, resolvedCityName]);
+
+  const footerCities = useMemo(() => {
+    if (!filters.citySlug) {
+      return cities;
+    }
+
+    return cities.filter((city) => city.slug !== filters.citySlug);
+  }, [cities, filters.citySlug]);
 
   useEffect(() => {
     if (!routeCitySlug) {
@@ -875,6 +945,38 @@ function DashboardPage() {
           )}
         </aside>
       </div>
+      <section className="rounded-3xl bg-white/85 p-8 shadow-lg backdrop-blur">
+        <h2 className="text-2xl font-semibold text-brand-700">Städte und Regionen</h2>
+        <p className="mt-2 text-sm text-slate-600">
+          Finde weitere Tagesmütter &amp; Väter in {footerCityPrompt} und entdecke passende Profile in umliegenden Städten.
+        </p>
+
+        {footerCities.length ? (
+          <div className="mt-6 flex flex-wrap gap-3">
+            {footerCities.map((city) => (
+              <Link
+                key={city.slug}
+                to={`/kindertagespflege/${city.slug}`}
+                onClick={() => {
+                  trackEvent('engagement_city_button_click', {
+                    page: 'dashboard',
+                    platform: 'web',
+                    city: city.slug,
+                    location: 'footer',
+                  });
+                }}
+                className="rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 transition duration-200 hover:-translate-y-0.5 hover:border-brand-400 hover:bg-brand-100"
+              >
+                {city.name}
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            Aktuell werden die Städte geladen.
+          </p>
+        )}
+      </section>
       {lightboxImage ? <ImageLightbox image={lightboxImage} onClose={closeLightbox} /> : null}
     </section>
   );

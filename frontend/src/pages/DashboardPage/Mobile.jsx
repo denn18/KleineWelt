@@ -56,6 +56,7 @@ function DashboardPageMobile() {
 
   const [roomImageIndexes, setRoomImageIndexes] = useState({});
   const [suggestions, setSuggestions] = useState([]);
+  const [cities, setCities] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState(null);
@@ -173,6 +174,40 @@ function DashboardPageMobile() {
     };
   }, [searchTerm]);
 
+  useEffect(() => {
+    let ignore = false;
+
+    axios
+      .get('/api/caregivers')
+      .then((response) => {
+        if (ignore) return;
+
+        const cityMap = new Map();
+        response.data.forEach((caregiver) => {
+          const normalizedCity = `${caregiver.city ?? ''}`.trim();
+          if (!normalizedCity) return;
+
+          const citySlug = slugify(normalizedCity);
+          if (!citySlug || cityMap.has(citySlug)) return;
+          cityMap.set(citySlug, normalizedCity);
+        });
+
+        const sortedCities = [...cityMap.entries()]
+          .map(([slug, name]) => ({ slug, name }))
+          .sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+
+        setCities(sortedCities);
+      })
+      .catch((error) => {
+        console.error('Städte und Regionen konnten nicht geladen werden (Mobile)', error);
+        if (!ignore) setCities([]);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   // Close suggestions on outside click/tap
   useEffect(() => {
     function handleOutside(event) {
@@ -232,6 +267,19 @@ function DashboardPageMobile() {
   const pageTitle = routeCitySlug
     ? `Tagesmütter & Väter in ${resolvedCityName || formatCityFromSlug(routeCitySlug)}`
     : 'Familienzentrum';
+
+  const footerCityPrompt = useMemo(() => {
+    if (resolvedCityName) return resolvedCityName;
+    if (filters.citySlug) return formatCityFromSlug(filters.citySlug);
+    if (filters.city) return filters.city;
+    if (filters.postalCode) return filters.postalCode;
+    return 'deiner Region';
+  }, [filters.city, filters.citySlug, filters.postalCode, resolvedCityName]);
+
+  const footerCities = useMemo(() => {
+    if (!filters.citySlug) return cities;
+    return cities.filter((city) => city.slug !== filters.citySlug);
+  }, [cities, filters.citySlug]);
 
   const selectedLogo = selectedCaregiver?.logoImageUrl ? assetUrl(selectedCaregiver.logoImageUrl) : '';
   const selectedProfileImage = selectedCaregiver?.profileImageUrl ? assetUrl(selectedCaregiver.profileImageUrl) : '';
@@ -809,6 +857,39 @@ function DashboardPageMobile() {
           </p>
         )}
       </div>
+
+      <section className="rounded-3xl bg-white/85 p-5 shadow">
+        <h2 className="text-lg font-semibold text-brand-700">Städte und Regionen</h2>
+        <p className="mt-2 text-sm text-slate-600">
+          Finde weitere Tagesmütter &amp; Väter in {footerCityPrompt} und entdecke passende Profile in umliegenden Städten.
+        </p>
+
+        {footerCities.length ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {footerCities.map((city) => (
+              <Link
+                key={city.slug}
+                to={`/kindertagespflege/${city.slug}`}
+                onClick={() => {
+                  trackEvent('engagement_city_button_click', {
+                    page: 'dashboard',
+                    platform: 'mobile',
+                    city: city.slug,
+                    location: 'footer',
+                  });
+                }}
+                className="rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700"
+              >
+                {city.name}
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            Aktuell werden die Städte geladen.
+          </p>
+        )}
+      </section>
 
       {lightboxImage ? <ImageLightbox image={lightboxImage} onClose={closeLightbox} /> : null}
     </section>
