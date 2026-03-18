@@ -248,9 +248,25 @@ function DashboardPage() {
     return '';
   }, [filters, resolvedCityName]);
 
+  const seoCityName = useMemo(() => {
+    if (!routeCitySlug) {
+      return '';
+    }
+
+    return resolvedCityName || formatCityFromSlug(routeCitySlug);
+  }, [resolvedCityName, routeCitySlug]);
+
   const pageTitle = routeCitySlug
-    ? `Tagesmütter und Väter in ${resolvedCityName || formatCityFromSlug(routeCitySlug)}`
+    ? `Tagesmütter und Väter in ${seoCityName}`
     : 'Kindertagespflege finden';
+
+  const seoIntro = useMemo(() => {
+    if (!seoCityName) {
+      return 'Finde schnell eine passende Tagesmutter oder einen Tagesvater in deiner Nähe und entdecke qualifizierte Kindertagespflege mit freien Betreuungsplätzen. Auf Wimmel Welt vergleichst du Kinderbetreuung, prüfst Verfügbarkeit und nimmst direkt Kontakt zu Tagesmüttern und Tagesvätern auf. So findest du schnell eine zuverlässige und liebevolle Kinderbetreuung.';
+    }
+
+    return `Finde schnell eine passende Tagesmutter oder einen Tagesvater in ${seoCityName} und entdecke qualifizierte Kindertagespflege mit freien Betreuungsplätzen in deiner Nähe. Auf Wimmel Welt vergleichst du Kinderbetreuung, prüfst Verfügbarkeit und nimmst direkt Kontakt zu Tagesmüttern und Tagesvätern in ${seoCityName} auf. So findest du in ${seoCityName} schnell eine zuverlässige und liebevolle Kinderbetreuung.`;
+  }, [seoCityName]);
 
   const footerCityPrompt = useMemo(() => {
     if (resolvedCityName) {
@@ -285,7 +301,7 @@ function DashboardPage() {
       return undefined;
     }
 
-    const cityForSeo = resolvedCityName || formatCityFromSlug(routeCitySlug);
+    const cityForSeo = seoCityName;
     const previousTitle = document.title;
     document.title = `Tagesmütter & Väter in ${cityForSeo} | Wimmel Welt`;
 
@@ -299,7 +315,7 @@ function DashboardPage() {
     const previousDescription = meta.getAttribute('content');
     meta.setAttribute(
       'content',
-      `Finde alle Tagesmütter und Väter in ${cityForSeo} auf Wimmel Welt – mit Profilen, freien Plätzen und direkter Kontaktmöglichkeit.`,
+      seoIntro,
     );
 
     return () => {
@@ -415,9 +431,7 @@ function DashboardPage() {
     <section className="flex flex-col gap-8">
       <header className="flex flex-col gap-2">
         <h1 className="text-3xl font-semibold text-brand-700">{pageTitle}</h1>
-        <p className="text-sm text-slate-600">
-          Finde Tagesmütter und Väter in deiner Nähe, vergleiche Profile und starte persönliche Gespräche.
-        </p>
+        <p className="text-sm text-slate-600">{seoIntro}</p>
       </header>
 
       <form
