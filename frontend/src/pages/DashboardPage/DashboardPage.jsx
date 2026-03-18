@@ -46,6 +46,19 @@ function calculateYearsSince(value) {
 }
 
 
+const citySeoExtras = {
+  bielefeld:
+    'In Bielefeld suchen viele Familien nach flexibler und verlässlicher Kinderbetreuung in der Nähe. Eine Tagesmutter oder ein Tagesvater kann hier eine passende Alternative zur klassischen Kita sein, vor allem wenn Eltern eine persönliche Betreuung in kleiner Gruppe bevorzugen. Wer eine Tagesmutter finden oder gezielt Kindertagespflege finden möchte, achtet oft auf Betreuungszeiten, freie Plätze, Erfahrung und das pädagogische Konzept. Genau dabei hilft diese Übersicht für Bielefeld.',
+  guetersloh:
+    'In Gütersloh ist die Nachfrage nach persönlicher und familiennaher Betreuung besonders hoch. Viele Eltern möchten eine Tagesmutter in der Nähe finden, die flexible Zeiten, kleine Gruppen und eine ruhige Betreuungsumgebung bietet. Wenn du in Gütersloh Kinderbetreuung suchen oder eine passende Kindertagespflege finden möchtest, sind transparente Profile, freie Plätze und direkte Kontaktmöglichkeiten besonders wichtig. Diese Seite unterstützt dich bei der Tagesmutter Suche in Gütersloh.',
+  herzberg:
+    'In Herzberg wünschen sich viele Familien eine übersichtliche Möglichkeit, passende Kinderbetreuung zu finden. Eine Tagesmutter kann hier eine gute Lösung sein, wenn Eltern eine individuelle Betreuung und ein vertrautes Umfeld für ihr Kind suchen. Wer nach Kindertagespflege in der Nähe sucht, möchte schnell erkennen, welche Betreuungspersonen verfügbar sind, wie das Betreuungskonzept aussieht und ob die Betreuung zum eigenen Alltag passt. Genau dafür ist diese Übersicht für Herzberg gedacht.',
+  'schloss-holte-stukenbrock':
+    'In Schloß Holte-Stukenbrock spielt eine verlässliche und wohnortnahe Betreuung für viele Familien eine wichtige Rolle. Eltern, die eine Tagesmutter in meiner Nähe oder eine flexible Kinderbetreuung in der Nähe suchen, achten besonders auf freie Plätze, Betreuungszeiten und Erfahrung. Eine gute Kindertagespflege kann den Familienalltag deutlich entlasten und Kindern eine persönliche Betreuung in kleiner Runde bieten. Diese Seite hilft dir dabei, passende Angebote in Schloß Holte-Stukenbrock schneller zu vergleichen.',
+  'spenge-wallenbruck':
+    'In Spenge Wallenbrück ist eine persönliche Betreuung oft besonders gefragt, weil Familien kurze Wege und direkte Ansprechpartner schätzen. Wer eine Tagesmutter finden oder Kinderbetreuung suchen möchte, sucht nicht nur freie Plätze, sondern auch Vertrauen, Erfahrung und ein passendes Konzept für die Kindertagespflege. Eine Tagesmutter oder ein Tagesvater kann hier eine familiennahe Lösung sein, wenn Eltern eine flexible und individuelle Betreuung wünschen. Diese Übersicht erleichtert dir die Suche nach passender Kindertagespflege in Spenge Wallenbrück.',
+};
+
 function formatCityFromSlug(slug) {
   return `${slug ?? ''}`
     .split('-')
@@ -60,7 +73,6 @@ function DashboardPage() {
   const [caregivers, setCaregivers] = useState([]);
   const [resolvedCityName, setResolvedCityName] = useState('');
   const [selectedCaregiver, setSelectedCaregiver] = useState(null);
-  const [collapsedCards, setCollapsedCards] = useState({});
   const [roomImageIndexes, setRoomImageIndexes] = useState({});
   const [suggestions, setSuggestions] = useState([]);
   const [cities, setCities] = useState([]);
@@ -119,13 +131,6 @@ function DashboardPage() {
       } else {
         setSelectedCaregiver(null);
       }
-      setCollapsedCards((current) => {
-        const next = {};
-        routeFilteredCaregivers.forEach((caregiver) => {
-          next[caregiver.id] = current[caregiver.id] ?? true;
-        });
-        return next;
-      });
       setRoomImageIndexes((current) => {
         const next = {};
         routeFilteredCaregivers.forEach((caregiver) => {
@@ -233,7 +238,6 @@ function DashboardPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const caregiversForMap = useMemo(() => caregivers.filter((caregiver) => caregiver.location), [caregivers]);
 
   const activeLocation = useMemo(() => {
     if (filters.citySlug) {
@@ -288,6 +292,14 @@ function DashboardPage() {
     return 'deiner Region';
   }, [filters.city, filters.citySlug, filters.postalCode, resolvedCityName]);
 
+  const footerSeoText = useMemo(() => {
+    if (!filters.citySlug) {
+      return '';
+    }
+
+    return citySeoExtras[filters.citySlug] ?? '';
+  }, [filters.citySlug]);
+
   const footerCities = useMemo(() => {
     if (!filters.citySlug) {
       return cities;
@@ -326,7 +338,7 @@ function DashboardPage() {
         meta.setAttribute('content', previousDescription);
       }
     };
-  }, [routeCitySlug, resolvedCityName]);
+  }, [routeCitySlug, seoCityName, seoIntro]);
 
   const selectedLogo = selectedCaregiver?.logoImageUrl ? assetUrl(selectedCaregiver.logoImageUrl) : '';
   const selectedProfileImage = selectedCaregiver?.profileImageUrl ? assetUrl(selectedCaregiver.profileImageUrl) : '';
@@ -343,9 +355,6 @@ function DashboardPage() {
     return Number.isNaN(date.valueOf()) ? null : date.getFullYear();
   }, [selectedCaregiver]);
 
-  function toggleCard(caregiverId) {
-    setCollapsedCards((current) => ({ ...current, [caregiverId]: !current[caregiverId] }));
-  }
 
   function handleCycleRoomImage(caregiverId, direction, area = 'list') {
     setRoomImageIndexes((current) => {
@@ -504,7 +513,6 @@ function DashboardPage() {
             </header>
             <div className="mt-4 flex max-h-[480px] flex-col gap-4 overflow-y-auto pr-2">
               {caregivers.map((caregiver) => {
-                const collapsed = collapsedCards[caregiver.id] ?? true;
                 const locationLabel = [caregiver.postalCode, caregiver.city].filter(Boolean).join(' ');
                 const logoUrl = caregiver.logoImageUrl ? assetUrl(caregiver.logoImageUrl) : '';
                 const roomImages = (caregiver.roomImages ?? []).map((imageUrl) => assetUrl(imageUrl));
@@ -696,19 +704,6 @@ function DashboardPage() {
                             </>
                           ) : null}
                         </div>
-                      </div>
-                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            toggleCard(caregiver.id);
-                          }}
-                          //className="text-xs font-semibold text-brand-600 hover:text-brand-700"
-                          //Hier war Detail Ansicht für die Kacheln, ist erstmal weg sonst hat man doppelte Info mit dem rechten Steckbrief
-                        >
-                          {/* {collapsed ? 'Details anzeigen' : 'Details schließen'} */}
-                        </button>
                       </div>
                     </div>
                     
@@ -961,8 +956,9 @@ function DashboardPage() {
       </div>
       <section className="rounded-3xl bg-white/85 p-8 shadow-lg backdrop-blur">
         <h2 className="text-2xl font-semibold text-brand-700">Städte und Regionen</h2>
-        <p className="mt-2 text-sm text-slate-600">
-          Finde weitere Tagesmütter &amp; Väter in {footerCityPrompt} und entdecke passende Profile in umliegenden Städten.
+        {footerSeoText ? <p className="mt-2 text-base leading-8 text-slate-600">{footerSeoText}</p> : null}
+        <p className={`font-semibold text-brand-600 ${footerSeoText ? 'mt-4 text-sm' : 'mt-2 text-sm'}`}>
+          Finde weitere Tagesmütter &amp; Väter in {footerCityPrompt}
         </p>
 
         {footerCities.length ? (
