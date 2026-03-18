@@ -238,6 +238,34 @@ function DashboardPageMobile() {
     };
   }, []);
 
+  const activeLocation = useMemo(() => {
+    if (filters.citySlug) return resolvedCityName || filters.citySlug;
+    if (filters.postalCode || filters.city) return [filters.postalCode, filters.city].filter(Boolean).join(' ');
+    if (filters.search) return filters.search;
+    return '';
+  }, [filters, resolvedCityName]);
+
+
+  const seoCityName = useMemo(() => {
+    if (!routeCitySlug) {
+      return '';
+    }
+
+    return resolvedCityName || formatCityFromSlug(routeCitySlug);
+  }, [resolvedCityName, routeCitySlug]);
+
+  const pageTitle = routeCitySlug
+    ? `Tagesmütter & Väter in ${seoCityName}`
+    : 'Familienzentrum';
+
+  const seoIntro = useMemo(() => {
+    if (!seoCityName) {
+      return 'Finde schnell eine passende Tagesmutter oder einen Tagesvater in deiner Nähe und entdecke qualifizierte Kindertagespflege mit freien Betreuungsplätzen. Auf Wimmel Welt vergleichst du Kinderbetreuung, prüfst Verfügbarkeit und nimmst direkt Kontakt zu Tagesmüttern und Tagesvätern auf. So findest du schnell eine zuverlässige und liebevolle Kinderbetreuung.';
+    }
+
+    return `Finde schnell eine passende Tagesmutter oder einen Tagesvater in ${seoCityName} und entdecke qualifizierte Kindertagespflege mit freien Betreuungsplätzen in deiner Nähe. Auf Wimmel Welt vergleichst du Kinderbetreuung, prüfst Verfügbarkeit und nimmst direkt Kontakt zu Tagesmüttern und Tagesvätern in ${seoCityName} auf. So findest du in ${seoCityName} schnell eine zuverlässige und liebevolle Kinderbetreuung.`;
+  }, [seoCityName]);
+
   useEffect(() => {
     if (!routeCitySlug) {
       return undefined;
@@ -269,33 +297,6 @@ function DashboardPageMobile() {
       }
     };
   }, [routeCitySlug, seoCityName, seoIntro]);
-
-  const activeLocation = useMemo(() => {
-    if (filters.citySlug) return resolvedCityName || filters.citySlug;
-    if (filters.postalCode || filters.city) return [filters.postalCode, filters.city].filter(Boolean).join(' ');
-    if (filters.search) return filters.search;
-    return '';
-  }, [filters, resolvedCityName]);
-
-  const seoCityName = useMemo(() => {
-    if (!routeCitySlug) {
-      return '';
-    }
-
-    return resolvedCityName || formatCityFromSlug(routeCitySlug);
-  }, [resolvedCityName, routeCitySlug]);
-
-  const pageTitle = routeCitySlug
-    ? `Tagesmütter & Väter in ${seoCityName}`
-    : 'Familienzentrum';
-
-  const seoIntro = useMemo(() => {
-    if (!seoCityName) {
-      return 'Finde schnell eine passende Tagesmutter oder einen Tagesvater in deiner Nähe und entdecke qualifizierte Kindertagespflege mit freien Betreuungsplätzen. Auf Wimmel Welt vergleichst du Kinderbetreuung, prüfst Verfügbarkeit und nimmst direkt Kontakt zu Tagesmüttern und Tagesvätern auf. So findest du schnell eine zuverlässige und liebevolle Kinderbetreuung.';
-    }
-
-    return `Finde schnell eine passende Tagesmutter oder einen Tagesvater in ${seoCityName} und entdecke qualifizierte Kindertagespflege mit freien Betreuungsplätzen in deiner Nähe. Auf Wimmel Welt vergleichst du Kinderbetreuung, prüfst Verfügbarkeit und nimmst direkt Kontakt zu Tagesmüttern und Tagesvätern in ${seoCityName} auf. So findest du in ${seoCityName} schnell eine zuverlässige und liebevolle Kinderbetreuung.`;
-  }, [seoCityName]);
 
   const footerCityPrompt = useMemo(() => {
     if (resolvedCityName) return resolvedCityName;
