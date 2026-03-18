@@ -16,6 +16,8 @@ function ImprintPage() {
             <br />
             33332
             <br />
+            Gütersloh
+            <br />
             Deutschland
           </p>
         </section>
