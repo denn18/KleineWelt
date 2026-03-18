@@ -5,7 +5,7 @@ export default function Mobile() {
     {
       title: 'Diensteanbieter',
       lines: [
-        'Dennie Scharton',
+
         'Wimmel Welt',
         'Falkenrecks Heide 6',
         '33332 Gütersloh',
@@ -18,21 +18,21 @@ export default function Mobile() {
       email: 'info@wimmel-welt.de',
       web: 'www.wimmel-welt.de',
     },
-    {
-      title: 'Vertretungsberechtigt',
-      lines: ['Dennie Scharton (Einzelunternehmer)'],
-    },
-    {
-      title: 'Registereintrag',
-      lines: ['Eintrag im Handelsregister folgt.'],
-    },
-    {
-      title: 'Umsatzsteuer',
-      lines: ['Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).'],
-    },
+    // {
+    //   title: 'Vertretungsberechtigt',
+    //   lines: ['Dennie Scharton'],
+    // },
+    // {
+    //   title: 'Registereintrag',
+    //   lines: ['Eintrag im Handelsregister folgt.'],
+    // },
+    // {
+    //   title: 'Umsatzsteuer',
+    //   lines: ['Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).'],
+    // },
     {
       title: 'Verantwortlich für den Inhalt gemäß § 18 Abs. 2 MStV',
-      lines: ['Dennie Scharton', 'Falkenrecks Heide 6', '33332 Gütersloh'],
+      lines: ['Wimmel Welt', 'Falkenrecks Heide 6', '33332 Gütersloh'],
     },
     {
       title: 'Haftungshinweise',

@@ -10,8 +10,6 @@ function ImprintPage() {
         <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-brand-700">Diensteanbieter</h2>
           <p className="mt-2">
-            Dennie Scharton
-            <br />
             Wimmel Welt
             <br />
             Falkenrecks Heide 6
@@ -34,29 +32,29 @@ function ImprintPage() {
           </p>
         </section>
 
-        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+        {/* <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-brand-700">Vertretungsberechtigt</h2>
           <p className="mt-2">Dennie Scharton (Einzelunternehmer)</p>
-        </section>
+        </section> */}
 
-        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+        {/* <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-brand-700">Registereintrag</h2>
           <p className="mt-2">
             Eintrag im Handelsregister folgt.
           </p>
-        </section>
+        </section> */}
 
-        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+        {/* <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-brand-700">Umsatzsteuer</h2>
           <p className="mt-2">
             Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).
           </p>
-        </section>
+        </section> */}
 
         <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-brand-700">Verantwortlich für den Inhalt gemäß § 18 Abs. 2 MStV</h2>
           <p className="mt-2">
-            Dennie Scharton
+            Wimmel Welt
             <br />
             Falkenrecks Heide 6
             <br />

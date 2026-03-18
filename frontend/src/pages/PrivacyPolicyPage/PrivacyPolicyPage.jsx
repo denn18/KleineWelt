@@ -29,37 +29,20 @@ function PrivacyPolicyPage() {
           </p>
 
           <p className="mt-2">
-            Wimmel Welt [Rechtsform, z.B. e.K. / UG (haftungsbeschränkt) / GmbH]
+            Wimmel Welt 
             <br />
-            [Straße, Hausnummer]
+            Falkenrecks Heide 6
             <br />
-            [PLZ, Ort]
+            33332, Gütersloh
             <br />
-            Telefon: [Telefonnummer]
-            <br />
-            E-Mail: [zentrale Kontaktadresse]
+            E-Mail: info@wimmel-welt.de
           </p>
 
-          <p className="mt-4">
-            Sofern ein Datenschutzbeauftragter bestellt ist:
-          </p>
-
-          <p className="mt-2">
-            Datenschutzbeauftragter: [Name oder externer Dienstleister]
-            <br />
-            Anschrift: [Anschrift]
-            <br />
-            E-Mail: [DSB-E-Mail-Adresse]
-          </p>
 
           <p className="mt-4">
             Diese Datenschutzerklärung gilt für die Nutzung der
             Online-Plattform „Wimmel Welt“ unter den Domains
-            [z.B. wimmelwelt.de] einschließlich der API-Endpunkte
-            https://api.wimmelwelt.de (Produktivsystem) und
-            https://api-staging.wimmelwelt.de (Staging-Umgebung) sowie aller
-            zugehörigen Weboberflächen und Funktionen (Registrierung, Login,
-            Profile, Suche, Chat, Medien-Uploads, Rechnungsbereitstellung).
+          www.wimmel-welt.de
           </p>
         </section>
 

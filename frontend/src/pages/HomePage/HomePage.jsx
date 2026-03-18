@@ -7,17 +7,19 @@ import { trackEvent } from '../utils/analytics.js';
 import LogoCarousel from '../../components/LogoCarousel.jsx';
 import { slugify } from '../../utils/caregiverProfilePath.js';
 
+const darkbluefont = '#353e73';
+
 
 const features = [
   {
     title: 'Persönliche Kindertagespflege',
     description:
-      'Finde liebevolle Kindertagespflegepersonen in deiner Nähe, die genau zu den Bedürfnissen deiner Familie passen.',
+      'Finde liebevolle Tagesmütter und Tagesväter in deiner Nähe, die genau zu den Bedürfnissen deiner Familie passen.',
   },
   {
-    title: 'Transparente Kindertagespflege',
+    title: 'Transparente Kinderbetreuung',
     description:
-      'Vergleiche pädagogische Konzepte, freie Kindertagespflegeplätze und Altersgrenzen auf einen Blick.',
+      'Vergleiche pädagogische Konzepte, freie Betreuungsplätze und Altersgrenzen auf einen Blick.',
   },
   {
     title: 'Direkte Kommunikation',
@@ -25,6 +27,8 @@ const features = [
       'Nutze unseren Messenger für schnelle Absprachen, Kennenlerntermine und individuelle Fragen rund um deine Betreuung.',
   },
 ];
+
+
 
 function HomePage() {
   const navigate = useNavigate();
@@ -89,7 +93,7 @@ function HomePage() {
       <section className="grid gap-12 rounded-3xl bg-white/70 p-10 shadow-lg backdrop-blur sm:grid-cols-2">
         <div className="flex flex-col gap-6">
           <p className="text-sm font-semibold uppercase tracking-widest text-brand-500">Willkommen bei Wimmel Welt</p>
-          <h1 className="text-4xl font-bold text-slate-900 sm:text-5xl">
+          <h1 className="text-4xl font-bold text-[#353e73] sm:text-5xl">
             Gemeinsam schaffen wir einen sicheren Ort zum Wachsen.
           </h1>
           <p className="text-lg text-slate-600">
