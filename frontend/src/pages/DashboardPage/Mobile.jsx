@@ -230,7 +230,7 @@ function DashboardPageMobile() {
       return undefined;
     }
 
-    const cityForSeo = resolvedCityName || formatCityFromSlug(routeCitySlug);
+    const cityForSeo = seoCityName;
     const previousTitle = document.title;
     document.title = `Tagesmütter & Väter in ${cityForSeo} | Wimmel Welt`;
 
@@ -244,7 +244,7 @@ function DashboardPageMobile() {
     const previousDescription = meta.getAttribute('content');
     meta.setAttribute(
       'content',
-      `Finde alle Kindertagespflegepersonen in ${cityForSeo} auf Kleine Welt – mit Profilen, freien Plätzen und direkter Kontaktmöglichkeit.`,
+      seoIntro,
     );
 
     return () => {
@@ -264,9 +264,25 @@ function DashboardPageMobile() {
     return '';
   }, [filters, resolvedCityName]);
 
+  const seoCityName = useMemo(() => {
+    if (!routeCitySlug) {
+      return '';
+    }
+
+    return resolvedCityName || formatCityFromSlug(routeCitySlug);
+  }, [resolvedCityName, routeCitySlug]);
+
   const pageTitle = routeCitySlug
-    ? `Tagesmütter & Väter in ${resolvedCityName || formatCityFromSlug(routeCitySlug)}`
+    ? `Tagesmütter & Väter in ${seoCityName}`
     : 'Familienzentrum';
+
+  const seoIntro = useMemo(() => {
+    if (!seoCityName) {
+      return 'Finde schnell eine passende Tagesmutter oder einen Tagesvater in deiner Nähe und entdecke qualifizierte Kindertagespflege mit freien Betreuungsplätzen. Auf Wimmel Welt vergleichst du Kinderbetreuung, prüfst Verfügbarkeit und nimmst direkt Kontakt zu Tagesmüttern und Tagesvätern auf. So findest du schnell eine zuverlässige und liebevolle Kinderbetreuung.';
+    }
+
+    return `Finde schnell eine passende Tagesmutter oder einen Tagesvater in ${seoCityName} und entdecke qualifizierte Kindertagespflege mit freien Betreuungsplätzen in deiner Nähe. Auf Wimmel Welt vergleichst du Kinderbetreuung, prüfst Verfügbarkeit und nimmst direkt Kontakt zu Tagesmüttern und Tagesvätern in ${seoCityName} auf. So findest du in ${seoCityName} schnell eine zuverlässige und liebevolle Kinderbetreuung.`;
+  }, [seoCityName]);
 
   const footerCityPrompt = useMemo(() => {
     if (resolvedCityName) return resolvedCityName;
@@ -387,9 +403,7 @@ function DashboardPageMobile() {
       {/* Header */}
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-extrabold text-brand-700">{pageTitle}</h1>
-        <p className="text-sm text-slate-600">
-          Finde Tagespflegepersonen in deiner Nähe, vergleiche Profile und starte persönliche Gespräche.
-        </p>
+        <p className="text-sm text-slate-600">{seoIntro}</p>
       </header>
 
       {/* Search */}
