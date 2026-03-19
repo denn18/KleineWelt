@@ -21,7 +21,7 @@ export const SITEMAP_ROUTES = [
   ...SEO_CITY_SLUGS.map((slug) => ({
     path: `/kindertagespflege/${slug}`,
     changefreq: 'weekly',
-    priority: '0.8',
+    priority: '0.9',
   })),
 ];
 

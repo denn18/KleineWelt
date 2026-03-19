@@ -22,13 +22,13 @@
     <loc>https://www.wimmel-welt.de/faq</loc>
     <lastmod>2026-03-19</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.wimmel-welt.de/kontakt</loc>
     <lastmod>2026-03-19</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.wimmel-welt.de/datenschutz</loc>
@@ -46,30 +46,30 @@
     <loc>https://www.wimmel-welt.de/kindertagespflege/bielefeld</loc>
     <lastmod>2026-03-19</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.wimmel-welt.de/kindertagespflege/guetersloh</loc>
     <lastmod>2026-03-19</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.wimmel-welt.de/kindertagespflege/herzberg</loc>
     <lastmod>2026-03-19</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.wimmel-welt.de/kindertagespflege/schloss-holte-stukenbrock</loc>
     <lastmod>2026-03-19</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.wimmel-welt.de/kindertagespflege/spenge-wallenbrueck</loc>
     <lastmod>2026-03-19</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
 </urlset>
