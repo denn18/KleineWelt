@@ -1,0 +1,207 @@
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { SITE_NAME, toAbsoluteUrl } from './siteConfig.js';
+
+const DEFAULT_TITLE = `${SITE_NAME} – Kindertagespflege in deiner Nähe`;
+const DEFAULT_DESCRIPTION =
+  'Wimmel Welt vermittelt liebevolle Kindertagespflege – finde eine passende Kindertagespflege oder freie Betreuungsplätze in deiner Nähe. Persönlich, sicher, transparent.';
+
+function ensureTag(selector, createElement) {
+  let element = document.head.querySelector(selector);
+  if (!element) {
+    element = createElement();
+    document.head.appendChild(element);
+  }
+  return element;
+}
+
+function slugToLabel(slug) {
+  return `${slug ?? ''}`
+    .split('-')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function getSeoData(pathname) {
+  if (pathname === '/') {
+    return {
+      title: DEFAULT_TITLE,
+      description: DEFAULT_DESCRIPTION,
+      canonicalPath: '/',
+      robots: 'index,follow',
+    };
+  }
+
+  if (pathname === '/kindertagespflege') {
+    return {
+      title: 'Kindertagespflege finden | Wimmel Welt',
+      description:
+        'Finde passende Kindertagespflege, freie Betreuungsplätze und liebevolle Tagesmütter oder Tagesväter in deiner Nähe.',
+      canonicalPath: pathname,
+      robots: 'index,follow',
+    };
+  }
+
+  if (/^\/kindertagespflege\/[^/]+$/.test(pathname)) {
+    const citySlug = pathname.split('/')[2] ?? '';
+    const cityLabel = slugToLabel(citySlug);
+    return {
+      title: `Kindertagespflege in ${cityLabel} | Wimmel Welt`,
+      description: `Entdecke Kindertagespflege, freie Betreuungsplätze sowie Tagesmütter und Tagesväter in ${cityLabel} und Umgebung.`,
+      canonicalPath: pathname,
+      robots: 'index,follow',
+    };
+  }
+
+  if (/^\/kindertagespflege\/[^/]+\/[^/]+$/.test(pathname)) {
+    return {
+      title: `Kindertagespflege-Profil | ${SITE_NAME}`,
+      description:
+        'Öffentliches Profil einer Kindertagespflege mit Informationen zu Betreuung, freien Plätzen und Kontaktmöglichkeiten.',
+      canonicalPath: pathname,
+      robots: 'index,follow',
+    };
+  }
+
+  const staticRoutes = {
+    '/familienzentrum': {
+      title: 'Familienzentrum | Wimmel Welt',
+      description: 'Informationen zum Familienzentrum von Wimmel Welt und zur Suche nach passender Kindertagespflege.',
+      canonicalPath: pathname,
+      robots: 'index,follow',
+    },
+    '/faq': {
+      title: 'FAQ | Wimmel Welt',
+      description: 'Antworten auf häufige Fragen rund um Kindertagespflege, Betreuungssuche und die Nutzung von Wimmel Welt.',
+      canonicalPath: pathname,
+      robots: 'index,follow',
+    },
+    '/kontakt': {
+      title: 'Kontakt | Wimmel Welt',
+      description: 'Kontaktiere Wimmel Welt bei Fragen zur Kindertagespflege, Plattformnutzung oder Zusammenarbeit.',
+      canonicalPath: pathname,
+      robots: 'index,follow',
+    },
+    '/datenschutz': {
+      title: 'Datenschutz | Wimmel Welt',
+      description: 'Datenschutzhinweise von Wimmel Welt.',
+      canonicalPath: pathname,
+      robots: 'index,follow',
+    },
+    '/impressum': {
+      title: 'Impressum | Wimmel Welt',
+      description: 'Impressum von Wimmel Welt.',
+      canonicalPath: pathname,
+      robots: 'index,follow',
+    },
+    '/anmelden': {
+      title: 'Anmelden | Wimmel Welt',
+      description: 'Zugang für Eltern und Kindertagespflegepersonen.',
+      canonicalPath: pathname,
+      robots: 'noindex,nofollow',
+    },
+    '/anmelden/eltern': {
+      title: 'Eltern registrieren | Wimmel Welt',
+      description: 'Registrierung für Eltern bei Wimmel Welt.',
+      canonicalPath: pathname,
+      robots: 'noindex,nofollow',
+    },
+    '/anmelden/tagespflegeperson': {
+      title: 'Tagespflegeperson registrieren | Wimmel Welt',
+      description: 'Registrierung für Tagespflegepersonen bei Wimmel Welt.',
+      canonicalPath: pathname,
+      robots: 'noindex,nofollow',
+    },
+    '/login': {
+      title: 'Login | Wimmel Welt',
+      description: 'Login für bestehende Nutzerinnen und Nutzer von Wimmel Welt.',
+      canonicalPath: pathname,
+      robots: 'noindex,nofollow',
+    },
+    '/profil': {
+      title: 'Profil | Wimmel Welt',
+      description: 'Geschützter Profilbereich.',
+      canonicalPath: pathname,
+      robots: 'noindex,nofollow',
+    },
+    '/nachrichten': {
+      title: 'Nachrichten | Wimmel Welt',
+      description: 'Geschützter Nachrichtenbereich.',
+      canonicalPath: pathname,
+      robots: 'noindex,nofollow',
+    },
+    '/kontakte': {
+      title: 'Kontakte | Wimmel Welt',
+      description: 'Geschützter Kontaktbereich.',
+      canonicalPath: pathname,
+      robots: 'noindex,nofollow',
+    },
+    '/betreuungsgruppe': {
+      title: 'Betreuungsgruppe | Wimmel Welt',
+      description: 'Geschützter Betreuungsgruppenbereich.',
+      canonicalPath: pathname,
+      robots: 'noindex,nofollow',
+    },
+    '/betreuungsgruppe/erstellen': {
+      title: 'Betreuungsgruppe erstellen | Wimmel Welt',
+      description: 'Geschützter Bereich zum Erstellen von Betreuungsgruppen.',
+      canonicalPath: pathname,
+      robots: 'noindex,nofollow',
+    },
+    '/betreuungsgruppe/chat': {
+      title: 'Betreuungsgruppen-Chat | Wimmel Welt',
+      description: 'Geschützter Chat-Bereich.',
+      canonicalPath: pathname,
+      robots: 'noindex,nofollow',
+    },
+  };
+
+  return (
+    staticRoutes[pathname] ?? {
+      title: DEFAULT_TITLE,
+      description: DEFAULT_DESCRIPTION,
+      canonicalPath: pathname,
+      robots: 'noindex,nofollow',
+    }
+  );
+}
+
+export default function Seo() {
+  const location = useLocation();
+
+  useEffect(() => {
+    const { title, description, canonicalPath, robots } = getSeoData(location.pathname);
+    document.title = title;
+
+    const metaDescription = ensureTag('meta[name="description"]', () => {
+      const tag = document.createElement('meta');
+      tag.setAttribute('name', 'description');
+      return tag;
+    });
+    metaDescription.setAttribute('content', description);
+
+    const canonical = ensureTag('link[rel="canonical"]', () => {
+      const tag = document.createElement('link');
+      tag.setAttribute('rel', 'canonical');
+      return tag;
+    });
+    canonical.setAttribute('href', toAbsoluteUrl(canonicalPath));
+
+    const robotsMeta = ensureTag('meta[name="robots"]', () => {
+      const tag = document.createElement('meta');
+      tag.setAttribute('name', 'robots');
+      return tag;
+    });
+    robotsMeta.setAttribute('content', robots);
+
+    const ogUrl = ensureTag('meta[property="og:url"]', () => {
+      const tag = document.createElement('meta');
+      tag.setAttribute('property', 'og:url');
+      return tag;
+    });
+    ogUrl.setAttribute('content', toAbsoluteUrl(canonicalPath));
+  }, [location.pathname]);
+
+  return null;
+}
