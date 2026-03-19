@@ -19,6 +19,20 @@ import { getDatabase } from './config/database.js';
 
 const app = express();
 
+app.set('trust proxy', true);
+
+app.use((req, res, next) => {
+  const forwardedHost = req.headers['x-forwarded-host'];
+  const hostHeader = `${Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost || req.headers.host || ''}`;
+  const normalizedHost = hostHeader.split(',')[0].trim().toLowerCase();
+
+  if (normalizedHost === 'wimmel-welt.de' || normalizedHost.startsWith('wimmel-welt.de:')) {
+    return res.redirect(301, `https://www.wimmel-welt.de${req.originalUrl}`);
+  }
+
+  return next();
+});
+
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
