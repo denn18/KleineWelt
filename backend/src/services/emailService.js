@@ -72,11 +72,13 @@ export async function sendEmail({ to, subject, text, html }) {
   const secure = process.env.SMTP_SECURE === 'true' || port === 465;
   const username = process.env.SMTP_USER;
   const password = process.env.SMTP_PASS;
-  const from = process.env.SMTP_FROM || username;
+  const from = process.env.SMTP_FROM || username || 'support@wimmel-welt.de';
   const recipients = parseRecipients(to);
 
-  if (!host || !from || recipients.length === 0) {
-    console.info('E-Mail-Benachrichtigung übersprungen – SMTP nicht konfiguriert oder Empfänger fehlt.');
+  if (!host || recipients.length === 0) {
+    console.info(
+      `E-Mail-Benachrichtigung übersprungen – fehlende SMTP/Empfänger-Daten (SMTP_HOST: ${Boolean(host)}, SMTP_FROM: ${Boolean(from)}, Empfänger: ${recipients.length}).`,
+    );
     return false;
   }
 
