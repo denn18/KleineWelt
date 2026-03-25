@@ -18,7 +18,40 @@ function getMessagesCollection() {
 
 function buildDisplayName(user) {
   const parts = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim();
-  return parts || user?.daycareName || user?.name || 'Ein Mitglied von Kleine Welt';
+  return parts || user?.daycareName || user?.name || 'Ein Mitglied von Wimmel Welt';
+}
+
+function buildMessageEmail({ recipientName, senderName }) {
+  const intro = `${senderName} hat dir eine neue Nachricht auf Wimmel Welt gesendet.`;
+  const cta = 'Direkt öffnen: https://www.wimmel-welt.de/nachrichten';
+
+  const text = [
+    `Hallo ${recipientName},`,
+    '',
+    intro,
+    '',
+    'Du hast eine neue Nachricht erhalten.',
+    cta,
+    '',
+    'Herzliche Grüße',
+    'Dein Wimmel Welt Team',
+    '',
+    '--',
+    'Wimmel Welt (Testsignatur)',
+    'support@wimmel-welt.de',
+  ].join('\n');
+
+  const html = [
+    `<p>Hallo ${recipientName},</p>`,
+    `<p>${intro}</p>`,
+    '<p>Du hast eine neue Nachricht erhalten.</p>',
+    '<p><a href="https://www.wimmel-welt.de/nachrichten">Direkt zu deinen Nachrichten</a></p>',
+    '<p>Herzliche Grüße<br />Dein Wimmel Welt Team</p>',
+    '<hr />',
+    '<p><strong>Wimmel Welt (Testsignatur)</strong><br /><a href="mailto:support@wimmel-welt.de">support@wimmel-welt.de</a></p>',
+  ].join('');
+
+  return { text, html };
 }
 
 export async function notifyRecipientOfMessage({ recipientId, senderId, conversationId }) {
@@ -31,7 +64,10 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, conversa
     });
     const pushSubscriptions = await dependencies.listPushSubscriptionsForUser(recipientId);
     const hasPushSubscriptions = Array.isArray(pushSubscriptions) && pushSubscriptions.length > 0;
-    const shouldSendEmail = unreadCount === 1 || !hasPushSubscriptions;
+
+    // Für den aktuellen Testbetrieb: immer eine E-Mail bei jeder neuen Nachricht senden.
+    // Web Push bleibt parallel aktiv.
+    const shouldSendEmail = unreadCount >= 1 || !hasPushSubscriptions;
 
     const [recipient, sender] = await Promise.all([
       dependencies.findUserById(recipientId),
@@ -44,25 +80,7 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, conversa
 
     const senderName = buildDisplayName(sender ?? {});
     const recipientName = buildDisplayName(recipient);
-
-    const text = [
-      `Hallo ${recipientName},`,
-      '',
-      `${senderName} hat dir eine neue Nachricht auf Wimmel Welt gesendet.`,
-      '',
-      'Du hast eine neue Nachricht erhalten.',
-      'Direkt öffnen: https://www.wimmel-welt.de/nachrichten',
-      '',
-      'Herzliche Grüße',
-      'Dein Wimmel Welt Team',
-      '',
-      '---',
-      'Wimmel Welt (Testsignatur)',
-      'support@wimmel-welt.de',
-    ]
-      .filter(Boolean)
-      .join('\n');
-
+    const { text, html } = buildMessageEmail({ recipientName, senderName });
     const subject = `Neue Nachricht von ${senderName}`;
 
     const pushPayload = {
@@ -80,6 +98,7 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, conversa
             to: recipient.email,
             subject,
             text,
+            html,
           })
         : Promise.resolve(false),
       dependencies.sendWebPushNotification({
