@@ -101,6 +101,14 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, conversa
       tag: `message:${conversationId}`,
     };
 
+    if (!recipientEmail) {
+      console.warn('Nachrichten-Benachrichtigung ohne E-Mail-Empfänger übersprungen.', {
+        recipientId,
+        recipientRole: recipient.role ?? null,
+        recipientEmailRaw: recipient.email ?? null,
+      });
+    }
+
     const tasks = [
       shouldSendEmail && recipientEmail
         ? dependencies.sendEmail({

@@ -14,6 +14,23 @@ function parseRecipients(recipients) {
     .filter((entry) => entry.length > 0);
 }
 
+function buildRecipientPreview(recipients = []) {
+  if (!Array.isArray(recipients)) {
+    return [];
+  }
+
+  return recipients.map((recipient) => {
+    const [local = '', domain = ''] = `${recipient}`.split('@');
+    if (!local || !domain) {
+      return recipient;
+    }
+    if (local.length <= 2) {
+      return `**@${domain}`;
+    }
+    return `${local.slice(0, 2)}***@${domain}`;
+  });
+}
+
 function readResponse(socket) {
   return new Promise((resolve, reject) => {
     let buffer = '';
@@ -74,9 +91,19 @@ export async function sendEmail({ to, subject, text, html }) {
   const password = process.env.SMTP_PASS;
   const from = process.env.SMTP_FROM || username;
   const recipients = parseRecipients(to);
+  const recipientPreview = buildRecipientPreview(recipients);
 
   if (!host || !from || recipients.length === 0) {
-    console.info('E-Mail-Benachrichtigung übersprungen – SMTP nicht konfiguriert oder Empfänger fehlt.');
+    console.warn('E-Mail-Benachrichtigung übersprungen.', {
+      reason: 'smtp_not_configured_or_missing_recipient',
+      smtpHostConfigured: Boolean(host),
+      smtpFromConfigured: Boolean(from),
+      smtpAuthConfigured: Boolean(username && password),
+      recipientCount: recipients.length,
+      recipientPreview,
+      port,
+      secure,
+    });
     return false;
   }
 
@@ -84,22 +111,35 @@ export async function sendEmail({ to, subject, text, html }) {
     ? createTlsConnection({ host, port })
     : createConnection({ host, port });
 
-  await new Promise((resolve, reject) => {
-    const connectEvent = secure ? 'secureConnect' : 'connect';
+  try {
+    await new Promise((resolve, reject) => {
+      const connectEvent = secure ? 'secureConnect' : 'connect';
 
-    function handleConnect() {
-      socket.off('error', handleError);
-      resolve();
-    }
+      function handleConnect() {
+        socket.off('error', handleError);
+        resolve();
+      }
 
-    function handleError(error) {
-      socket.off(connectEvent, handleConnect);
-      reject(error);
-    }
+      function handleError(error) {
+        socket.off(connectEvent, handleConnect);
+        reject(error);
+      }
 
-    socket.once(connectEvent, handleConnect);
-    socket.once('error', handleError);
-  });
+      socket.once(connectEvent, handleConnect);
+      socket.once('error', handleError);
+    });
+  } catch (error) {
+    console.error('SMTP-Verbindung fehlgeschlagen.', {
+      host,
+      port,
+      secure,
+      smtpAuthConfigured: Boolean(username && password),
+      recipientPreview,
+      errorMessage: error instanceof Error ? error.message : `${error}`,
+    });
+    socket.end();
+    return false;
+  }
 
   try {
     await readResponse(socket);
@@ -166,9 +206,22 @@ export async function sendEmail({ to, subject, text, html }) {
 
     await sendLine(socket, 'QUIT');
     socket.end();
+    console.info('E-Mail-Benachrichtigung erfolgreich versendet.', {
+      host,
+      port,
+      secure,
+      recipientPreview,
+      subject: normalizedSubject,
+    });
     return true;
   } catch (error) {
-    console.error('Versand der Benachrichtigungs-E-Mail fehlgeschlagen:', error);
+    console.error('Versand der Benachrichtigungs-E-Mail fehlgeschlagen.', {
+      host,
+      port,
+      secure,
+      recipientPreview,
+      errorMessage: error instanceof Error ? error.message : `${error}`,
+    });
     socket.end();
     return false;
   }
