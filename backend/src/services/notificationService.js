@@ -65,9 +65,9 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, conversa
     const pushSubscriptions = await dependencies.listPushSubscriptionsForUser(recipientId);
     const hasPushSubscriptions = Array.isArray(pushSubscriptions) && pushSubscriptions.length > 0;
 
-    // Spam-Schutz: E-Mail nur bei der ersten ungelesenen Nachricht in einer Unterhaltung,
-    // oder wenn die Person aktuell keine Push-Subscription (offline) hat.
-    const shouldSendEmail = unreadCount === 1 || !hasPushSubscriptions;
+    // Für den aktuellen Testbetrieb: immer eine E-Mail bei jeder neuen Nachricht senden.
+    // Web Push bleibt parallel aktiv.
+    const shouldSendEmail = unreadCount >= 1 || !hasPushSubscriptions;
 
     const [recipient, sender] = await Promise.all([
       dependencies.findUserById(recipientId),
