@@ -1,5 +1,4 @@
-import { createConnection } from 'node:net';
-import { connect as createTlsConnection } from 'node:tls';
+import nodemailer from 'nodemailer';
 
 function parseRecipients(recipients) {
   if (!recipients) {
@@ -14,162 +13,79 @@ function parseRecipients(recipients) {
     .filter((entry) => entry.length > 0);
 }
 
-function readResponse(socket) {
-  return new Promise((resolve, reject) => {
-    let buffer = '';
-
-    function cleanup() {
-      socket.off('data', handleData);
-      socket.off('error', handleError);
-      socket.off('close', handleClose);
-    }
-
-    function handleError(error) {
-      cleanup();
-      reject(error);
-    }
-
-    function handleClose() {
-      cleanup();
-      reject(new Error('SMTP-Verbindung wurde unerwartet geschlossen.'));
-    }
-
-    function handleData(chunk) {
-      buffer += chunk.toString('utf-8');
-      const lines = buffer.split(/\r?\n/);
-      for (let index = lines.length - 1; index >= 0; index -= 1) {
-        const line = lines[index];
-        if (/^\d{3} /.test(line)) {
-          cleanup();
-          const code = Number.parseInt(line.slice(0, 3), 10);
-          const message = lines.filter(Boolean).join('\n');
-          resolve({ code, message });
-          return;
-        }
-      }
-    }
-
-    socket.on('data', handleData);
-    socket.on('error', handleError);
-    socket.on('close', handleClose);
-  });
-}
-
-async function sendLine(socket, line) {
-  socket.write(`${line}\r\n`);
-  return readResponse(socket);
-}
-
-async function sendData(socket, data) {
-  const prepared = data.replace(/\n\./g, '\n..');
-  socket.write(`${prepared}\r\n.\r\n`);
-  return readResponse(socket);
-}
-
-export async function sendEmail({ to, subject, text, html }) {
+function buildTransportConfig() {
   const host = process.env.SMTP_HOST;
   const port = Number.parseInt(process.env.SMTP_PORT ?? '587', 10);
   const secure = process.env.SMTP_SECURE === 'true' || port === 465;
   const username = process.env.SMTP_USER;
   const password = process.env.SMTP_PASS;
-  const from = process.env.SMTP_FROM || username;
+
+  const config = {
+    host,
+    port,
+    secure,
+  };
+
+  if (username && password) {
+    config.auth = {
+      user: username,
+      pass: password,
+    };
+  }
+
+  return {
+    config,
+    host,
+    port,
+    secure,
+    username,
+  };
+}
+
+export async function sendEmail({ to, subject, text, html }) {
   const recipients = parseRecipients(to);
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const { config, host, port, secure, username } = buildTransportConfig();
 
   if (!host || !from || recipients.length === 0) {
-    console.info('E-Mail-Benachrichtigung übersprungen – SMTP nicht konfiguriert oder Empfänger fehlt.');
+    console.warn('E-Mail-Benachrichtigung übersprungen.', {
+      reason: 'smtp_not_configured_or_missing_recipient',
+      smtpHostConfigured: Boolean(host),
+      smtpFromConfigured: Boolean(from),
+      smtpAuthConfigured: Boolean(username && process.env.SMTP_PASS),
+      recipientCount: recipients.length,
+      port,
+      secure,
+    });
     return false;
   }
 
-  const socket = secure
-    ? createTlsConnection({ host, port })
-    : createConnection({ host, port });
-
-  await new Promise((resolve, reject) => {
-    const connectEvent = secure ? 'secureConnect' : 'connect';
-
-    function handleConnect() {
-      socket.off('error', handleError);
-      resolve();
-    }
-
-    function handleError(error) {
-      socket.off(connectEvent, handleConnect);
-      reject(error);
-    }
-
-    socket.once(connectEvent, handleConnect);
-    socket.once('error', handleError);
-  });
+  const transporter = nodemailer.createTransport(config);
 
   try {
-    await readResponse(socket);
-    await sendLine(socket, `EHLO kleinewelt.local`);
+    await transporter.sendMail({
+      from,
+      to: recipients.join(', '),
+      subject: (subject ?? '').replace(/\r?\n/g, ' '),
+      text: text ?? undefined,
+      html: html ?? undefined,
+    });
 
-    if (username && password) {
-      const authResponse = await sendLine(socket, 'AUTH LOGIN');
-      if (authResponse.code !== 334) {
-        throw new Error(`SMTP-Server hat AUTH LOGIN zurückgewiesen: ${authResponse.message}`);
-      }
-
-      const userResponse = await sendLine(socket, Buffer.from(username).toString('base64'));
-      if (userResponse.code !== 334) {
-        throw new Error(`SMTP-Server hat Benutzername nicht akzeptiert: ${userResponse.message}`);
-      }
-
-      const passResponse = await sendLine(socket, Buffer.from(password).toString('base64'));
-      if (passResponse.code !== 235) {
-        throw new Error(`SMTP-Server hat Passwort nicht akzeptiert: ${passResponse.message}`);
-      }
-    }
-
-    const mailFromResponse = await sendLine(socket, `MAIL FROM:<${from}>`);
-    if (mailFromResponse.code >= 400) {
-      throw new Error(`MAIL FROM fehlgeschlagen: ${mailFromResponse.message}`);
-    }
-
-    for (const recipient of recipients) {
-      const rcptResponse = await sendLine(socket, `RCPT TO:<${recipient}>`);
-      if (rcptResponse.code >= 400) {
-        throw new Error(`RCPT TO fehlgeschlagen (${recipient}): ${rcptResponse.message}`);
-      }
-    }
-
-    const dataInitResponse = await sendLine(socket, 'DATA');
-    if (dataInitResponse.code !== 354) {
-      throw new Error(`DATA-Befehl fehlgeschlagen: ${dataInitResponse.message}`);
-    }
-
-    const now = new Date();
-    const normalizedSubject = (subject ?? '').replace(/\r?\n/g, ' ');
-    const headers = [
-      `From: ${from}`,
-      `To: ${recipients.join(', ')}`,
-      `Subject: ${normalizedSubject}`,
-      `Date: ${now.toUTCString()}`,
-      'MIME-Version: 1.0',
-    ];
-
-    let body = text ?? '';
-
-    if (html) {
-      headers.push('Content-Type: text/html; charset=utf-8');
-      body = html;
-    } else {
-      headers.push('Content-Type: text/plain; charset=utf-8');
-    }
-
-    const message = `${headers.join('\r\n')}\r\n\r\n${body}`;
-    const dataResponse = await sendData(socket, message);
-    if (dataResponse.code >= 400) {
-      throw new Error(`Senden der Nachricht fehlgeschlagen: ${dataResponse.message}`);
-    }
-
-    await sendLine(socket, 'QUIT');
-    socket.end();
+    console.info('E-Mail-Benachrichtigung erfolgreich versendet.', {
+      host,
+      port,
+      secure,
+      recipientCount: recipients.length,
+    });
     return true;
   } catch (error) {
-    console.error('Versand der Benachrichtigungs-E-Mail fehlgeschlagen:', error);
-    socket.end();
+    console.error('Versand der Benachrichtigungs-E-Mail fehlgeschlagen.', {
+      host,
+      port,
+      secure,
+      recipientCount: recipients.length,
+      errorMessage: error instanceof Error ? error.message : `${error}`,
+    });
     return false;
   }
 }
