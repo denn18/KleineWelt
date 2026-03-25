@@ -43,9 +43,9 @@ test('notifyRecipientOfMessage sends email for first unread message', async (t) 
   const [{ html, text, subject }] = sendEmailMock.mock.calls[0].arguments;
   assert.match(subject, /Neue Nachricht von/);
   assert.doesNotMatch(text, /Du hast eine neue Nachricht erhalten/);
-  assert.match(text, /Dennie Scharton - Wimmel Welt/);
+  assert.match(text, /Wimmel Welt - Kindertagespflegevermittlung/);
   assert.match(html, /hero-family\.svg/);
-  assert.match(html, /Founder/);
+  assert.match(html, /support/);
 });
 
 test('notifyRecipientOfMessage sends email even when conversation already has unread messages', async (t) => {
