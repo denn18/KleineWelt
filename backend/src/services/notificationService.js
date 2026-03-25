@@ -21,6 +21,14 @@ function buildDisplayName(user) {
   return parts || user?.daycareName || user?.name || 'Ein Mitglied von Wimmel Welt';
 }
 
+function resolveRecipientEmail(user) {
+  const profileEmail = `${user?.email ?? ''}`.trim();
+  if (profileEmail) {
+    return profileEmail;
+  }
+  return null;
+}
+
 function buildMessageEmail({ recipientName, senderName }) {
   const intro = `${senderName} hat dir eine neue Nachricht auf Wimmel Welt gesendet.`;
   const cta = 'Direkt öffnen: https://www.wimmel-welt.de/nachrichten';
@@ -80,6 +88,7 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, conversa
 
     const senderName = buildDisplayName(sender ?? {});
     const recipientName = buildDisplayName(recipient);
+    const recipientEmail = resolveRecipientEmail(recipient);
     const { text, html } = buildMessageEmail({ recipientName, senderName });
     const subject = `Neue Nachricht von ${senderName}`;
 
@@ -93,9 +102,9 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, conversa
     };
 
     const tasks = [
-      shouldSendEmail && recipient.email
+      shouldSendEmail && recipientEmail
         ? dependencies.sendEmail({
-            to: recipient.email,
+            to: recipientEmail,
             subject,
             text,
             html,
