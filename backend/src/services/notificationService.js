@@ -1,41 +1,17 @@
 import { findUserById } from './usersService.js';
 import { sendEmail } from './emailService.js';
 import { sendWebPushNotification } from './webPushService.js';
-import { messagesCollection } from '../models/Message.js';
-import { listPushSubscriptionsForUser } from './pushSubscriptionsService.js';
-
-let dependencies = {
-  findUserById,
-  sendEmail,
-  sendWebPushNotification,
-  listPushSubscriptionsForUser,
-};
-let messagesCollectionOverride = null;
-
-function getMessagesCollection() {
-  return messagesCollectionOverride ?? messagesCollection();
-}
 
 function buildDisplayName(user) {
   const parts = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim();
   return parts || user?.daycareName || user?.name || 'Ein Mitglied von Kleine Welt';
 }
 
-export async function notifyRecipientOfMessage({ recipientId, senderId, conversationId }) {
+export async function notifyRecipientOfMessage({ recipientId, senderId, messageBody, conversationId }) {
   try {
-    const unreadCount = await getMessagesCollection().countDocuments({
-      conversationId,
-      participants: recipientId,
-      senderId: { $ne: recipientId },
-      readBy: { $ne: recipientId },
-    });
-    const pushSubscriptions = await dependencies.listPushSubscriptionsForUser(recipientId);
-    const hasPushSubscriptions = Array.isArray(pushSubscriptions) && pushSubscriptions.length > 0;
-    const shouldSendEmail = unreadCount === 1 || !hasPushSubscriptions;
-
     const [recipient, sender] = await Promise.all([
-      dependencies.findUserById(recipientId),
-      dependencies.findUserById(senderId),
+      findUserById(recipientId),
+      findUserById(senderId),
     ]);
 
     if (!recipient) {
@@ -44,21 +20,19 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, conversa
 
     const senderName = buildDisplayName(sender ?? {});
     const recipientName = buildDisplayName(recipient);
+    const preview = (messageBody ?? '').replace(/\s+/g, ' ').trim().slice(0, 180);
+
+    const textPreview = preview.length ? `"${preview}${preview.length === 180 ? '…' : ''}"` : '';
 
     const text = [
       `Hallo ${recipientName},`,
       '',
-      `${senderName} hat dir eine neue Nachricht auf Wimmel Welt gesendet.`,
-      '',
-      'Du hast eine neue Nachricht erhalten.',
-      'Direkt öffnen: https://www.wimmel-welt.de/nachrichten',
+      `${senderName} hat dir eine neue Nachricht auf Kleine Welt gesendet.`,
+      textPreview ? `\n${textPreview}\n` : '',
+      'Du kannst direkt in deinem Familienzentrum antworten: https://app.kleine-welt.local/kindertagespflege',
       '',
       'Herzliche Grüße',
-      'Dein Wimmel Welt Team',
-      '',
-      '---',
-      'Wimmel Welt (Testsignatur)',
-      'support@wimmel-welt.de',
+      'Dein Kleine Welt Team',
     ]
       .filter(Boolean)
       .join('\n');
@@ -75,14 +49,14 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, conversa
     };
 
     const tasks = [
-      shouldSendEmail && recipient.email
-        ? dependencies.sendEmail({
+      recipient.email
+        ? sendEmail({
             to: recipient.email,
             subject,
             text,
           })
         : Promise.resolve(false),
-      dependencies.sendWebPushNotification({
+      sendWebPushNotification({
         userId: recipientId,
         payload: pushPayload,
       }),
@@ -94,28 +68,4 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, conversa
     console.error('Benachrichtigung über neue Nachricht fehlgeschlagen:', error);
     return false;
   }
-}
-
-export function __setNotificationServiceDependenciesForTesting(overrides = {}) {
-  dependencies = {
-    ...dependencies,
-    ...overrides,
-  };
-}
-
-export function __resetNotificationServiceDependenciesForTesting() {
-  dependencies = {
-    findUserById,
-    sendEmail,
-    sendWebPushNotification,
-    listPushSubscriptionsForUser,
-  };
-}
-
-export function __setNotificationMessagesCollectionForTesting(collection) {
-  messagesCollectionOverride = collection ?? null;
-}
-
-export function __resetNotificationMessagesCollectionForTesting() {
-  messagesCollectionOverride = null;
 }
