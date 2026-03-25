@@ -44,10 +44,12 @@ function buildTransportConfig() {
 
 export async function sendEmail({ to, subject, text, html }) {
   const recipients = parseRecipients(to);
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER;
+  const fromName = `${process.env.SMTP_FROM_NAME ?? 'Wimmel Welt'}`.trim() || 'Wimmel Welt';
+  const from = fromAddress?.includes('<') ? fromAddress : `${fromName} <${fromAddress}>`;
   const { config, host, port, secure, username } = buildTransportConfig();
 
-  if (!host || !from || recipients.length === 0) {
+  if (!host || !fromAddress || recipients.length === 0) {
     console.warn('E-Mail-Benachrichtigung übersprungen.', {
       reason: 'smtp_not_configured_or_missing_recipient',
       smtpHostConfigured: Boolean(host),
