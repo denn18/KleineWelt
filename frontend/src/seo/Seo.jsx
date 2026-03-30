@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { SITE_NAME, toAbsoluteUrl } from './siteConfig.js';
+import { buildCitySeo } from './citySeo.js';
 
 const DEFAULT_TITLE = `${SITE_NAME} – Kindertagespflege in deiner Nähe`;
 const DEFAULT_DESCRIPTION =
@@ -15,13 +16,6 @@ function ensureTag(selector, createElement) {
   return element;
 }
 
-function slugToLabel(slug) {
-  return `${slug ?? ''}`
-    .split('-')
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
 
 function getSeoData(pathname) {
   if (pathname === '/') {
@@ -45,10 +39,10 @@ function getSeoData(pathname) {
 
   if (/^\/kindertagespflege\/[^/]+$/.test(pathname)) {
     const citySlug = pathname.split('/')[2] ?? '';
-    const cityLabel = slugToLabel(citySlug);
+    const citySeo = buildCitySeo({ routeCitySlug: citySlug });
     return {
-      title: `Kindertagespflege in ${cityLabel} | Wimmel Welt`,
-      description: `Entdecke Kindertagespflege, freie Betreuungsplätze sowie Tagesmütter und Tagesväter in ${cityLabel} und Umgebung.`,
+      title: citySeo.headTitle,
+      description: citySeo.metaDescription,
       canonicalPath: pathname,
       robots: 'index,follow',
     };
