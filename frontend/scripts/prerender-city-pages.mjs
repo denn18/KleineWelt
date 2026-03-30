@@ -1,13 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildCitySeo, getStaticSeoCitySlugs } from '../src/seo/citySeo.js';
 import { toAbsoluteUrl } from '../src/seo/siteConfig.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
-const distDir = path.join(projectRoot, 'dist');
-const distIndexPath = path.join(distDir, 'index.html');
 
 function escapeAttribute(value) {
   return `${value ?? ''}`.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
@@ -31,8 +29,7 @@ function upsertTag(html, { selector, tag }) {
     return html.replace(pattern, tag);
   }
 
-  return html.replace('</head>', `  ${tag}
-</head>`);
+  return html.replace('</head>', `  ${tag}\n</head>`);
 }
 
 function buildCityHtml(templateHtml, citySlug) {
@@ -61,7 +58,10 @@ function buildCityHtml(templateHtml, citySlug) {
   return html;
 }
 
-async function main() {
+export async function prerenderCityPages({ rootDir = projectRoot, outDir = 'dist' } = {}) {
+  const distDir = path.join(rootDir, outDir);
+  const distIndexPath = path.join(distDir, 'index.html');
+
   const templateHtml = await fs.readFile(distIndexPath, 'utf8');
   const citySlugs = getStaticSeoCitySlugs();
 
@@ -76,7 +76,10 @@ async function main() {
     }),
   );
 
-  console.log(`Prerendered ${citySlugs.length} city pages in dist/kindertagespflege/:citySlug.`);
+  return citySlugs.length;
 }
 
-await main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const count = await prerenderCityPages();
+  console.log(`Prerendered ${count} city pages in dist/kindertagespflege/:citySlug.`);
+}
