@@ -8,7 +8,7 @@ import { assetUrl } from '../utils/file.js';
 import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../utils/availability.js';
 import { trackEvent } from '../utils/analytics.js';
 import { buildCaregiverProfileUrl, slugify } from '../../utils/caregiverProfilePath.js';
-import { buildCitySeo, citySeoExtras, formatCityFromSlug } from '../../seo/citySeo.js';
+import { citySeoExtras, formatCityFromSlug, getCitySeoData } from '../../seo/citySeo.js';
 
 function calculateAge(value) {
   if (!value) {
@@ -232,10 +232,14 @@ function DashboardPage() {
     return '';
   }, [filters, resolvedCityName]);
 
-  const { pageTitle, seoIntro } = useMemo(
-    () => buildCitySeo({ routeCitySlug, resolvedCityName }),
-    [resolvedCityName, routeCitySlug],
+  const { seoCityName, seoIntro } = useMemo(
+    () => getCitySeoData(routeCitySlug, resolvedCityName),
+    [routeCitySlug, resolvedCityName],
   );
+
+  const pageTitle = routeCitySlug
+    ? `Tagesmütter und Väter in ${seoCityName}`
+    : 'Kindertagespflege finden';
 
   const footerCityPrompt = useMemo(() => {
     if (resolvedCityName) {
@@ -925,11 +929,6 @@ function DashboardPage() {
       </section>
       {lightboxImage ? <ImageLightbox image={lightboxImage} onClose={closeLightbox} /> : null}
     </section>
-    
-
-
-
-    
   );
 }
 

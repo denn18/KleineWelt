@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { buildCitySeo, getStaticSeoCitySlugs } from '../src/seo/citySeo.js';
+import { getCitySeoData, getStaticSeoCitySlugs } from '../src/seo/citySeo.js';
 import { toAbsoluteUrl } from '../src/seo/siteConfig.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -33,14 +33,14 @@ function upsertTag(html, { selector, tag }) {
 }
 
 function buildCityHtml(templateHtml, citySlug) {
-  const citySeo = buildCitySeo({ routeCitySlug: citySlug });
+  const { seoCityName, metaDescription } = getCitySeoData(citySlug);
   const cityPath = `/kindertagespflege/${citySlug}`;
 
   let html = templateHtml;
-  html = upsertTag(html, { selector: 'title', tag: `<title>${citySeo.headTitle}</title>` });
+  html = upsertTag(html, { selector: 'title', tag: `<title>Tagesmütter & Väter in ${seoCityName} | Wimmel Welt</title>` });
   html = upsertTag(html, {
     selector: 'description',
-    tag: `<meta name="description" content="${escapeAttribute(citySeo.metaDescription)}" />`,
+    tag: `<meta name="description" content="${escapeAttribute(metaDescription)}" />`,
   });
   html = upsertTag(html, {
     selector: 'canonical',
@@ -58,12 +58,41 @@ function buildCityHtml(templateHtml, citySlug) {
   return html;
 }
 
+function buildKindertagespflegeHtml(templateHtml) {
+  const { metaDescription } = getCitySeoData('');
+
+  let html = templateHtml;
+  html = upsertTag(html, { selector: 'title', tag: '<title>Kindertagespflege finden | Wimmel Welt</title>' });
+  html = upsertTag(html, {
+    selector: 'description',
+    tag: `<meta name="description" content="${escapeAttribute(metaDescription)}" />`,
+  });
+  html = upsertTag(html, {
+    selector: 'canonical',
+    tag: `<link rel="canonical" href="${toAbsoluteUrl('/kindertagespflege')}" />`,
+  });
+  html = upsertTag(html, {
+    selector: 'robots',
+    tag: '<meta name="robots" content="index,follow" />',
+  });
+  html = upsertTag(html, {
+    selector: 'ogUrl',
+    tag: `<meta property="og:url" content="${toAbsoluteUrl('/kindertagespflege')}" />`,
+  });
+
+  return html;
+}
+
 export async function prerenderCityPages({ rootDir = projectRoot, outDir = 'dist' } = {}) {
   const distDir = path.join(rootDir, outDir);
   const distIndexPath = path.join(distDir, 'index.html');
 
   const templateHtml = await fs.readFile(distIndexPath, 'utf8');
   const citySlugs = getStaticSeoCitySlugs();
+  const kindertagespflegePath = path.join(distDir, 'kindertagespflege', 'index.html');
+
+  await fs.mkdir(path.dirname(kindertagespflegePath), { recursive: true });
+  await fs.writeFile(kindertagespflegePath, buildKindertagespflegeHtml(templateHtml), 'utf8');
 
   await Promise.all(
     citySlugs.map(async (citySlug) => {
@@ -76,7 +105,7 @@ export async function prerenderCityPages({ rootDir = projectRoot, outDir = 'dist
     }),
   );
 
-  return citySlugs.length;
+  return citySlugs.length + 1;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
