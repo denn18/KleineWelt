@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { SITE_NAME, toAbsoluteUrl } from './siteConfig.js';
 import { buildCitySeo } from './citySeo.js';
@@ -7,17 +7,7 @@ const DEFAULT_TITLE = `${SITE_NAME} – Kindertagespflege in deiner Nähe`;
 const DEFAULT_DESCRIPTION =
   'Wimmel Welt vermittelt liebevolle Kindertagespflege – finde eine passende Kindertagespflege oder freie Betreuungsplätze in deiner Nähe. Persönlich, sicher, transparent.';
 
-function ensureTag(selector, createElement) {
-  let element = document.head.querySelector(selector);
-  if (!element) {
-    element = createElement();
-    document.head.appendChild(element);
-  }
-  return element;
-}
-
-
-function getSeoData(pathname) {
+export function getSeoData(pathname) {
   if (pathname === '/') {
     return {
       title: DEFAULT_TITLE,
@@ -163,39 +153,16 @@ function getSeoData(pathname) {
 
 export default function Seo() {
   const location = useLocation();
+  const { title, description, canonicalPath, robots } = getSeoData(location.pathname);
+  const canonicalUrl = toAbsoluteUrl(canonicalPath);
 
-  useEffect(() => {
-    const { title, description, canonicalPath, robots } = getSeoData(location.pathname);
-    document.title = title;
-
-    const metaDescription = ensureTag('meta[name="description"]', () => {
-      const tag = document.createElement('meta');
-      tag.setAttribute('name', 'description');
-      return tag;
-    });
-    metaDescription.setAttribute('content', description);
-
-    const canonical = ensureTag('link[rel="canonical"]', () => {
-      const tag = document.createElement('link');
-      tag.setAttribute('rel', 'canonical');
-      return tag;
-    });
-    canonical.setAttribute('href', toAbsoluteUrl(canonicalPath));
-
-    const robotsMeta = ensureTag('meta[name="robots"]', () => {
-      const tag = document.createElement('meta');
-      tag.setAttribute('name', 'robots');
-      return tag;
-    });
-    robotsMeta.setAttribute('content', robots);
-
-    const ogUrl = ensureTag('meta[property="og:url"]', () => {
-      const tag = document.createElement('meta');
-      tag.setAttribute('property', 'og:url');
-      return tag;
-    });
-    ogUrl.setAttribute('content', toAbsoluteUrl(canonicalPath));
-  }, [location.pathname]);
-
-  return null;
+  return (
+    <Helmet>
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <meta name="robots" content={robots} />
+      <link rel="canonical" href={canonicalUrl} />
+      <meta property="og:url" content={canonicalUrl} />
+    </Helmet>
+  );
 }

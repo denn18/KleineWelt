@@ -24,8 +24,12 @@ function applyAuthToken(token) {
 }
 
 function readStoredUser() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = window.localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : null;
   } catch (error) {
     console.warn('Failed to read stored auth user', error);
@@ -52,7 +56,7 @@ export function AuthProvider({ children }) {
       const authenticatedUser = response.data;
       applyAuthToken(authenticatedUser?.token);
       setUser(authenticatedUser);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(authenticatedUser));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(authenticatedUser));
       return response.data;
     } catch (error) {
       console.error('Login failed', error);
@@ -67,7 +71,7 @@ export function AuthProvider({ children }) {
     console.info('Nutzer abgemeldet');
     applyAuthToken(null);
     setUser(null);
-    localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(STORAGE_KEY);
   }
 
   function updateUser(partialUser) {
@@ -76,7 +80,7 @@ export function AuthProvider({ children }) {
         return current;
       }
       const updated = { ...current, ...partialUser };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       return updated;
     });
   }

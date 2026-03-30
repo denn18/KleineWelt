@@ -1,19 +1,17 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import App from './App.jsx';
-import Seo from './seo/Seo.jsx';
+import { HelmetProvider } from 'react-helmet-async';
+import AppShell from './AppShell.jsx';
 import './index.css';
-import { AuthProvider } from './context/AuthContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <Seo />
-        <App />
-      </AuthProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <AppShell />
+      </BrowserRouter>
+    </HelmetProvider>
   </StrictMode>,
 );
 

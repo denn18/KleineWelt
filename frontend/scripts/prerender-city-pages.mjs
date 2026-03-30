@@ -83,20 +83,20 @@ function buildKindertagespflegeHtml(templateHtml) {
   return html;
 }
 
-export async function prerenderCityPages({ rootDir = projectRoot, outDir = 'dist' } = {}) {
-  const distDir = path.join(rootDir, outDir);
-  const distIndexPath = path.join(distDir, 'index.html');
+export async function prerenderCityPages({ rootDir = projectRoot, outDir = 'build' } = {}) {
+  const buildDir = path.join(rootDir, outDir);
+  const buildIndexPath = path.join(buildDir, 'index.html');
 
-  const templateHtml = await fs.readFile(distIndexPath, 'utf8');
+  const templateHtml = await fs.readFile(buildIndexPath, 'utf8');
   const citySlugs = getStaticSeoCitySlugs();
-  const kindertagespflegePath = path.join(distDir, 'kindertagespflege', 'index.html');
+  const kindertagespflegePath = path.join(buildDir, 'kindertagespflege', 'index.html');
 
   await fs.mkdir(path.dirname(kindertagespflegePath), { recursive: true });
   await fs.writeFile(kindertagespflegePath, buildKindertagespflegeHtml(templateHtml), 'utf8');
 
   await Promise.all(
     citySlugs.map(async (citySlug) => {
-      const cityDir = path.join(distDir, 'kindertagespflege', citySlug);
+      const cityDir = path.join(buildDir, 'kindertagespflege', citySlug);
       const cityIndex = path.join(cityDir, 'index.html');
       const cityHtml = buildCityHtml(templateHtml, citySlug);
 
@@ -110,5 +110,5 @@ export async function prerenderCityPages({ rootDir = projectRoot, outDir = 'dist
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const count = await prerenderCityPages();
-  console.log(`Prerendered ${count} city pages in dist/kindertagespflege/:citySlug.`);
+  console.log(`Prerendered ${count} city pages in build/kindertagespflege/:citySlug.`);
 }

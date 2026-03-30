@@ -10,14 +10,21 @@
     "lint": "eslint src --ext .jsx,.js,.tsx,.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "start": "node backend/server.js"
+    "start": "node backend/server.js",
+    "start:ssr": "node server/ssrServer.js"
   },
   "dependencies": {
+    "@babel/core": "^7.27.1",
+    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-react": "^7.27.1",
+    "@babel/register": "^7.28.3",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.1.5",
     "axios": "^1.7.2",
+    "express": "^4.21.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-helmet-async": "^2.0.5",
     "react-icons": "^5.5.0",
     "react-router-dom": "^6.23.0"
   },

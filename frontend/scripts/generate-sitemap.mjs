@@ -6,7 +6,7 @@ import { SITEMAP_ROUTES, toAbsoluteUrl } from '../src/seo/siteConfig.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const publicDir = path.join(projectRoot, 'public');
-const distDir = path.join(projectRoot, 'dist');
+const buildDir = path.join(projectRoot, 'build');
 const today = new Date().toISOString().slice(0, 10);
 
 function buildSitemapXml() {
@@ -25,6 +25,6 @@ async function writeIfPossible(targetPath, content) {
 const sitemapXml = buildSitemapXml();
 
 await writeIfPossible(path.join(publicDir, 'sitemap.xml'), sitemapXml);
-await writeIfPossible(path.join(distDir, 'sitemap.xml'), sitemapXml);
+await writeIfPossible(path.join(buildDir, 'sitemap.xml'), sitemapXml);
 
 console.log(`Sitemap generated with ${SITEMAP_ROUTES.length} www URLs.`);
