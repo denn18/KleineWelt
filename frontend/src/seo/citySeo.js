@@ -23,30 +23,44 @@ export function formatCityFromSlug(slug) {
     .join(' ');
 }
 
-export function buildCitySeo({ routeCitySlug, resolvedCityName = '' } = {}) {
-  const seoCityName = routeCitySlug ? resolvedCityName || formatCityFromSlug(routeCitySlug) : '';
-  const longDefaultIntro =
+export function getCitySeoData(routeCitySlug, resolvedCityName = '') {
+  const hasCitySlug = Boolean(routeCitySlug);
+
+  const seoCityName = hasCitySlug
+    ? (resolvedCityName || formatCityFromSlug(routeCitySlug))
+    : '';
+
+  const genericIntro =
     'Finde schnell eine passende Tagesmutter oder einen Tagesvater in deiner Nähe und entdecke qualifizierte Kindertagespflege mit freien Betreuungsplätzen. Auf Wimmel Welt vergleichst du Kinderbetreuung, prüfst Verfügbarkeit und nimmst direkt Kontakt zu Tagesmüttern und Tagesvätern auf. So findest du schnell eine zuverlässige und liebevolle Kinderbetreuung.';
 
-  if (!routeCitySlug) {
-    return {
-      seoCityName,
-      pageTitle: 'Kindertagespflege finden',
-      headTitle: 'Kindertagespflege finden | Wimmel Welt',
-      metaDescription:
-        'Finde passende Kindertagespflege, freie Betreuungsplätze und liebevolle Tagesmütter oder Tagesväter in deiner Nähe.',
-      seoIntro: longDefaultIntro,
-    };
-  }
+  const cityIntro = seoCityName
+    ? `Finde schnell eine passende Tagesmutter oder einen Tagesvater in ${seoCityName} und entdecke qualifizierte Kindertagespflege mit freien Betreuungsplätzen in deiner Nähe. Auf Wimmel Welt vergleichst du Kinderbetreuung, prüfst Verfügbarkeit und nimmst direkt Kontakt zu Tagesmüttern und Tagesvätern in ${seoCityName} auf. So findest du in ${seoCityName} schnell eine zuverlässige und liebevolle Kinderbetreuung.`
+    : genericIntro;
 
-  const seoIntro = `Finde schnell eine passende Tagesmutter oder einen Tagesvater in ${seoCityName} und entdecke qualifizierte Kindertagespflege mit freien Betreuungsplätzen in deiner Nähe. Auf Wimmel Welt vergleichst du Kinderbetreuung, prüfst Verfügbarkeit und nimmst direkt Kontakt zu Tagesmüttern und Tagesvätern in ${seoCityName} auf. So findest du in ${seoCityName} schnell eine zuverlässige und liebevolle Kinderbetreuung.`;
+  const genericMeta =
+    'Tagesmutter und Tagesvater in deiner Nähe finden – qualifizierte Kindertagespflege mit freien Plätzen auf Wimmel Welt.';
+
+  const cityMeta = seoCityName
+    ? `Tagesmutter und Tagesvater in ${seoCityName} finden – qualifizierte Kindertagespflege mit freien Plätzen auf Wimmel Welt.`
+    : genericMeta;
 
   return {
     seoCityName,
-    pageTitle: `Tagesmütter und Väter in ${seoCityName}`,
-    headTitle: `Tagesmütter & Väter in ${seoCityName} | Wimmel Welt`,
-    metaDescription:
-      `Finde liebevolle Tagesmütter und Tagesväter in ${seoCityName}, vergleiche Betreuungsangebote und kontaktiere passende Kindertagespflege direkt.`,
+    seoIntro: hasCitySlug ? cityIntro : genericIntro,
+    metaDescription: hasCitySlug ? cityMeta : genericMeta,
+  };
+}
+
+export function buildCitySeo({ routeCitySlug, resolvedCityName = '' } = {}) {
+  const { seoCityName, seoIntro, metaDescription } = getCitySeoData(routeCitySlug, resolvedCityName);
+
+  return {
+    seoCityName,
+    pageTitle: routeCitySlug ? `Tagesmütter und Väter in ${seoCityName}` : 'Kindertagespflege finden',
+    headTitle: routeCitySlug
+      ? `Tagesmütter & Väter in ${seoCityName} | Wimmel Welt`
+      : 'Kindertagespflege finden | Wimmel Welt',
+    metaDescription,
     seoIntro,
   };
 }
