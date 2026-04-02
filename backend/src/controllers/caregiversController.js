@@ -7,6 +7,7 @@ import {
   resolveCityByPostalCode,
   updateCaregiver,
 } from '../services/caregiversService.js';
+import { deleteAccountData } from '../services/accountDeletionService.js';
 import {
   fileReferencesEqual,
   normalizeFileReference,
@@ -388,5 +389,19 @@ export async function patchCaregiver(req, res) {
   } catch (error) {
     console.error('Failed to update caregiver', error);
     res.status(500).json({ message: 'Konnte Profil nicht aktualisieren.' });
+  }
+}
+
+export async function deleteCaregiver(req, res) {
+  try {
+    const deleted = await deleteAccountData({ userId: req.params.id, role: 'caregiver' });
+    if (!deleted) {
+      return res.status(404).json({ message: 'Tagespflegeperson wurde nicht gefunden.' });
+    }
+
+    return res.status(204).send();
+  } catch (error) {
+    console.error('Failed to delete caregiver', error);
+    return res.status(500).json({ message: 'Konnte Profil nicht löschen.' });
   }
 }
