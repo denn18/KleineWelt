@@ -271,7 +271,7 @@ function ScheduleEditor({ title, entries, onChange }) {
   );
 }
 
-function ParentProfileEditor({ profile, onSave, saving }) {
+function ParentProfileEditor({ profile, onSave, saving, onDeleteProfile, deleting }) {
   const [formState, setFormState] = useState({
     firstName: profile.firstName || '',
     lastName: profile.lastName || '',
@@ -521,9 +521,17 @@ function ParentProfileEditor({ profile, onSave, saving }) {
         <button
           type="submit"
           className="w-full rounded-2xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-300"
-          disabled={saving}
+          disabled={saving || deleting}
         >
           {saving ? 'Speichern…' : 'Profil speichern'}
+        </button>
+        <button
+          type="button"
+          onClick={onDeleteProfile}
+          className="w-full rounded-2xl border border-rose-300 px-6 py-3 text-sm font-semibold text-rose-700 transition hover:border-rose-500 hover:text-rose-800 disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={saving || deleting}
+        >
+          {deleting ? 'Profil wird gelöscht…' : 'Profil löschen'}
         </button>
 
         {statusMessage ? (
@@ -542,7 +550,7 @@ function ParentProfileEditor({ profile, onSave, saving }) {
   );
 }
 
-function CaregiverProfileEditor({ profile, onSave, saving }) {
+function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, deleting }) {
   const [formState, setFormState] = useState({
     firstName: profile.firstName || '',
     lastName: profile.lastName || '',
@@ -1457,9 +1465,17 @@ function CaregiverProfileEditor({ profile, onSave, saving }) {
         <button
           type="submit"
           className="w-full rounded-2xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-300"
-          disabled={saving}
+          disabled={saving || deleting}
         >
           {saving ? 'Speichern…' : 'Profil speichern'}
+        </button>
+        <button
+          type="button"
+          onClick={onDeleteProfile}
+          className="w-full rounded-2xl border border-rose-300 px-6 py-3 text-sm font-semibold text-rose-700 transition hover:border-rose-500 hover:text-rose-800 disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={saving || deleting}
+        >
+          {deleting ? 'Profil wird gelöscht…' : 'Profil löschen'}
         </button>
 
         {statusMessage ? (
@@ -1651,9 +1667,12 @@ function PushNotificationSettings({ userId }) {
 }
 
 export default function ProfilePageMobile() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, logout } = useAuth();
   const { profile, loading, error, setProfile } = useProfileData(user);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const title = useMemo(() => {
     if (user?.role === 'caregiver') return 'Profil für Kindertagespflegepersonen bearbeiten';
@@ -1675,6 +1694,22 @@ export default function ProfilePageMobile() {
     }
   }
 
+  async function handleDeleteProfile() {
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      const endpoint = user.role === 'caregiver' ? `/api/caregivers/${user.id}` : `/api/parents/${user.id}`;
+      await axios.delete(endpoint);
+      logout();
+    } catch (requestError) {
+      console.error('Failed to delete profile', requestError);
+      setDeleteError(requestError.response?.data?.message || 'Profil konnte nicht gelöscht werden.');
+    } finally {
+      setDeleting(false);
+      setShowDeleteConfirmation(false);
+    }
+  }
+
   return (
     <section className="mx-auto flex w-full max-w-xl flex-col gap-4 rounded-3xl bg-white/85 p-5 shadow-lg">
       <header className="flex flex-col gap-2">
@@ -1691,13 +1726,57 @@ export default function ProfilePageMobile() {
       {error ? (
         <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>
       ) : null}
+      {deleteError ? (
+        <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{deleteError}</p>
+      ) : null}
 
       {!loading && profile ? (
         user.role === 'caregiver' ? (
-          <CaregiverProfileEditor profile={profile} onSave={handleSave} saving={saving} />
+          <CaregiverProfileEditor
+            profile={profile}
+            onSave={handleSave}
+            saving={saving}
+            onDeleteProfile={() => setShowDeleteConfirmation(true)}
+            deleting={deleting}
+          />
         ) : (
-          <ParentProfileEditor profile={profile} onSave={handleSave} saving={saving} />
+          <ParentProfileEditor
+            profile={profile}
+            onSave={handleSave}
+            saving={saving}
+            onDeleteProfile={() => setShowDeleteConfirmation(true)}
+            deleting={deleting}
+          />
         )
+      ) : null}
+      {showDeleteConfirmation ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl">
+            <h2 className="text-lg font-semibold text-rose-700">Profil wirklich löschen?</h2>
+            <p className="mt-3 text-sm text-slate-700">
+              Diese Aktion ist endgültig. Dein Profil und alle verbundenen Daten (Nachrichten, Logos, Bilder,
+              Konzepte und weitere Inhalte) werden dauerhaft gelöscht.
+            </p>
+            <div className="mt-5 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={handleDeleteProfile}
+                className="w-full rounded-2xl bg-rose-600 px-5 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-rose-300"
+                disabled={deleting}
+              >
+                {deleting ? 'Profil wird gelöscht…' : 'Profil löschen'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirmation(false)}
+                className="w-full rounded-2xl border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-700 hover:border-slate-400"
+                disabled={deleting}
+              >
+                Abbrechen
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </section>
   );

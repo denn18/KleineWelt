@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  deleteCaregiver,
   getCaregiverById,
   getCaregiverByProfilePath,
   getCityByPostalCode,
@@ -18,5 +19,6 @@ router.post('/', postCaregiver);
 router.get('/profile/:citySlug/:daycareSlug', getCaregiverByProfilePath);
 router.get('/:id', getCaregiverById);
 router.patch('/:id', patchCaregiver);
+router.delete('/:id', deleteCaregiver);
 
 export default router;

@@ -1,4 +1,5 @@
 import { createParent, findParentById, listParents, updateParent } from '../services/parentsService.js';
+import { deleteAccountData } from '../services/accountDeletionService.js';
 import { normalizeFileReference, removeStoredFile, storeBase64File } from '../utils/fileStorage.js';
 
 function parseChildrenPayload(children) {
@@ -116,5 +117,19 @@ export async function patchParent(req, res) {
   } catch (error) {
     console.error('Failed to update parent', error);
     res.status(500).json({ message: 'Konnte Elternprofil nicht aktualisieren.' });
+  }
+}
+
+export async function deleteParent(req, res) {
+  try {
+    const deleted = await deleteAccountData({ userId: req.params.id, role: 'parent' });
+    if (!deleted) {
+      return res.status(404).json({ message: 'Elternprofil wurde nicht gefunden.' });
+    }
+
+    return res.status(204).send();
+  } catch (error) {
+    console.error('Failed to delete parent', error);
+    return res.status(500).json({ message: 'Konnte Elternprofil nicht löschen.' });
   }
 }
