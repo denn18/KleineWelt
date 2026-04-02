@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import heroImage from '../assets/hero-family.svg';
+import heroImage2 from '../assets/hero-family2.png';
+import heroImage3 from '../assets/hero-family3.svg';
 import { useAuth } from '../context/AuthContext.jsx';
 import { trackEvent } from '../utils/analytics.js';
 import LogoCarousel from '../../components/LogoCarousel.jsx';
@@ -125,7 +127,7 @@ function HomePage() {
           </p>
         </div>
         <div className="flex items-center justify-center">
-          <img src={heroImage} alt="Familie" className="max-h-80 w-full object-contain" />
+          <img src={heroImage3} alt="Familie" className="max-h-130 w-full object-contain" />
         </div>
       </section>
        <section className="grid gap-8 sm:grid-cols-3">
