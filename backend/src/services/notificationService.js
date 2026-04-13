@@ -50,7 +50,7 @@ function buildMessageEmail({ recipientName, senderName }) {
 
   const html = [
     '<div style="font-family: Arial, Helvetica, sans-serif; color: #1f2937; line-height: 1.5;">',
-    '<p style="margin: 0 0 12px;"><img src="https://www.wimmel-welt.de/ww-WEIß.png" alt="Wimmel Welt" width="120" height="90" style="display: block; border: 0;" /></p>',
+    '<p style="margin: 0 0 12px;"><img src="https://www.wimmel-welt.de/ww-weiss.png" alt="Wimmel Welt" width="120" height="90" style="display: block; border: 0;" /></p>',
     `<p style="margin: 0 0 12px;">Hallo ${recipientName},</p>`,
     `<p style="margin: 0 0 16px;">${intro}</p>`,
     '<p style="margin: 0 0 24px;">Herzliche Grüße<br />Dein Wimmel Welt Team</p>',
@@ -72,7 +72,7 @@ function buildMessageEmail({ recipientName, senderName }) {
     '<a href="tel:+4917680852142" style="text-decoration: none; color: #111827; font-size: 18px;">+49 176 80852142</a>',
     '</td>',
     '<td rowspan="2" style="padding: 14px 16px; text-align: center; width: 220px;">',
-    '<img src="https://www.wimmel-welt.de/hero-family2.svg" alt="Wimmel Welt" width="180" height="135" style="display: inline-block; border: 0;" />',
+    '<img src="https://www.wimmel-welt.de/ww-weiss.png" alt="Wimmel Welt" width="180" height="135" style="display: inline-block; border: 0;" />',
     '</td>',
     '</tr>',
     '<tr>',
