@@ -50,7 +50,7 @@ function buildMessageEmail({ recipientName, senderName }) {
 
   const html = [
     '<div style="font-family: Arial, Helvetica, sans-serif; color: #1f2937; line-height: 1.5;">',
-    '<p style="margin: 0 0 12px;"><img src="https://www.wimmel-welt.de/hero-family2.svg" alt="Wimmel Welt" width="120" height="90" style="display: block; border: 0;" /></p>',
+    '<p style="margin: 0 0 12px;"><img src="https://www.wimmel-welt.de/ww-WEIß.png" alt="Wimmel Welt" width="120" height="90" style="display: block; border: 0;" /></p>',
     `<p style="margin: 0 0 12px;">Hallo ${recipientName},</p>`,
     `<p style="margin: 0 0 16px;">${intro}</p>`,
     '<p style="margin: 0 0 24px;">Herzliche Grüße<br />Dein Wimmel Welt Team</p>',

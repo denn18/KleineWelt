@@ -44,7 +44,7 @@ test('notifyRecipientOfMessage sends email for first unread message', async (t) 
   assert.match(subject, /Neue Nachricht von/);
   assert.doesNotMatch(text, /Du hast eine neue Nachricht erhalten/);
   assert.match(text, /Wimmel Welt - Kindertagespflegevermittlung/);
-  assert.match(html, /hero-family2\.svg/);
+  assert.match(html, /ww-WEIß\.png/);
   assert.match(html, /support/);
 });
 
