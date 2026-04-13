@@ -132,6 +132,7 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, conversa
     if (!recipient) {
       return false;
     }
+    const emailNotificationsEnabled = recipient.emailNotificationsEnabled !== false;
 
     const senderName = buildDisplayName(sender ?? {});
     const recipientName = buildDisplayName(recipient);
@@ -158,6 +159,7 @@ export async function notifyRecipientOfMessage({ recipientId, senderId, conversa
 
     const tasks = [
       shouldSendEmail && recipientEmail
+      && emailNotificationsEnabled
         ? dependencies.sendEmail({
             to: recipientEmail,
             subject,

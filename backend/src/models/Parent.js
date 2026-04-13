@@ -76,6 +76,7 @@ export function buildParentDocument(data) {
     notes: data.notes?.trim() || null,
     children,
     profileImageUrl: data.profileImageUrl || null,
+    emailNotificationsEnabled: data.emailNotificationsEnabled !== false,
     role: 'parent',
     createdAt: now,
     updatedAt: now,
@@ -134,6 +135,12 @@ export function buildParentUpdate(data) {
   }
   if (data.profileImageUrl !== undefined) {
     update.profileImageUrl = data.profileImageUrl;
+  }
+  if (data.emailNotificationsEnabled !== undefined) {
+    update.emailNotificationsEnabled =
+      typeof data.emailNotificationsEnabled === 'string'
+        ? data.emailNotificationsEnabled === 'true'
+        : data.emailNotificationsEnabled !== false;
   }
 
   return update;

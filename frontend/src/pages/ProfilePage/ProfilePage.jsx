@@ -5,6 +5,15 @@ import IconUploadButton from '../components/IconUploadButton.jsx';
 import { assetUrl, readFileAsDataUrl } from '../utils/file.js';
 import { AVAILABILITY_TIMING_OPTIONS } from '../utils/availability.js';
 import { WEEKDAY_SUGGESTIONS } from '../utils/weekdays.js';
+import {
+  fetchVapidPublicKey,
+  getActivePushSubscription,
+  getNotificationPermission,
+  isPushSupported,
+  requestNotificationPermission,
+  subscribeToPush,
+  unsubscribeFromPush,
+} from '../../utils/pushNotifications.js';
 
 function useProfileData(user) {
   const [profile, setProfile] = useState(null);
@@ -62,6 +71,10 @@ function generateTempId() {
     return crypto.randomUUID();
   }
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function isEmailNotificationsEnabled(profile) {
+  return profile?.emailNotificationsEnabled !== false;
 }
 
 function buildRoomGalleryItem(imageRef) {
@@ -191,6 +204,7 @@ function ParentProfileEditor({ profile, onSave, saving, onDeleteProfile, deletin
     username: profile.username || '',
     childrenAges: profile.childrenAges || '',
     notes: profile.notes || '',
+    emailNotificationsEnabled: isEmailNotificationsEnabled(profile),
     newPassword: '',
   });
   const [children, setChildren] = useState(() =>
@@ -215,6 +229,7 @@ function ParentProfileEditor({ profile, onSave, saving, onDeleteProfile, deletin
       username: profile.username || '',
       childrenAges: profile.childrenAges || '',
       notes: profile.notes || '',
+      emailNotificationsEnabled: isEmailNotificationsEnabled(profile),
       newPassword: '',
     });
     setChildren(profile.children?.length ? profile.children.map((child) => createChild(child)) : [createChild()]);
@@ -258,6 +273,7 @@ function ParentProfileEditor({ profile, onSave, saving, onDeleteProfile, deletin
       username: formState.username,
       childrenAges: formState.childrenAges,
       notes: formState.notes,
+      emailNotificationsEnabled: formState.emailNotificationsEnabled,
       children,
       numberOfChildren: children.filter((child) => child.name.trim()).length,
     };
@@ -366,6 +382,15 @@ function ParentProfileEditor({ profile, onSave, saving, onDeleteProfile, deletin
             />
           </label>
         </div>
+        <label className="flex items-center justify-between rounded-xl border border-brand-200 bg-brand-50/40 px-4 py-3 text-sm font-medium text-slate-700">
+          <span>E-Mail-Benachrichtigungen</span>
+          <input
+            type="checkbox"
+            checked={Boolean(formState.emailNotificationsEnabled)}
+            onChange={(event) => updateField('emailNotificationsEnabled', event.target.checked)}
+            className="h-5 w-5 rounded border-brand-300 text-brand-600 focus:ring-brand-400"
+          />
+        </label>
       </section>
 
       <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
@@ -475,6 +500,7 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
     shortDescription: profile.shortDescription || '',
     bio: profile.bio || '',
     mealPlan: profile.mealPlan || '',
+    emailNotificationsEnabled: isEmailNotificationsEnabled(profile),
     newPassword: '',
   });
   const [careTimes, setCareTimes] = useState(() =>
@@ -538,6 +564,7 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
       shortDescription: profile.shortDescription || '',
       bio: profile.bio || '',
       mealPlan: profile.mealPlan || '',
+      emailNotificationsEnabled: isEmailNotificationsEnabled(profile),
       newPassword: '',
     });
     setCareTimes(
@@ -849,6 +876,7 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
       shortDescription: formState.shortDescription,
       bio: formState.bio,
       mealPlan: formState.mealPlan,
+      emailNotificationsEnabled: formState.emailNotificationsEnabled,
       careTimes,
       dailySchedule,
       closedDays,
@@ -979,6 +1007,15 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
             </span>
           </label>
         </div>
+        <label className="flex items-center justify-between rounded-xl border border-brand-200 bg-brand-50/40 px-4 py-3 text-sm font-medium text-slate-700">
+          <span>E-Mail-Benachrichtigungen</span>
+          <input
+            type="checkbox"
+            checked={Boolean(formState.emailNotificationsEnabled)}
+            onChange={(event) => updateField('emailNotificationsEnabled', event.target.checked)}
+            className="h-5 w-5 rounded border-brand-300 text-brand-600 focus:ring-brand-400"
+          />
+        </label>
       </section>
 
       <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
@@ -1685,6 +1722,197 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
     </form>
   );
 }
+function PushNotificationSettings({ userId }) {
+  const [isSupported] = useState(() => isPushSupported());
+  const [permission, setPermission] = useState(() => (isPushSupported() ? getNotificationPermission() : 'default'));
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isSupported) return;
+    let isActive = true;
+
+    async function loadSubscription() {
+      try {
+        const subscription = await getActivePushSubscription();
+        if (isActive) setIsSubscribed(Boolean(subscription));
+      } catch (error) {
+        console.error('Failed to read push subscription', error);
+      }
+    }
+
+    loadSubscription();
+    return () => {
+      isActive = false;
+    };
+  }, [isSupported]);
+
+  async function handleEnablePush() {
+    if (!userId || isLoading) return;
+    setIsLoading(true);
+    setStatusMessage(null);
+
+    try {
+      if (!isSupported) {
+        setStatusMessage({ type: 'error', text: 'Push-Benachrichtigungen werden in diesem Browser nicht unterstützt.' });
+        return;
+      }
+
+      let permissionState = getNotificationPermission();
+      if (permissionState !== 'granted') permissionState = await requestNotificationPermission();
+      setPermission(permissionState);
+
+      if (permissionState !== 'granted') {
+        setStatusMessage({ type: 'error', text: 'Bitte erlaube Benachrichtigungen in den Browser-Einstellungen.' });
+        return;
+      }
+
+      const vapidPublicKey = await fetchVapidPublicKey();
+      const subscription = await subscribeToPush(vapidPublicKey);
+      await axios.post('/api/push-subscriptions', {
+        userId,
+        subscription: subscription.toJSON(),
+        userAgent: navigator.userAgent,
+      });
+
+      setIsSubscribed(true);
+      setStatusMessage({ type: 'success', text: 'Push-Benachrichtigungen aktiviert.' });
+    } catch (error) {
+      console.error('Failed to enable push notifications', error);
+      setStatusMessage({ type: 'error', text: 'Push konnte nicht aktiviert werden.' });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleDisablePush() {
+    if (!userId || isLoading) return;
+    setIsLoading(true);
+    setStatusMessage(null);
+
+    try {
+      const subscription = await getActivePushSubscription();
+      if (subscription) {
+        await axios.delete('/api/push-subscriptions', { data: { userId, endpoint: subscription.endpoint } });
+      }
+
+      await unsubscribeFromPush();
+      setIsSubscribed(false);
+      setStatusMessage({ type: 'success', text: 'Push-Benachrichtigungen deaktiviert.' });
+    } catch (error) {
+      console.error('Failed to disable push notifications', error);
+      setStatusMessage({ type: 'error', text: 'Push konnte nicht deaktiviert werden.' });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <section className="rounded-3xl bg-white/80 p-6 shadow">
+      <h2 className="text-lg font-semibold text-brand-700">Push-Benachrichtigungen</h2>
+      <p className="mt-1 text-sm text-slate-600">Aktiviere Push, um neue Nachrichten direkt auf dem Homescreen zu sehen.</p>
+      {!isSupported ? (
+        <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+          Push ist hier nicht verfügbar. Bitte installiere die App über „Zum Home-Bildschirm“ und erlaube Benachrichtigungen.
+        </p>
+      ) : (
+        <div className="mt-3 flex flex-col gap-3">
+          <div className="text-xs text-slate-500">Permission: {permission} • Status: {isSubscribed ? 'aktiv' : 'inaktiv'}</div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleEnablePush}
+              className="rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isLoading || permission === 'denied' || isSubscribed}
+            >
+              Push aktivieren
+            </button>
+            <button
+              type="button"
+              onClick={handleDisablePush}
+              className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isLoading || !isSubscribed}
+            >
+              Push deaktivieren
+            </button>
+          </div>
+        </div>
+      )}
+      {statusMessage ? (
+        <p
+          className={`mt-3 rounded-xl border px-3 py-2 text-xs ${
+            statusMessage.type === 'success'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+              : 'border-rose-200 bg-rose-50 text-rose-700'
+          }`}
+        >
+          {statusMessage.text}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+function EmailNotificationSettings({ user, profile, onProfileUpdated }) {
+  const [enabled, setEnabled] = useState(() => isEmailNotificationsEnabled(profile));
+  const [saving, setSaving] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(null);
+
+  useEffect(() => {
+    setEnabled(isEmailNotificationsEnabled(profile));
+  }, [profile]);
+
+  async function handleToggle(event) {
+    const nextValue = event.target.checked;
+    const endpoint = user.role === 'caregiver' ? `/api/caregivers/${user.id}` : `/api/parents/${user.id}`;
+    setSaving(true);
+    setStatusMessage(null);
+    try {
+      const response = await axios.patch(endpoint, { emailNotificationsEnabled: nextValue });
+      setEnabled(isEmailNotificationsEnabled(response.data));
+      onProfileUpdated(response.data);
+      setStatusMessage({
+        type: 'success',
+        text: nextValue ? 'E-Mail-Benachrichtigungen sind aktiviert.' : 'E-Mail-Benachrichtigungen sind deaktiviert.',
+      });
+    } catch (error) {
+      setEnabled((current) => !current);
+      setStatusMessage({ type: 'error', text: error.response?.data?.message || 'Einstellung konnte nicht gespeichert werden.' });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="rounded-3xl bg-white/80 p-6 shadow">
+      <h2 className="text-lg font-semibold text-brand-700">Email benachrichtigungen</h2>
+      <p className="mt-1 text-sm text-slate-600">Hier steuerst du nur normale E-Mail-Benachrichtigungen – unabhängig von Push.</p>
+      <label className="mt-4 flex items-center justify-between rounded-xl border border-brand-200 bg-brand-50/40 px-4 py-3 text-sm font-medium text-slate-700">
+        <span>Email benachrichtigungen</span>
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={handleToggle}
+          disabled={saving}
+          className="h-5 w-5 rounded border-brand-300 text-brand-600 focus:ring-brand-400"
+        />
+      </label>
+      {statusMessage ? (
+        <p
+          className={`mt-3 rounded-xl border px-3 py-2 text-xs ${
+            statusMessage.type === 'success'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+              : 'border-rose-200 bg-rose-50 text-rose-700'
+          }`}
+        >
+          {statusMessage.text}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
 function ProfilePage() {
   const { user, updateUser, logout } = useAuth();
   const { profile, loading, error, setProfile } = useProfileData(user);
@@ -1741,6 +1969,17 @@ function ProfilePage() {
           Aktualisiere dein Profil, um Familien und Tagespflegepersonen stets mit den neuesten Informationen zu versorgen.
         </p>
       </header>
+      <PushNotificationSettings userId={user.id} />
+      {!loading && profile ? (
+        <EmailNotificationSettings
+          user={user}
+          profile={profile}
+          onProfileUpdated={(nextProfile) => {
+            setProfile(nextProfile);
+            updateUser(nextProfile);
+          }}
+        />
+      ) : null}
       {loading ? (
         <p className="text-sm text-slate-500">Profil wird geladen…</p>
       ) : null}
