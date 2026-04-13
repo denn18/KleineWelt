@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import heroImage from '../../assets/hero-family.svg';
+import heroImage3 from '../assets/hero-family3.svg';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { trackEvent } from '../utils/analytics.js';
 import { slugify } from '../../utils/caregiverProfilePath.js';
@@ -23,6 +24,8 @@ const features = [
       'Nutze unseren Messenger für schnelle Absprachen, Kennenlerntermine und individuelle Fragen rund um deine Betreuung.',
   },
 ];
+
+const darkbluefont = '#353e73';
 
 export default function HomePageMobile() {
   const navigate = useNavigate();
@@ -91,13 +94,13 @@ export default function HomePageMobile() {
           Willkommen bei Wimmel Welt
         </p>
 
-        <h1 className="mt-2 text-3xl font-bold text-slate-900">
+        <h1 className="mt-2 text-3xl font-bold  text-[#353e73]">
           Gemeinsam schaffen wir einen sicheren Ort zum Wachsen.
         </h1>
 
-        <div className="mt-4 overflow-hidden rounded-2xl bg-brand-50">
+        <div className="mt-4 overflow-hidden rounded-2xl">
           <img
-            src={heroImage}
+            src={heroImage3}
             alt="Familie"
             className="h-56 w-full object-contain"
           />
