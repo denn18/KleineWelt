@@ -73,6 +73,10 @@ function generateTempId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function isEmailNotificationsEnabled(profile) {
+  return profile?.emailNotificationsEnabled !== false;
+}
+
 function buildRoomGalleryItem(imageRef) {
   if (!imageRef) return null;
 
@@ -282,6 +286,7 @@ function ParentProfileEditor({ profile, onSave, saving, onDeleteProfile, deletin
     username: profile.username || '',
     childrenAges: profile.childrenAges || '',
     notes: profile.notes || '',
+    emailNotificationsEnabled: isEmailNotificationsEnabled(profile),
     newPassword: '',
   });
 
@@ -309,6 +314,7 @@ function ParentProfileEditor({ profile, onSave, saving, onDeleteProfile, deletin
       username: profile.username || '',
       childrenAges: profile.childrenAges || '',
       notes: profile.notes || '',
+      emailNotificationsEnabled: isEmailNotificationsEnabled(profile),
       newPassword: '',
     });
     setChildren(profile.children?.length ? profile.children.map((c) => createChild(c)) : [createChild()]);
@@ -351,6 +357,7 @@ function ParentProfileEditor({ profile, onSave, saving, onDeleteProfile, deletin
       username: formState.username,
       childrenAges: formState.childrenAges,
       notes: formState.notes,
+      emailNotificationsEnabled: formState.emailNotificationsEnabled,
       children,
       numberOfChildren: children.filter((c) => c.name.trim()).length,
     };
@@ -457,6 +464,24 @@ function ParentProfileEditor({ profile, onSave, saving, onDeleteProfile, deletin
               onChange={(e) => updateField('newPassword', e.target.value)}
               className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
               placeholder="Sicheres Passwort wählen"
+            />
+          </label>
+          <label className="flex items-center justify-between rounded-xl border border-brand-200 bg-brand-50/40 px-4 py-3 text-sm font-medium text-slate-700">
+            <span>E-Mail-Benachrichtigungen</span>
+            <input
+              type="checkbox"
+              checked={Boolean(formState.emailNotificationsEnabled)}
+              onChange={(e) => updateField('emailNotificationsEnabled', e.target.checked)}
+              className="h-5 w-5 rounded border-brand-300 text-brand-600 focus:ring-brand-400"
+            />
+          </label>
+          <label className="flex items-center justify-between rounded-xl border border-brand-200 bg-brand-50/40 px-4 py-3 text-sm font-medium text-slate-700">
+            <span>E-Mail-Benachrichtigungen</span>
+            <input
+              type="checkbox"
+              checked={Boolean(formState.emailNotificationsEnabled)}
+              onChange={(e) => updateField('emailNotificationsEnabled', e.target.checked)}
+              className="h-5 w-5 rounded border-brand-300 text-brand-600 focus:ring-brand-400"
             />
           </label>
         </div>
@@ -571,6 +596,7 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
     shortDescription: profile.shortDescription || '',
     bio: profile.bio || '',
     mealPlan: profile.mealPlan || '',
+    emailNotificationsEnabled: isEmailNotificationsEnabled(profile),
     newPassword: '',
   });
 
@@ -636,6 +662,7 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
       shortDescription: profile.shortDescription || '',
       bio: profile.bio || '',
       mealPlan: profile.mealPlan || '',
+      emailNotificationsEnabled: isEmailNotificationsEnabled(profile),
       newPassword: '',
     });
 
@@ -875,6 +902,7 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
       shortDescription: formState.shortDescription,
       bio: formState.bio,
       mealPlan: formState.mealPlan,
+      emailNotificationsEnabled: formState.emailNotificationsEnabled,
       careTimes,
       dailySchedule,
       closedDays,
@@ -1666,6 +1694,68 @@ function PushNotificationSettings({ userId }) {
   );
 }
 
+function EmailNotificationSettings({ user, profile, onProfileUpdated }) {
+  const [enabled, setEnabled] = useState(() => isEmailNotificationsEnabled(profile));
+  const [saving, setSaving] = useState(false);
+  const [statusMessage, setStatusMessage] = useState(null);
+
+  useEffect(() => {
+    setEnabled(isEmailNotificationsEnabled(profile));
+  }, [profile]);
+
+  async function handleToggle(event) {
+    const nextValue = event.target.checked;
+    const endpoint = user.role === 'caregiver' ? `/api/caregivers/${user.id}` : `/api/parents/${user.id}`;
+    setSaving(true);
+    setStatusMessage(null);
+
+    try {
+      const response = await axios.patch(endpoint, { emailNotificationsEnabled: nextValue });
+      setEnabled(isEmailNotificationsEnabled(response.data));
+      onProfileUpdated(response.data);
+      setStatusMessage({
+        type: 'success',
+        text: nextValue ? 'E-Mail-Benachrichtigungen sind aktiviert.' : 'E-Mail-Benachrichtigungen sind deaktiviert.',
+      });
+    } catch (error) {
+      setEnabled((current) => !current);
+      setStatusMessage({ type: 'error', text: error.response?.data?.message || 'Einstellung konnte nicht gespeichert werden.' });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="rounded-2xl border border-brand-100 bg-white/80 p-4 shadow-sm">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-base font-semibold text-brand-700">Email benachrichtigungen</h2>
+        <p className="text-sm text-slate-600">Dieser Schalter steuert nur E-Mail-Benachrichtigungen (nicht Push).</p>
+        <label className="mt-2 flex items-center justify-between rounded-xl border border-brand-200 bg-brand-50/40 px-4 py-3 text-sm font-medium text-slate-700">
+          <span>Email benachrichtigungen</span>
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={handleToggle}
+            disabled={saving}
+            className="h-5 w-5 rounded border-brand-300 text-brand-600 focus:ring-brand-400"
+          />
+        </label>
+        {statusMessage ? (
+          <p
+            className={`rounded-xl border px-3 py-2 text-xs ${
+              statusMessage.type === 'success'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                : 'border-rose-200 bg-rose-50 text-rose-700'
+            }`}
+          >
+            {statusMessage.text}
+          </p>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 export default function ProfilePageMobile() {
   const { user, updateUser, logout } = useAuth();
   const { profile, loading, error, setProfile } = useProfileData(user);
@@ -1721,6 +1811,16 @@ export default function ProfilePageMobile() {
       </header>
 
       <PushNotificationSettings userId={user.id} />
+      {!loading && profile ? (
+        <EmailNotificationSettings
+          user={user}
+          profile={profile}
+          onProfileUpdated={(nextProfile) => {
+            setProfile(nextProfile);
+            updateUser(nextProfile);
+          }}
+        />
+      ) : null}
 
       {loading ? <p className="text-sm text-slate-500">Profil wird geladen…</p> : null}
       {error ? (

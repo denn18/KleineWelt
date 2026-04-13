@@ -249,6 +249,7 @@ export function buildCaregiverDocument(data) {
     profileImageUrl: data.profileImageUrl || null,
     logoImageUrl: data.logoImageUrl || null,
     conceptUrl: data.conceptUrl || null,
+    emailNotificationsEnabled: data.emailNotificationsEnabled !== false,
     role: 'caregiver',
     createdAt: now,
     updatedAt: now,
@@ -372,6 +373,12 @@ export function buildCaregiverUpdate(data) {
   }
   if (data.conceptUrl !== undefined) {
     update.conceptUrl = data.conceptUrl;
+  }
+  if (data.emailNotificationsEnabled !== undefined) {
+    update.emailNotificationsEnabled =
+      typeof data.emailNotificationsEnabled === 'string'
+        ? data.emailNotificationsEnabled === 'true'
+        : data.emailNotificationsEnabled !== false;
   }
 
   const slugRelevant =
