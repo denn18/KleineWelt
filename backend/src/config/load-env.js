@@ -13,7 +13,7 @@ const candidates = [
 
 for (const p of candidates) {
   if (fs.existsSync(p)) {
-    const r = config({ path: p, override: true });
+    const r = config({ path: p });
     if (r.parsed) {
       console.log('🌱 .env geladen:', p);
       break;
