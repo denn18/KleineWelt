@@ -1518,12 +1518,6 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
           </p>
         ) : null}
 
-        <a
-          href="/api/documents/membership-invoice"
-          className="mt-1 inline-flex w-fit items-center gap-2 rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
-        >
-          Jahresquittung (60 €) herunterladen
-        </a>
       </div>
     </form>
   );
