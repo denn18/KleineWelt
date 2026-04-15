@@ -7,6 +7,7 @@ import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { PaperClipIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { useMessengerRealtime } from '../../context/MessengerRealtimeContext.jsx';
 import ImageLightbox from '../../components/ImageLightbox.jsx';
 import { assetUrl, readFileAsDataUrl } from '../../utils/file.js';
 
@@ -101,8 +102,27 @@ function useBodyOverflowHidden(enabled) {
   }, [enabled]);
 }
 
+
+function mergeMessages(currentMessages, incomingMessages) {
+  const merged = [...currentMessages];
+  const knownIds = new Set(currentMessages.map((message) => message.id));
+
+  incomingMessages.forEach((message) => {
+    if (!message?.id || knownIds.has(message.id)) {
+      return;
+    }
+
+    merged.push(message);
+    knownIds.add(message.id);
+  });
+
+  merged.sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf());
+  return merged;
+}
+
 function Mobile() {
   const { user } = useAuth();
+  const { setActiveConversation, subscribeConversationUpdated, subscribeNewMessage, subscribeReconnect } = useMessengerRealtime();
   const { targetId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -125,6 +145,7 @@ function Mobile() {
   const bottomRef = useRef(null);
   const composerRef = useRef(null);
   const [composerHeight, setComposerHeight] = useState(84);
+  const lastLoadedAtRef = useRef('');
 
   // ✅ Messe Composer-Höhe (damit Messages unten nicht verdeckt werden)
   useEffect(() => {
@@ -161,24 +182,73 @@ function Mobile() {
     loadPartner().catch((error) => console.error(error));
   }, [partner, targetId]);
 
-  const loadMessages = useCallback(async () => {
+  const loadMessages = useCallback(async ({ since, silent = false } = {}) => {
     if (!conversationId) return;
-    setLoadingMessages(true);
+    if (!silent) {
+      setLoadingMessages(true);
+    }
 
     try {
-      console.info('API Log: GET /api/messages/:conversationId', conversationId);
-      const response = await axios.get(`/api/messages/${conversationId}`);
-      setMessages(response.data);
+      const query = since ? `?since=${encodeURIComponent(since)}` : '';
+      const response = await axios.get(`/api/messages/${conversationId}${query}`);
+      const loadedMessages = response.data || [];
+      setMessages((current) => (since ? mergeMessages(current, loadedMessages) : loadedMessages));
+
+      const newest = loadedMessages.at(-1)?.createdAt;
+      if (newest) {
+        lastLoadedAtRef.current = newest;
+      }
     } catch (error) {
       console.error('Failed to load messages', error);
     } finally {
-      setLoadingMessages(false);
+      if (!silent) {
+        setLoadingMessages(false);
+      }
     }
   }, [conversationId]);
 
   useEffect(() => {
     void loadMessages();
   }, [loadMessages]);
+
+  useEffect(() => {
+    if (!conversationId) {
+      return () => {};
+    }
+
+    setActiveConversation(conversationId);
+
+    const unsubscribeNewMessage = subscribeNewMessage((message) => {
+      if (message?.conversationId !== conversationId) {
+        return;
+      }
+
+      setMessages((current) => mergeMessages(current, [message]));
+      if (message?.createdAt) {
+        lastLoadedAtRef.current = message.createdAt;
+      }
+    });
+
+    const unsubscribeConversationUpdated = subscribeConversationUpdated((payload) => {
+      if (payload?.conversationId !== conversationId) {
+        return;
+      }
+
+      void loadMessages({ since: lastLoadedAtRef.current, silent: true });
+    });
+
+    const unsubscribeReconnect = subscribeReconnect(() => {
+      void loadMessages({ since: lastLoadedAtRef.current, silent: true });
+      setActiveConversation(conversationId);
+    });
+
+    return () => {
+      unsubscribeNewMessage();
+      unsubscribeConversationUpdated();
+      unsubscribeReconnect();
+      setActiveConversation('');
+    };
+  }, [conversationId, loadMessages, setActiveConversation, subscribeConversationUpdated, subscribeNewMessage, subscribeReconnect]);
 
   // ✅ Nach Laden/Update immer nach unten (wie vorher)
   useEffect(() => {
@@ -236,7 +306,7 @@ function Mobile() {
         })),
       });
 
-      setMessages((current) => [...current, response.data]);
+      setMessages((current) => mergeMessages(current, [response.data]));
       setMessageBody('');
       setPendingAttachments([]);
 
@@ -464,6 +534,7 @@ export default Mobile;
 // import axios from 'axios';
 // import { PaperClipIcon, XMarkIcon } from '@heroicons/react/24/outline';
 // import { useAuth } from '../../context/AuthContext.jsx';
+import { useMessengerRealtime } from '../../context/MessengerRealtimeContext.jsx';
 // import ImageLightbox from '../../components/ImageLightbox.jsx';
 // import { assetUrl, readFileAsDataUrl } from '../../utils/file.js';
 
@@ -558,8 +629,27 @@ export default Mobile;
 //   }, [enabled]);
 // }
 
-// function Mobile() {
+// 
+function mergeMessages(currentMessages, incomingMessages) {
+  const merged = [...currentMessages];
+  const knownIds = new Set(currentMessages.map((message) => message.id));
+
+  incomingMessages.forEach((message) => {
+    if (!message?.id || knownIds.has(message.id)) {
+      return;
+    }
+
+    merged.push(message);
+    knownIds.add(message.id);
+  });
+
+  merged.sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf());
+  return merged;
+}
+
+function Mobile() {
 //   const { user } = useAuth();
+  const { setActiveConversation, subscribeConversationUpdated, subscribeNewMessage, subscribeReconnect } = useMessengerRealtime();
 //   const { targetId } = useParams();
 //   const location = useLocation();
 //   const navigate = useNavigate();
@@ -582,6 +672,7 @@ export default Mobile;
 //   const bottomRef = useRef(null);
 //   const composerRef = useRef(null);
 //   const [composerHeight, setComposerHeight] = useState(84);
+  const lastLoadedAtRef = useRef('');
 
 //   // ✅ Messe Composer-Höhe (damit Messages unten nicht verdeckt werden)
 //   useEffect(() => {
@@ -693,7 +784,7 @@ export default Mobile;
 //         })),
 //       });
 
-//       setMessages((current) => [...current, response.data]);
+//       setMessages((current) => mergeMessages(current, [response.data]));
 //       setMessageBody('');
 //       setPendingAttachments([]);
 

@@ -20,7 +20,11 @@ export async function getMessageOverview(req, res) {
 
 export async function getMessages(req, res) {
   try {
-    const messages = await listMessages({ conversationId: req.params.conversationId, userId: req.user.id });
+    const messages = await listMessages({
+      conversationId: req.params.conversationId,
+      userId: req.user.id,
+      since: req.query.since,
+    });
     res.json(messages);
   } catch (error) {
     console.error('Failed to load messages', error);

@@ -5,13 +5,16 @@ import App from './App.jsx';
 import Seo from './seo/Seo.jsx';
 import './index.css';
 import { AuthProvider } from './context/AuthContext.jsx';
+import { MessengerRealtimeProvider } from './context/MessengerRealtimeContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <Seo />
-        <App />
+        <MessengerRealtimeProvider>
+          <Seo />
+          <App />
+        </MessengerRealtimeProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

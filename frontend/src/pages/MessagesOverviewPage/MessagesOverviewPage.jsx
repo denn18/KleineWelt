@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
+import { useMessengerRealtime } from '../context/MessengerRealtimeContext.jsx';
 import { assetUrl } from '../utils/file.js';
 
 async function fetchUserProfiles(ids) {
@@ -42,47 +43,71 @@ function formatConversationPartner(profile) {
 
 function MessagesOverviewPage() {
   const { user } = useAuth();
+  const { subscribeConversationUpdated, subscribeNewMessage, subscribeReconnect } = useMessengerRealtime();
   const [conversations, setConversations] = useState([]);
   const [profiles, setProfiles] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    async function loadConversations() {
-      if (!user) {
-        return;
-      }
+  const loadConversations = useCallback(async ({ silent = false } = {}) => {
+    if (!user) {
+      return;
+    }
+
+    if (!silent) {
       setLoading(true);
-      setError(null);
-      try {
-        console.info('API Log: GET /api/messages');
-        const response = await axios.get('/api/messages');
-        setConversations(response.data);
-        console.info('API Log: Nachrichten geladen', response.data.length);
-        const partnerIds = response.data
-          .map((conversation) => conversation.participants?.find((participant) => participant !== user.id))
-          .filter(Boolean);
-        if (partnerIds.length) {
-          const loadedProfiles = await fetchUserProfiles(partnerIds);
-          setProfiles(loadedProfiles);
-          console.info('API Log: Partnerprofile geladen', Object.keys(loadedProfiles).length);
-        } else {
-          setProfiles({});
-        }
-      } catch (requestError) {
-        console.error('Failed to load conversations', requestError);
-        setError('Nachrichten konnten nicht geladen werden.');
-      } finally {
+    }
+
+    setError(null);
+    try {
+      const response = await axios.get('/api/messages');
+      setConversations(response.data);
+      const partnerIds = response.data
+        .map((conversation) => conversation.participants?.find((participant) => participant !== user.id))
+        .filter(Boolean);
+      if (partnerIds.length) {
+        const loadedProfiles = await fetchUserProfiles(partnerIds);
+        setProfiles(loadedProfiles);
+      } else {
+        setProfiles({});
+      }
+    } catch (requestError) {
+      console.error('Failed to load conversations', requestError);
+      setError('Nachrichten konnten nicht geladen werden.');
+    } finally {
+      if (!silent) {
         setLoading(false);
       }
     }
+  }, [user]);
 
+  useEffect(() => {
     loadConversations().catch((requestError) => {
       console.error(requestError);
       setError('Nachrichten konnten nicht geladen werden.');
       setLoading(false);
     });
-  }, [user]);
+  }, [loadConversations]);
+
+  useEffect(() => {
+    const unsubscribeNewMessage = subscribeNewMessage(() => {
+      loadConversations({ silent: true }).catch((error) => console.error(error));
+    });
+
+    const unsubscribeConversationUpdated = subscribeConversationUpdated(() => {
+      loadConversations({ silent: true }).catch((error) => console.error(error));
+    });
+
+    const unsubscribeReconnect = subscribeReconnect(() => {
+      loadConversations({ silent: true }).catch((error) => console.error(error));
+    });
+
+    return () => {
+      unsubscribeNewMessage();
+      unsubscribeConversationUpdated();
+      unsubscribeReconnect();
+    };
+  }, [loadConversations, subscribeConversationUpdated, subscribeNewMessage, subscribeReconnect]);
 
   if (!user) {
     return null;
