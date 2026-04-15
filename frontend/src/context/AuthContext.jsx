@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 
+
 const STORAGE_KEY = 'kleinewelt:user';
 
 const AuthContext = createContext({
@@ -11,9 +12,8 @@ const AuthContext = createContext({
   authError: null,
   setAuthError: () => {},
   isAuthenticating: false,
-  isAuthReady: false,
-  getValidAccessToken: () => null,
 });
+
 
 function applyAuthToken(token) {
   if (token) {
@@ -34,31 +34,21 @@ function readStoredUser() {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => readStoredUser());
   const [authError, setAuthError] = useState(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
-    const restoredUser = readStoredUser();
-    setUser(restoredUser);
-    applyAuthToken(restoredUser?.token);
-    setIsAuthReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isAuthReady) {
-      return;
-    }
-
     applyAuthToken(user?.token);
-  }, [isAuthReady, user?.token]);
+  }, [user?.token]);
 
   async function login(identifier, password) {
     setIsAuthenticating(true);
     setAuthError(null);
     try {
+      console.info('API Log: Sende Login-Anfrage');
       const response = await axios.post('/api/auth/login', { identifier, password });
+      console.info('Nutzer angemeldet', response.data?.id);
       const authenticatedUser = response.data;
       applyAuthToken(authenticatedUser?.token);
       setUser(authenticatedUser);
@@ -74,6 +64,7 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
+    console.info('Nutzer abgemeldet');
     applyAuthToken(null);
     setUser(null);
     localStorage.removeItem(STORAGE_KEY);
@@ -84,47 +75,15 @@ export function AuthProvider({ children }) {
       if (!current) {
         return current;
       }
-
       const updated = { ...current, ...partialUser };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       return updated;
     });
   }
 
-  function getValidAccessToken() {
-    const token = user?.token;
-    if (!token || typeof token !== 'string') {
-      return null;
-    }
-
-    try {
-      const payloadPart = token.split('.')[0];
-      const payload = JSON.parse(atob(payloadPart.replace(/-/g, '+').replace(/_/g, '/')));
-      const now = Math.floor(Date.now() / 1000);
-      if (typeof payload?.exp === 'number' && payload.exp <= now) {
-        logout();
-        return null;
-      }
-      return token;
-    } catch (_error) {
-      logout();
-      return null;
-    }
-  }
-
   const value = useMemo(
-    () => ({
-      user,
-      login,
-      logout,
-      updateUser,
-      authError,
-      setAuthError,
-      isAuthenticating,
-      isAuthReady,
-      getValidAccessToken,
-    }),
-    [user, authError, isAuthenticating, isAuthReady],
+    () => ({ user, login, logout, updateUser, authError, setAuthError, isAuthenticating }),
+    [user, authError, isAuthenticating],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
