@@ -6,6 +6,7 @@ import {
 } from '../models/Message.js';
 import { storeBase64File } from '../utils/fileStorage.js';
 import { notifyRecipientOfMessage } from './notificationService.js';
+import { getSocketServer } from '../realtime/socketServer.js';
 
 let messagesCollectionOverride = null;
 
@@ -84,6 +85,37 @@ async function storeAttachments(conversationId, attachments = []) {
   return uploaded;
 }
 
+
+function emitDirectMessageRealtime(serializedMessage) {
+  const io = getSocketServer();
+  if (!io || !serializedMessage) {
+    return;
+  }
+
+  io.to(`conversation:${serializedMessage.conversationId}`).emit('messenger:new-message', serializedMessage);
+  (serializedMessage.participants || []).forEach((participantId) => {
+    io.to(`user:${participantId}`).emit('messenger:conversation-updated', {
+      conversationId: serializedMessage.conversationId,
+      message: serializedMessage,
+    });
+  });
+}
+
+function emitGroupMessageRealtime(serializedMessage) {
+  const io = getSocketServer();
+  if (!io || !serializedMessage) {
+    return;
+  }
+
+  io.to(`conversation:${serializedMessage.conversationId}`).emit('messenger:new-group-message', serializedMessage);
+  (serializedMessage.participants || []).forEach((participantId) => {
+    io.to(`user:${participantId}`).emit('messenger:conversation-updated', {
+      conversationId: serializedMessage.conversationId,
+      message: serializedMessage,
+    });
+  });
+}
+
 export function __setMessagesCollectionForTesting(collection) {
   messagesCollectionOverride = collection ?? null;
 }
@@ -135,6 +167,8 @@ export async function sendMessage({ conversationId, senderId, recipientId, body,
   const result = await getMessagesCollection().insertOne(document);
 
   const serialized = serializeMessage({ _id: result.insertedId, ...document });
+
+  emitDirectMessageRealtime(serialized);
 
   notifyRecipientOfMessage({
     recipientId,
@@ -247,6 +281,8 @@ export async function sendGroupMessage({ caregiverId, senderId, participantIds =
   const serialized = serializeMessage({ _id: result.insertedId, ...document });
 
   const recipients = Array.from(new Set((participantIds || []).filter((id) => id && id !== senderId)));
+
+  emitGroupMessageRealtime(serialized);
 
   await Promise.allSettled(
     recipients.map((recipientId) =>
