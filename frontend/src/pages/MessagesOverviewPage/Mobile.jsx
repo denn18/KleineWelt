@@ -4,7 +4,6 @@ import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { assetUrl } from '../../utils/file.js';
-import { getOrCreateSocket } from '../../realtime/socketClient.js';
 
 async function fetchUserProfiles(ids) {
   const uniqueIds = Array.from(new Set(ids)).filter(Boolean);
@@ -102,7 +101,6 @@ export default function Mobile() {
   const [profiles, setProfiles] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [refreshSeed, setRefreshSeed] = useState(0);
 
   useEffect(() => {
     async function loadConversations() {
@@ -142,30 +140,7 @@ export default function Mobile() {
       setError('Nachrichten konnten nicht geladen werden.');
       setLoading(false);
     });
-  }, [user, refreshSeed]);
-
-
-
-  useEffect(() => {
-    if (!user?.token) {
-      return undefined;
-    }
-
-    const socket = getOrCreateSocket(user.token);
-    if (!socket) {
-      return undefined;
-    }
-
-    const handleConversationUpdated = () => {
-      setRefreshSeed((current) => current + 1);
-    };
-
-    socket.on('messenger:conversation-updated', handleConversationUpdated);
-
-    return () => {
-      socket.off('messenger:conversation-updated', handleConversationUpdated);
-    };
-  }, [user?.token]);
+  }, [user]);
 
   if (!user) {
     return null;
