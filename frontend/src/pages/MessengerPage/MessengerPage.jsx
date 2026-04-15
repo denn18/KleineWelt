@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import ImageLightbox from '../components/ImageLightbox.jsx';
 import { assetUrl, readFileAsDataUrl } from '../utils/file.js';
 import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../utils/availability.js';
+import { getOrCreateSocket } from '../../realtime/socketClient.js';
 
 function formatTime(value) {
   if (!value) {
@@ -100,6 +101,38 @@ function MessengerPage() {
 
     loadMessages().catch((error) => console.error(error));
   }, [conversationId]);
+
+
+  useEffect(() => {
+    if (!user?.token || !conversationId) {
+      return undefined;
+    }
+
+    const socket = getOrCreateSocket(user.token);
+    if (!socket) {
+      return undefined;
+    }
+
+    const handleNewMessage = (incomingMessage) => {
+      if (incomingMessage?.conversationId !== conversationId) {
+        return;
+      }
+
+      setMessages((current) =>
+        current.some((message) => message.id === incomingMessage.id)
+          ? current
+          : [...current, incomingMessage],
+      );
+    };
+
+    socket.emit('messenger:join-conversation', { conversationId });
+    socket.on('messenger:new-message', handleNewMessage);
+
+    return () => {
+      socket.emit('messenger:leave-conversation', { conversationId });
+      socket.off('messenger:new-message', handleNewMessage);
+    };
+  }, [conversationId, user?.token]);
 
   async function handleAttachmentChange(event) {
     const files = Array.from(event.target.files || []);
