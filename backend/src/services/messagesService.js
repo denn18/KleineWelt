@@ -6,7 +6,6 @@ import {
 } from '../models/Message.js';
 import { storeBase64File } from '../utils/fileStorage.js';
 import { notifyRecipientOfMessage } from './notificationService.js';
-import { emitConversationUpdated, emitMessageCreated } from './realtimeService.js';
 
 let messagesCollectionOverride = null;
 
@@ -93,7 +92,7 @@ export function __resetMessagesCollectionForTesting() {
   messagesCollectionOverride = null;
 }
 
-export async function listMessages({ conversationId, userId, since = null }) {
+export async function listMessages({ conversationId, userId }) {
   if (!conversationId || !userId) {
     const error = new Error('Missing required message fields.');
     error.status = 400;
@@ -102,17 +101,8 @@ export async function listMessages({ conversationId, userId, since = null }) {
 
   await assertConversationAccess({ conversationId, userId });
 
-  const filter = { conversationId, participants: userId };
-
-  if (since) {
-    const sinceDate = new Date(since);
-    if (!Number.isNaN(sinceDate.valueOf())) {
-      filter.createdAt = { $gt: sinceDate };
-    }
-  }
-
   const cursor = getMessagesCollection()
-    .find(filter)
+    .find({ conversationId, participants: userId })
     .sort({ createdAt: 1 });
   const documents = await cursor.toArray();
 
@@ -145,9 +135,6 @@ export async function sendMessage({ conversationId, senderId, recipientId, body,
   const result = await getMessagesCollection().insertOne(document);
 
   const serialized = serializeMessage({ _id: result.insertedId, ...document });
-
-  emitMessageCreated(serialized);
-  emitConversationUpdated({ conversationId: normalizedConversationId, participants: serialized.participants });
 
   notifyRecipientOfMessage({
     recipientId,
@@ -258,9 +245,6 @@ export async function sendGroupMessage({ caregiverId, senderId, participantIds =
 
   const result = await getMessagesCollection().insertOne(document);
   const serialized = serializeMessage({ _id: result.insertedId, ...document });
-
-  emitMessageCreated(serialized);
-  emitConversationUpdated({ conversationId: normalizedConversationId, participants: serialized.participants });
 
   const recipients = Array.from(new Set((participantIds || []).filter((id) => id && id !== senderId)));
 

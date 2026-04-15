@@ -24,14 +24,12 @@ import http from 'http';
 import app from './app.js';
 import { connectDatabase } from './config/database.js';
 import { startMessageImageCleanupScheduler } from './services/messageCleanupService.js';
-import { initializeRealtime } from './services/realtimeService.js';
 
 const PORT = process.env.PORT || 2000;
 
 async function startServer() {
   await connectDatabase(); // genau 1× verbinden
   const server = http.createServer(app);
-  initializeRealtime(server);
   startMessageImageCleanupScheduler();
   server.listen(PORT, () => {
     console.log(`API server listening on port ${PORT}`);

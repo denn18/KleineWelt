@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { PaperClipIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext.jsx';
-import { useMessengerRealtime } from '../context/MessengerRealtimeContext.jsx';
 import ImageLightbox from '../components/ImageLightbox.jsx';
 import { assetUrl, readFileAsDataUrl } from '../utils/file.js';
 import { formatAvailableSpotsLabel, isAvailabilityHighlighted } from '../utils/availability.js';
@@ -39,27 +38,8 @@ function formatPartnerName(profile) {
   return baseName || 'Kontakt';
 }
 
-
-function mergeMessages(currentMessages, incomingMessages) {
-  const merged = [...currentMessages];
-  const knownIds = new Set(currentMessages.map((message) => message.id));
-
-  incomingMessages.forEach((message) => {
-    if (!message?.id || knownIds.has(message.id)) {
-      return;
-    }
-
-    merged.push(message);
-    knownIds.add(message.id);
-  });
-
-  merged.sort((a, b) => new Date(a.createdAt).valueOf() - new Date(b.createdAt).valueOf());
-  return merged;
-}
-
 function MessengerPage() {
   const { user } = useAuth();
-  const { setActiveConversation, subscribeConversationUpdated, subscribeNewMessage, subscribeReconnect } = useMessengerRealtime();
   const { targetId } = useParams();
   const location = useLocation();
   const [partner, setPartner] = useState(location.state?.partner ?? null);
@@ -70,7 +50,6 @@ function MessengerPage() {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [pendingAttachments, setPendingAttachments] = useState([]);
   const fileInputRef = useRef(null);
-  const lastLoadedAtRef = useRef('');
 
   const conversationId = useMemo(() => {
     if (location.state?.conversationId) {
@@ -101,77 +80,26 @@ function MessengerPage() {
     loadPartner().catch((error) => console.error(error));
   }, [partner, targetId]);
 
-  const loadMessages = useCallback(async ({ since, silent = false } = {}) => {
-    if (!conversationId) {
-      return;
-    }
-
-    if (!silent) {
-      setLoadingMessages(true);
-    }
-
-    try {
-      const query = since ? `?since=${encodeURIComponent(since)}` : '';
-      const response = await axios.get(`/api/messages/${conversationId}${query}`);
-      const loadedMessages = response.data || [];
-
-      setMessages((current) => (since ? mergeMessages(current, loadedMessages) : loadedMessages));
-
-      const newest = loadedMessages.at(-1)?.createdAt;
-      if (newest) {
-        lastLoadedAtRef.current = newest;
+  useEffect(() => {
+    async function loadMessages() {
+      if (!conversationId) {
+        return;
       }
-    } catch (error) {
-      console.error('Failed to load messages', error);
-    } finally {
-      if (!silent) {
+      setLoadingMessages(true);
+      try {
+        console.info('API Log: GET /api/messages/:conversationId', conversationId);
+        const response = await axios.get(`/api/messages/${conversationId}`);
+        console.info('API Log: Nachrichten geladen', response.data?.length ?? 0);
+        setMessages(response.data);
+      } catch (error) {
+        console.error('Failed to load messages', error);
+      } finally {
         setLoadingMessages(false);
       }
     }
-  }, [conversationId]);
 
-  useEffect(() => {
     loadMessages().catch((error) => console.error(error));
-  }, [loadMessages]);
-
-  useEffect(() => {
-    if (!conversationId) {
-      return () => {};
-    }
-
-    setActiveConversation(conversationId);
-
-    const unsubscribeNewMessage = subscribeNewMessage((message) => {
-      if (message?.conversationId !== conversationId) {
-        return;
-      }
-
-      setMessages((current) => mergeMessages(current, [message]));
-      if (message?.createdAt) {
-        lastLoadedAtRef.current = message.createdAt;
-      }
-    });
-
-    const unsubscribeConversationUpdated = subscribeConversationUpdated((payload) => {
-      if (payload?.conversationId !== conversationId) {
-        return;
-      }
-
-      loadMessages({ since: lastLoadedAtRef.current, silent: true }).catch((error) => console.error(error));
-    });
-
-    const unsubscribeReconnect = subscribeReconnect(() => {
-      loadMessages({ since: lastLoadedAtRef.current, silent: true }).catch((error) => console.error(error));
-      setActiveConversation(conversationId);
-    });
-
-    return () => {
-      unsubscribeNewMessage();
-      unsubscribeConversationUpdated();
-      unsubscribeReconnect();
-      setActiveConversation('');
-    };
-  }, [conversationId, loadMessages, setActiveConversation, subscribeConversationUpdated, subscribeNewMessage, subscribeReconnect]);
+  }, [conversationId]);
 
   async function handleAttachmentChange(event) {
     const files = Array.from(event.target.files || []);
@@ -224,7 +152,7 @@ function MessengerPage() {
         })),
       });
       console.info('Messenger Log: Nachricht gesendet', response.data?.id);
-      setMessages((current) => mergeMessages(current, [response.data]));
+      setMessages((current) => [...current, response.data]);
       setMessageBody('');
       setPendingAttachments([]);
     } catch (error) {
