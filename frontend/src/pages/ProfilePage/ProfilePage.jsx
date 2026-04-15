@@ -382,15 +382,6 @@ function ParentProfileEditor({ profile, onSave, saving, onDeleteProfile, deletin
             />
           </label>
         </div>
-        <label className="flex items-center justify-between rounded-xl border border-brand-200 bg-brand-50/40 px-4 py-3 text-sm font-medium text-slate-700">
-          <span>E-Mail-Benachrichtigungen</span>
-          <input
-            type="checkbox"
-            checked={Boolean(formState.emailNotificationsEnabled)}
-            onChange={(event) => updateField('emailNotificationsEnabled', event.target.checked)}
-            className="h-5 w-5 rounded border-brand-300 text-brand-600 focus:ring-brand-400"
-          />
-        </label>
       </section>
 
       <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
@@ -1007,15 +998,6 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
             </span>
           </label>
         </div>
-        <label className="flex items-center justify-between rounded-xl border border-brand-200 bg-brand-50/40 px-4 py-3 text-sm font-medium text-slate-700">
-          <span>E-Mail-Benachrichtigungen</span>
-          <input
-            type="checkbox"
-            checked={Boolean(formState.emailNotificationsEnabled)}
-            onChange={(event) => updateField('emailNotificationsEnabled', event.target.checked)}
-            className="h-5 w-5 rounded border-brand-300 text-brand-600 focus:ring-brand-400"
-          />
-        </label>
       </section>
 
       <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
