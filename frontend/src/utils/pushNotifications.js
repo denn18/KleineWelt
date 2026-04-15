@@ -32,17 +32,29 @@ export async function getActivePushSubscription() {
 
 export async function fetchVapidPublicKey() {
   const envKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+  try {
+    const response = await fetch('/api/push-subscriptions/vapid-public-key');
+    if (response.ok) {
+      const data = await response.json();
+      const backendKey = data?.publicKey;
+      if (backendKey) {
+        if (envKey && envKey !== backendKey) {
+          console.warn(
+            'VAPID key mismatch: using backend key from /api/push-subscriptions/vapid-public-key instead of VITE_VAPID_PUBLIC_KEY.',
+          );
+        }
+        return backendKey;
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to fetch backend VAPID public key, falling back to VITE_VAPID_PUBLIC_KEY if available.', error);
+  }
+
   if (envKey) {
     return envKey;
   }
 
-  const response = await fetch('/api/push-subscriptions/vapid-public-key');
-  if (!response.ok) {
-    throw new Error('VAPID Public Key fehlt.');
-  }
-
-  const data = await response.json();
-  return data.publicKey;
+  throw new Error('VAPID Public Key fehlt.');
 }
 
 function urlBase64ToUint8Array(base64String) {
