@@ -36,6 +36,12 @@ function HomePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [cities, setCities] = useState([]);
+  const [animateCta, setAnimateCta] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setAnimateCta(false), 2100);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     let ignore = false;
