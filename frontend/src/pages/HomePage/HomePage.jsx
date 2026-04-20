@@ -36,17 +36,6 @@ function HomePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [cities, setCities] = useState([]);
-  const [animateCta, setAnimateCta] = useState(false);
-
-  useEffect(() => {
-    setAnimateCta(true);
-    const intervalId = setInterval(() => {
-      setAnimateCta(false);
-      setTimeout(() => setAnimateCta(true), 50);
-    }, 2000);
-
-    return () => clearInterval(intervalId);
-  }, []);
 
   useEffect(() => {
     let ignore = false;
@@ -114,45 +103,16 @@ function HomePage() {
             koordiniere Anfragen und bleibe mit deinem Netzwerk in Kontakt – alles an einem Ort.
           </p>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <div className="relative inline-block">
-              <Link
-                to="/kindertagespflege"
-                onClick={() => {
-                  trackEvent('cta_click', { label: 'Tagesmutter finden', location: 'hero' });
-                  trackEvent('engagement_kindertagespflege_finden', { page: 'home', platform: 'web', location: 'hero' });
-                }}
-                className={`relative z-10 rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg ${
-                  animateCta ? 'animate-attention' : ''
-                }`}
-              >
-                Tagesmutter finden
-              </Link>
-              {animateCta && (
-                <>
-                  <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute -top-2 -left-2 text-lg animate-sparkle"
-                    style={{ ['--sx']: '-12px', ['--sy']: '-14px' }}
-                  >
-                    ✨
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute -top-2 -right-2 text-lg animate-sparkle"
-                    style={{ ['--sx']: '14px', ['--sy']: '-12px', animationDelay: '0.2s' }}
-                  >
-                    ⭐
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute -bottom-2 left-1/2 text-lg animate-sparkle"
-                    style={{ ['--sx']: '-8px', ['--sy']: '14px', animationDelay: '0.4s' }}
-                  >
-                    🎈
-                  </span>
-                </>
-              )}
-            </div>
+            <Link
+              to="/kindertagespflege"
+              onClick={() => {
+                trackEvent('cta_click', { label: 'Kindertagespflege finden', location: 'hero' });
+                trackEvent('engagement_kindertagespflege_finden', { page: 'home', platform: 'web', location: 'hero' });
+              }}
+              className="rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg"
+            >
+              Kindertagespflege finden
+            </Link>
             <button
               type="button"
               onClick={handleAuthButtonClick}
