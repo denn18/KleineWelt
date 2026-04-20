@@ -262,7 +262,7 @@ function DashboardPage() {
 
   const pageTitle = routeCitySlug
     ? `Tagesmütter und Väter in ${seoCityName}`
-    : 'Kindertagespflege finden';
+    : 'Tagesmutter finden';
 
   const seoIntro = useMemo(() => {
     if (!seoCityName) {

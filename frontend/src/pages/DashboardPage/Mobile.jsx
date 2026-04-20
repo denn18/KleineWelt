@@ -256,7 +256,7 @@ function DashboardPageMobile() {
 
   const pageTitle = routeCitySlug
     ? `Tagesmütter & Väter in ${seoCityName}`
-    : 'Familienzentrum';
+    : 'Tagesmutter finden';
 
   const seoIntro = useMemo(() => {
     if (!seoCityName) {
