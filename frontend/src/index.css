@@ -31,3 +31,54 @@ body {
 .animate-scroll:hover {
   animation-play-state: paused;
 }
+
+@keyframes gentle-bounce {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.04);
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 hsl(var(--brand-400) / 0.5),
+      0 4px 12px hsl(var(--brand-600) / 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 0 16px hsl(var(--brand-400) / 0),
+      0 12px 28px hsl(var(--brand-600) / 0.5);
+  }
+}
+
+@keyframes sparkle-float {
+  0% {
+    transform: translate(0, 0) scale(0.9);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--sx, 0), var(--sy, -30px)) scale(1.2);
+    opacity: 0;
+  }
+}
+
+.animate-attention {
+  animation:
+    gentle-bounce 1s ease-in-out 2,
+    glow-pulse 1s ease-in-out 2;
+  transform-origin: center;
+}
+
+.animate-sparkle {
+  position: absolute;
+  pointer-events: none;
+  animation: sparkle-float 1s ease-out 2;
+}
