@@ -152,12 +152,41 @@ function LoginPageMobile() {
           ) : null}
         </form>
 
-        <p className="mt-6 text-center text-sm text-slate-600">
-          Neu bei Wimmel Welt?{' '}
-          <Link to="/anmelden" className="font-semibold text-brand-600 hover:text-brand-700">
+        <div className="mt-6 relative">
+          <div className="absolute inset-0 flex items-center" aria-hidden="true">
+            <div className="w-full border-t border-brand-100" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-white/90 px-4 text-xs font-medium uppercase tracking-wider text-slate-600">Noch kein Konto?</span>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl border-2 border-brand-200 bg-brand-50/60 p-5 text-center">
+          <h2 className="mb-1 text-lg font-bold text-slate-800">Neu bei Wimmel Welt?</h2>
+          <p className="mb-4 text-sm text-slate-600">
+            Erstelle in wenigen Minuten dein kostenloses Konto und finde die passende Kindertagespflege.
+          </p>
+          <Link
+            to="/anmelden"
+            className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-brand-600 bg-white px-6 py-3 text-sm font-semibold text-brand-600 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:bg-brand-600 hover:text-white hover:shadow-lg"
+          >
             Jetzt kostenlos registrieren
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="m12 5 7 7-7 7" />
+            </svg>
           </Link>
-        </p>
+        </div>
       </div>
 
       {/* Small footer like app (optional, harmless) */}
