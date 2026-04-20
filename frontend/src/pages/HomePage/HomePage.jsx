@@ -115,31 +115,29 @@ function HomePage() {
                 trackEvent('cta_click', { label: 'Kindertagespflege finden', location: 'hero' });
                 trackEvent('engagement_kindertagespflege_finden', { page: 'home', platform: 'web', location: 'hero' });
               }}
-              className={`relative rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg ${animateCta ? 'animate-attention' : ''}`}
+              className="relative rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg animate-attention"
             >
               Kindertagespflege finden
-              {animateCta && (
-                <>
-                  <span
-                    className="animate-sparkle"
-                    style={{ '--sx': '-14px', '--sy': '-24px', top: '-10px', left: '16%' }}
-                  >
-                    ✨
-                  </span>
-                  <span
-                    className="animate-sparkle"
-                    style={{ '--sx': '0px', '--sy': '-34px', top: '-12px', left: '48%', animationDelay: '0.2s' }}
-                  >
-                    ⭐
-                  </span>
-                  <span
-                    className="animate-sparkle"
-                    style={{ '--sx': '14px', '--sy': '-26px', top: '-8px', left: '76%', animationDelay: '0.4s' }}
-                  >
-                    🎈
-                  </span>
-                </>
-              )}
+              <>
+                <span
+                  className="animate-sparkle"
+                  style={{ '--sx': '-14px', '--sy': '-24px', top: '-10px', left: '16%' }}
+                >
+                  ✨
+                </span>
+                <span
+                  className="animate-sparkle"
+                  style={{ '--sx': '0px', '--sy': '-34px', top: '-12px', left: '48%', animationDelay: '0.2s' }}
+                >
+                  ⭐
+                </span>
+                <span
+                  className="animate-sparkle"
+                  style={{ '--sx': '14px', '--sy': '-26px', top: '-8px', left: '76%', animationDelay: '0.4s' }}
+                >
+                  🎈
+                </span>
+              </>
             </Link>
             <button
               type="button"

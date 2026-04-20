@@ -61,9 +61,11 @@ body {
     transform: translate(0, 0) scale(0.9);
     opacity: 0;
   }
-  20% {
+  10%,
+  30% {
     opacity: 1;
   }
+  50%,
   100% {
     transform: translate(var(--sx, 0), var(--sy, -30px)) scale(1.2);
     opacity: 0;
@@ -72,13 +74,13 @@ body {
 
 .animate-attention {
   animation:
-    gentle-bounce 1s ease-in-out 2,
-    glow-pulse 1s ease-in-out 2;
+    gentle-bounce 2s ease-in-out infinite,
+    glow-pulse 2s ease-in-out infinite;
   transform-origin: center;
 }
 
 .animate-sparkle {
   position: absolute;
   pointer-events: none;
-  animation: sparkle-float 1s ease-out 2;
+  animation: sparkle-float 2s ease-out infinite;
 }
