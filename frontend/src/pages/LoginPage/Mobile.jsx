@@ -15,6 +15,7 @@ function LoginPageMobile() {
   const location = useLocation();
 
   const timeoutRef = useRef(null);
+  const darkbluefont = '#353e73';
 
   useEffect(() => {
     return () => {
@@ -56,9 +57,9 @@ function LoginPageMobile() {
   return (
     <section className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 py-6">
       {/* Brand Header (mobile like app) */}
-      <div className="flex flex-col items-center gap-2 pt-2">
+      {/* <div className="flex flex-col items-center gap-2 pt-2">
         <p className="text-xl font-extrabold text-brand-700">Wimmel Welt</p>
-      </div>
+      </div> */}
 
       {/* Card */}
       <div className="rounded-3xl border border-brand-100 bg-white/90 p-6 shadow-lg">
@@ -162,7 +163,7 @@ function LoginPageMobile() {
         </div>
 
         <div className="mt-4 rounded-2xl border-2 border-brand-200 bg-brand-50/60 p-5 text-center">
-          <h2 className="mb-1 text-lg font-bold text-slate-800">Neu bei Wimmel Welt?</h2>
+          <h2 className="mb-1 text-lg  font-bold text-[#353e73]">Neu bei Wimmel Welt?</h2>
           <p className="mb-4 text-sm text-slate-600">
             Erstelle in wenigen Minuten dein kostenloses Konto und finde die passende Kindertagespflege.
           </p>

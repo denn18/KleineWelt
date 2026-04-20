@@ -106,7 +106,7 @@ function LoginPage() {
         </div>
       </div>
       <div className="rounded-2xl border-2 border-brand-200 bg-brand-50/60 p-6 text-center">
-        <h2 className="mb-1 text-lg font-bold text-slate-800">Neu bei Wimmel Welt?</h2>
+        <h2 className="mb-1 text-lg font-bold text-[#353e73]">Neu bei Wimmel Welt?</h2>
         <p className="mb-4 text-sm text-slate-600">
           Erstelle in wenigen Minuten dein kostenloses Konto und finde die passende Kindertagespflege.
         </p>
