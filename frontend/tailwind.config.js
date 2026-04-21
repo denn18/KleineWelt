@@ -4,6 +4,7 @@ export default {
     extend: {
       colors: {
         card: '#ffffff',
+        page: '#f1f3fe',
         brand: {
           50: '#f1f7fb',
           100: '#dceafd',
