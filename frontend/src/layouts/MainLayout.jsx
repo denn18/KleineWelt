@@ -4,9 +4,9 @@ import Footer from '../components/Footer.jsx';
 
 function MainLayout() {
   return (
-    <div className="flex min-h-screen flex-col bg-white md:bg-page">
+    <div className="flex min-h-screen flex-col bg-page">
       <NavigationBar />
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-16 bg-white md:bg-page px-4 pb-16 pt-24">
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-16 bg-page px-4 pb-16 pt-24">
         <Outlet />
       </main>
       <Footer />
