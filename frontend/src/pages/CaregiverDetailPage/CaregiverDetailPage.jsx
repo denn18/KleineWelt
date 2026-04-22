@@ -310,12 +310,9 @@ function CaregiverDetailPage() {
             <button
               type="button"
               onClick={handleStartConversation}
-              className="relative rounded-full bg-brand-600 px-6 py-2 text-sm font-semibold text-white shadow transition hover:bg-brand-700 animate-attention"
+              className="rounded-full bg-brand-600 px-6 py-2 text-sm font-semibold text-white shadow transition hover:bg-brand-700"
             >
               Nachricht schreiben
-              <span className="animate-sparkle" style={{ '--sx': '-8px', '--sy': '-26px', top: '-6px', left: '12px' }}>✨</span>
-              <span className="animate-sparkle" style={{ '--sx': '10px', '--sy': '-28px', top: '4px', right: '10px', animationDelay: '0.35s' }}>✨</span>
-              <span className="animate-sparkle" style={{ '--sx': '0px', '--sy': '-24px', bottom: '-2px', left: '50%', animationDelay: '0.7s' }}>✨</span>
             </button>
           </div>
         </div>
