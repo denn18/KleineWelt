@@ -446,7 +446,7 @@ function ParentSignupPageMobile() {
           className="w-full rounded-2xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-300"
           disabled={submitting}
         >
-          {submitting ? 'Wird gesendet…' : 'Anfrage senden'}
+          {submitting ? 'Wird gespeichert…' : 'Profil speichern'}
         </button>
 
         {status ? (
