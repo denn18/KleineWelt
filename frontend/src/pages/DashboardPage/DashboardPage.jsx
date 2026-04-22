@@ -501,7 +501,7 @@ function DashboardPage() {
 
       <div className="grid gap-6 xl:grid-cols-[3fr,2fr]">
         <div className="flex flex-col gap-6">
-          <div className="rounded-3xl bg-white/80 p-6 shadow">
+          <div className="flex h-[620px] flex-col rounded-3xl bg-white/80 p-6 shadow">
             <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-brand-700">Gefundene Kindertagespflegepersonen</h2>
@@ -511,7 +511,7 @@ function DashboardPage() {
               </div>
               <span className="text-xs font-semibold text-brand-600">{caregivers.length} Profile</span>
             </header>
-            <div className="mt-4 flex max-h-[480px] flex-col gap-4 overflow-y-auto pr-2">
+            <div className="mt-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pr-2">
               {caregivers.map((caregiver) => {
                 const locationLabel = [caregiver.postalCode, caregiver.city].filter(Boolean).join(' ');
                 const logoUrl = caregiver.logoImageUrl ? assetUrl(caregiver.logoImageUrl) : '';
@@ -807,9 +807,9 @@ function DashboardPage() {
           </div> */}
         </div>
 
-        <aside className="flex flex-col gap-4 rounded-3xl bg-white/80 p-6 shadow">
+        <aside className="flex h-[620px] flex-col gap-4 rounded-3xl bg-white/80 p-6 shadow">
           {selectedCaregiver ? (
-            <div className="flex flex-col gap-4">
+            <div className="flex h-full min-h-0 flex-col gap-4">
               <header className="flex flex-col gap-1">
                 <h2 className="text-2xl font-semibold text-brand-700">{selectedCaregiver.daycareName || selectedCaregiver.name}</h2>
                 <p className="text-sm text-slate-600">
@@ -821,131 +821,161 @@ function DashboardPage() {
                     .join(', ')}
                 </p>
               </header>
-              <div className="flex flex-wrap items-center gap-4">
-                {selectedLogo ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      openLightbox(
-                        selectedLogo,
-                        `Logo von ${selectedCaregiver.daycareName || selectedCaregiver.name}`,
-                      )
-                    }
-                    className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
-                  >
-                    <img
-                      src={selectedLogo}
-                      alt={`Logo von ${selectedCaregiver.daycareName || selectedCaregiver.name}`}
-                      className="h-full w-full object-contain"
-                    />
-                  </button>
-                ) : null}
-                {selectedProfileImage ? (
-                  <button
-                    type="button"
-                    onClick={() => openLightbox(selectedProfileImage, selectedCaregiver.daycareName || selectedCaregiver.name)}
-                    className="h-16 w-16 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
-                  >
-                    <img
-                      src={selectedProfileImage}
-                      alt={selectedCaregiver.daycareName || selectedCaregiver.name}
-                      className="h-full w-full object-cover"
-                    />
-                  </button>
-                ) : null}
-                <div className="flex flex-1 flex-wrap gap-2 text-xs font-semibold text-brand-700">
-                  <span
-                    className={`rounded-full px-3 py-1 ${
-                      isAvailabilityHighlighted({
-                        availableSpots: selectedCaregiver.availableSpots ?? 0,
-                        availabilityTiming: selectedCaregiver.availabilityTiming,
-                        hasAvailability: selectedCaregiver.hasAvailability,
-                      })
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-brand-50 text-slate-600'
-                    }`}
-                  >
-                    {formatAvailableSpotsLabel({
-                      availableSpots: selectedCaregiver.availableSpots ?? 0,
-                      hasAvailability: selectedCaregiver.hasAvailability,
-                      availabilityTiming: selectedCaregiver.availabilityTiming,
-                    })}
-                  </span>
-                  <span className="rounded-full bg-brand-50 px-3 py-1">
-                    {selectedCaregiver.childrenCount ?? 0} betreute Kinder
-                  </span>
-                  {selectedCaregiver.maxChildAge ? (
-                    <span className="rounded-full bg-brand-50 px-3 py-1">
-                      Aufnahme bis {selectedCaregiver.maxChildAge} Jahre
-                    </span>
-                  ) : null}
-                  {selectedSinceYear ? (
-                    <span className="rounded-full bg-brand-50 px-3 py-1">Seit {selectedSinceYear} aktiv</span>
-                  ) : null}
-                </div>
-              </div>
-              <div className="grid gap-3 text-sm text-slate-600">
-                {selectedRoomImages.length ? (
-                  <div className="flex flex-col gap-2">
-                    <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Räumlichkeiten</h3>
-                    <div className="grid grid-cols-3 gap-2">
-                      {selectedRoomImages.slice(0, 3).map((imageUrl, index) => (
+              <div className="min-h-0 flex-1 overflow-y-auto pr-2">
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
+                    {selectedLogo ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openLightbox(
+                            selectedLogo,
+                            `Logo von ${selectedCaregiver.daycareName || selectedCaregiver.name}`,
+                          )
+                        }
+                        className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
+                      >
                         <img
-                          key={`${imageUrl}-${index}`}
-                          src={imageUrl}
-                          alt={`Räumlichkeit ${index + 1}`}
-                          className="h-20 w-full rounded-2xl object-cover"
+                          src={selectedLogo}
+                          alt={`Logo von ${selectedCaregiver.daycareName || selectedCaregiver.name}`}
+                          className="h-full w-full object-contain"
                         />
-                      ))}
+                      </button>
+                    ) : null}
+                    {selectedProfileImage ? (
+                      <button
+                        type="button"
+                        onClick={() => openLightbox(selectedProfileImage, selectedCaregiver.daycareName || selectedCaregiver.name)}
+                        className="h-16 w-16 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
+                      >
+                        <img
+                          src={selectedProfileImage}
+                          alt={selectedCaregiver.daycareName || selectedCaregiver.name}
+                          className="h-full w-full object-cover"
+                        />
+                      </button>
+                    ) : null}
+                    <div className="flex flex-1 flex-wrap gap-2 text-xs font-semibold text-brand-700">
+                      <span
+                        className={`rounded-full px-3 py-1 ${
+                          isAvailabilityHighlighted({
+                            availableSpots: selectedCaregiver.availableSpots ?? 0,
+                            availabilityTiming: selectedCaregiver.availabilityTiming,
+                            hasAvailability: selectedCaregiver.hasAvailability,
+                          })
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'bg-brand-50 text-slate-600'
+                        }`}
+                      >
+                        {formatAvailableSpotsLabel({
+                          availableSpots: selectedCaregiver.availableSpots ?? 0,
+                          hasAvailability: selectedCaregiver.hasAvailability,
+                          availabilityTiming: selectedCaregiver.availabilityTiming,
+                        })}
+                      </span>
+                      <span className="rounded-full bg-brand-50 px-3 py-1">
+                        {selectedCaregiver.childrenCount ?? 0} betreute Kinder
+                      </span>
+                      {selectedCaregiver.maxChildAge ? (
+                        <span className="rounded-full bg-brand-50 px-3 py-1">
+                          Aufnahme bis {selectedCaregiver.maxChildAge} Jahre
+                        </span>
+                      ) : null}
+                      {selectedSinceYear ? (
+                        <span className="rounded-full bg-brand-50 px-3 py-1">Seit {selectedSinceYear} aktiv</span>
+                      ) : null}
                     </div>
-                    {selectedRoomImages.length > 3 ? (
-                      <span className="text-xs text-slate-500">Weitere Bilder findest du im Profil.</span>
+                  </div>
+                  <div className="grid gap-3 text-sm text-slate-600">
+                    {selectedRoomImages.length ? (
+                      <div className="flex flex-col gap-2">
+                        <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Räumlichkeiten</h3>
+                        <div className="grid grid-cols-3 gap-2">
+                          {selectedRoomImages.slice(0, 3).map((imageUrl, index) => (
+                            <img
+                              key={`${imageUrl}-${index}`}
+                              src={imageUrl}
+                              alt={`Räumlichkeit ${index + 1}`}
+                              className="h-20 w-full rounded-2xl object-cover"
+                            />
+                          ))}
+                        </div>
+                        {selectedRoomImages.length > 3 ? (
+                          <span className="text-xs text-slate-500">Weitere Bilder findest du im Profil.</span>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {selectedCaregiver.shortDescription ? (
+                      <div className="flex flex-col gap-1">
+                        <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Kurzbeschreibung</h3>
+                        <p>{selectedCaregiver.shortDescription}</p>
+                      </div>
+                    ) : null}
+                    {selectedCaregiver.bio ? (
+                      <div className="flex flex-col gap-1">
+                        <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Über dich</h3>
+                        <p className="text-sm leading-relaxed">{selectedCaregiver.bio}</p>
+                      </div>
+                    ) : null}
+                    {selectedCaregiver.age ? (
+                      <p>
+                        <span className="font-semibold text-brand-700">Alter:</span> {selectedCaregiver.age} Jahre
+                      </p>
                     ) : null}
                   </div>
-                ) : null}
-                {selectedCaregiver.shortDescription ? (
-                  <div className="flex flex-col gap-1">
-                    <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Kurzbeschreibung</h3>
-                    <p>{selectedCaregiver.shortDescription}</p>
-                  </div>
-                ) : null}
-                {selectedCaregiver.bio ? (
-                  <div className="flex flex-col gap-1">
-                    <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Über dich</h3>
-                    <p className="text-sm leading-relaxed">{selectedCaregiver.bio}</p>
-                  </div>
-                ) : null}
-                {selectedCaregiver.age ? (
-                  <p>
-                    <span className="font-semibold text-brand-700">Alter:</span> {selectedCaregiver.age} Jahre
-                  </p>
-                ) : null}
+                </div>
+              </div>
+              <div className="mt-auto flex flex-col gap-3 border-t border-brand-100 pt-4">
                 {selectedConceptUrl ? (
                   <a
                     href={selectedConceptUrl}
                     onClick={() => trackEvent('engagement_konzeption_durchlesen', { page: 'dashboard', platform: 'web', area: 'detail' })}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex w-fit items-center gap-2 rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
                   >
                     Konzeption als PDF herunterladen
                   </a>
-                ) : null}
+                ) : (
+                  <span className="inline-flex items-center justify-center rounded-full border border-dashed border-brand-200 px-4 py-2 text-xs font-semibold text-slate-400">
+                    Keine Konzeption hinterlegt
+                  </span>
+                )}
                 <Link
                   to={buildCaregiverProfileUrl(selectedCaregiver, { citySlug: routeCitySlug })}
                   onClick={() => trackEvent('engagement_kindertagespflege_kennenlernen', { page: 'dashboard', platform: 'web', area: 'detail' })}
-                  className="inline-flex w-fit items-center gap-2 rounded-full border border-brand-600 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:bg-brand-600 hover:text-white"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-brand-600 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:bg-brand-600 hover:text-white"
                 >
                   Kindertagespflege kennenlernen
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => handleOpenMessenger(selectedCaregiver, 'detail')}
+                  className="relative rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg animate-attention"
+                >
+                  Nachricht schreiben
+                  <>
+                    <span
+                      className="animate-sparkle"
+                      style={{ '--sx': '-12px', '--sy': '-20px', top: '-8px', left: '20%' }}
+                    >
+                      ✨
+                    </span>
+                    <span
+                      className="animate-sparkle"
+                      style={{ '--sx': '0px', '--sy': '-30px', top: '-10px', left: '50%', animationDelay: '0.2s' }}
+                    >
+                      ⭐
+                    </span>
+                    <span
+                      className="animate-sparkle"
+                      style={{ '--sx': '12px', '--sy': '-22px', top: '-8px', left: '78%', animationDelay: '0.4s' }}
+                    >
+                      🎈
+                    </span>
+                  </>
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => handleOpenMessenger(selectedCaregiver, 'detail')}
-                className="rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-700"
-              >
-                Nachricht schreiben
-              </button>
             </div>
           ) : (
             <p className="text-sm text-slate-500">
