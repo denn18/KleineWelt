@@ -294,9 +294,26 @@ export default function Mobile() {
           <button
             type="button"
             onClick={handleStartConversation}
-            className="w-full rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-brand-700"
+            className="relative w-full rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow transition hover:bg-brand-700 animate-attention"
           >
             Nachricht schreiben
+            <>
+              <span className="animate-sparkle" style={{ '--sx': '-12px', '--sy': '-20px', top: '-8px', left: '20%' }}>
+                ✨
+              </span>
+              <span
+                className="animate-sparkle"
+                style={{ '--sx': '0px', '--sy': '-30px', top: '-10px', left: '50%', animationDelay: '0.2s' }}
+              >
+                ⭐
+              </span>
+              <span
+                className="animate-sparkle"
+                style={{ '--sx': '12px', '--sy': '-22px', top: '-8px', left: '78%', animationDelay: '0.4s' }}
+              >
+                🎈
+              </span>
+            </>
           </button>
         </div>
       </header>
