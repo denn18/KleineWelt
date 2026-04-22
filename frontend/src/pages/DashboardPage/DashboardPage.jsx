@@ -340,22 +340,6 @@ function DashboardPage() {
     };
   }, [routeCitySlug, seoCityName, seoIntro]);
 
-  const selectedLogo = selectedCaregiver?.logoImageUrl ? assetUrl(selectedCaregiver.logoImageUrl) : '';
-  const selectedProfileImage = selectedCaregiver?.profileImageUrl ? assetUrl(selectedCaregiver.profileImageUrl) : '';
-  const selectedConceptUrl = selectedCaregiver?.conceptUrl ? assetUrl(selectedCaregiver.conceptUrl) : '';
-  const selectedRoomImages = useMemo(
-    () => (selectedCaregiver?.roomImages ?? []).map((url) => assetUrl(url)),
-    [selectedCaregiver],
-  );
-  const selectedSinceYear = useMemo(() => {
-    if (!selectedCaregiver?.caregiverSince) {
-      return null;
-    }
-    const date = new Date(selectedCaregiver.caregiverSince);
-    return Number.isNaN(date.valueOf()) ? null : date.getFullYear();
-  }, [selectedCaregiver]);
-
-
   function handleCycleRoomImage(caregiverId, direction, area = 'list') {
     setRoomImageIndexes((current) => {
       const caregiverData = caregivers.find((entry) => entry.id === caregiverId);
@@ -499,20 +483,20 @@ function DashboardPage() {
         </button>
       </form>
 
-      <div className="grid gap-6 xl:grid-cols-[3fr,2fr]">
-        <div className="flex flex-col gap-6">
-          <div className="rounded-3xl bg-white/80 p-6 shadow">
+      <div className="flex flex-col gap-6">
+        <div className="rounded-3xl bg-white/80 p-6 shadow">
             <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-brand-700">Gefundene Kindertagespflegepersonen</h2>
                 <p className="text-xs text-slate-500">
-                  Scroll durch die Kacheln, vergleiche Angebote und öffne Details mit einem Klick.
+                  Klicke auf eine Kachel, um erweiterte Informationen, Räumlichkeiten und Kurzbeschreibung zu sehen.
                 </p>
               </div>
               <span className="text-xs font-semibold text-brand-600">{caregivers.length} Profile</span>
             </header>
-            <div className="mt-4 flex max-h-[480px] flex-col gap-4 overflow-y-auto pr-2">
+            <div className="mt-4 flex max-h-[850px] flex-col gap-5 overflow-y-auto pr-2">
               {caregivers.map((caregiver) => {
+                const isExpanded = selectedCaregiver?.id === caregiver.id;
                 const locationLabel = [caregiver.postalCode, caregiver.city].filter(Boolean).join(' ');
                 const logoUrl = caregiver.logoImageUrl ? assetUrl(caregiver.logoImageUrl) : '';
                 const roomImages = (caregiver.roomImages ?? []).map((imageUrl) => assetUrl(imageUrl));
@@ -557,13 +541,18 @@ function DashboardPage() {
                   personInfoParts.push(experienceText);
                 }
                 const personInfo = personInfoParts.join(' · ');
+                const visibleRoomImages = roomImages.length
+                  ? Array.from({ length: Math.min(3, roomImages.length) }, (_, offset) => (
+                    roomImages[(currentRoomIndex + offset) % roomImages.length]
+                  ))
+                  : [];
 
                 return (
                   <article
                     key={caregiver.id}
-                    className={`flex flex-col gap-4 rounded-2xl border px-5 py-4 transition hover:border-brand-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 cursor-pointer ${
-                      selectedCaregiver?.id === caregiver.id
-                        ? 'border-brand-400 bg-brand-50/80'
+                    className={`flex flex-col gap-5 rounded-3xl border px-6 py-5 transition-all duration-200 hover:border-brand-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 cursor-pointer ${
+                      isExpanded
+                        ? 'scale-[1.015] border-brand-400 bg-brand-50/80 shadow-lg'
                         : 'border-brand-100 bg-white'
                     }`}
                     onClick={() => setSelectedCaregiver(caregiver)}
@@ -576,9 +565,9 @@ function DashboardPage() {
                     role="button"
                     tabIndex={0}
                   >
-                    <div className="flex flex-col gap-3">
-                    <div className="flex items-start gap-4">
-                      <div className="flex w-16 flex-col items-center gap-2">
+                    <div className="flex flex-col gap-4">
+                    <div className="flex items-start gap-5">
+                      <div className="flex w-20 flex-col items-center gap-3">
                         <button
                           type="button"
                           onClick={(event) => {
@@ -586,7 +575,7 @@ function DashboardPage() {
                             openLightbox(logoUrl, `Logo von ${caregiver.daycareName || caregiver.name}`);
                           }}
                           disabled={!logoUrl}
-                          className={`flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border ${
+                          className={`flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border ${
                             logoUrl
                               ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
                               : 'border-dashed border-brand-200 bg-brand-50'
@@ -609,7 +598,7 @@ function DashboardPage() {
                             openLightbox(profileImageUrl, caregiver.daycareName || caregiver.name);
                           }}
                           disabled={!profileImageUrl}
-                          className={`h-16 w-16 overflow-hidden rounded-2xl border ${
+                          className={`h-20 w-20 overflow-hidden rounded-2xl border ${
                             profileImageUrl
                               ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
                               : 'border-dashed border-brand-200 bg-brand-50'
@@ -629,14 +618,14 @@ function DashboardPage() {
                           )}
                         </button>
                       </div>
-                      <div className="flex flex-1 flex-col gap-2">
-                        <h3 className="text-base font-semibold text-brand-700">
+                      <div className="flex flex-1 flex-col gap-3">
+                        <h3 className="text-lg font-semibold text-brand-700">
                           {caregiver.daycareName || caregiver.name}
                           </h3>
                           {personInfo ? (
                             <p className="text-sm text-slate-600">{personInfo}</p>
                           ) : null}
-                          <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+                          <div className="flex flex-wrap gap-2 text-sm text-slate-500">
                             <span className="rounded-full bg-brand-50 px-3 py-1">
                               {locationLabel || 'Ort folgt'}
                             </span>
@@ -667,7 +656,7 @@ function DashboardPage() {
                             ) : null}
                           </div>
                         </div>
-                        <div className="relative flex h-20 w-28 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
+                        <div className="relative flex h-24 w-36 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
                           {currentRoomImage ? (
                             <img
                               src={currentRoomImage}
@@ -706,85 +695,98 @@ function DashboardPage() {
                         </div>
                       </div>
                     </div>
-                    
-                    {/* {!collapsed ? (
-                      <div className="grid gap-4 border-t border-brand-100 pt-4 sm:grid-cols-[auto,1fr]">
-                        <div className="flex flex-col items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              openLightbox(profileImageUrl, caregiver.daycareName || caregiver.name);
-                            }}
-                            disabled={!profileImageUrl}
-                            className={`h-24 w-24 overflow-hidden rounded-3xl border ${
-                              profileImageUrl
-                                ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
-                                : 'border-dashed border-brand-200 bg-brand-50'
-                            }`}
-                          >
-                            {profileImageUrl ? (
-                              <img
-                                src={profileImageUrl}
-                                alt={caregiver.daycareName || caregiver.name}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">Kein Bild</div>
-                            )}
-                          </button>
-                          {sinceYear ? (
-                            <span className="text-[11px] font-semibold text-brand-600">
-                              Seit {sinceYear} aktiv
-                            </span>
-                          ) : null}
-                        </div>
-                        <div className="flex flex-col gap-3 text-sm text-slate-600">
-                          {caregiver.bio ? (
-                            <div className="flex flex-col gap-1">
-                              <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Über dich</h3>
-                              <p className="leading-relaxed">{caregiver.bio}</p>
+                    <div className="flex flex-wrap gap-2 border-t border-brand-100 pt-4">
+                      <Link
+                        to={buildCaregiverProfileUrl(caregiver, { citySlug: routeCitySlug })}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          trackEvent('engagement_kindertagespflege_kennenlernen', { page: 'dashboard', platform: 'web', area: 'list_card' });
+                        }}
+                        className={`relative inline-flex items-center justify-center rounded-full border border-brand-600 px-5 py-2 text-sm font-semibold text-brand-600 transition hover:bg-brand-600 hover:text-white ${isExpanded ? 'animate-attention' : ''}`}
+                      >
+                        Kindertagespflege kennenlernen
+                        {isExpanded ? (
+                          <>
+                            <span className="animate-sparkle" style={{ '--sx': '-8px', '--sy': '-26px', top: '-6px', left: '12px' }}>✨</span>
+                            <span className="animate-sparkle" style={{ '--sx': '10px', '--sy': '-28px', top: '4px', right: '10px', animationDelay: '0.35s' }}>✨</span>
+                            <span className="animate-sparkle" style={{ '--sx': '0px', '--sy': '-24px', bottom: '-2px', left: '50%', animationDelay: '0.7s' }}>✨</span>
+                          </>
+                        ) : null}
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleOpenMessenger(caregiver, 'list_card');
+                        }}
+                        className="rounded-full bg-brand-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700"
+                      >
+                        Nachricht schreiben
+                      </button>
+                    </div>
+
+                    {isExpanded ? (
+                      <div className="grid gap-4 border-t border-brand-100 pt-4">
+                        {visibleRoomImages.length ? (
+                          <div className="flex flex-col gap-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Räumlichkeiten</h4>
+                              {roomImages.length > 1 ? (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      handleCycleRoomImage(caregiver.id, -1, 'expanded_card');
+                                    }}
+                                    className="rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                                    aria-label="Vorheriges Raumbild anzeigen"
+                                  >
+                                    ←
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      handleCycleRoomImage(caregiver.id, 1, 'expanded_card');
+                                    }}
+                                    className="rounded-full border border-brand-200 px-3 py-1 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                                    aria-label="Nächstes Raumbild anzeigen"
+                                  >
+                                    →
+                                  </button>
+                                </div>
+                              ) : null}
                             </div>
-                          ) : null}
-                          <div className="flex flex-wrap gap-2 text-xs font-semibold text-brand-700">
-                            <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
-                              {formatAvailableSpotsLabel({
-                                availableSpots: caregiver.availableSpots ?? 0,
-                                hasAvailability: caregiver.hasAvailability,
-                                availabilityTiming: caregiver.availabilityTiming,
-                              })}
-                            </span>
-                            <span className="rounded-full bg-brand-50 px-3 py-1">
-                              {caregiver.childrenCount ?? 0} betreute Kinder
-                            </span>
-                            {caregiver.maxChildAge ? (
-                              <span className="rounded-full bg-brand-50 px-3 py-1">
-                                Aufnahme bis {caregiver.maxChildAge} Jahre
-                              </span>
-                            ) : null}
+                            <div className="grid gap-3 md:grid-cols-3">
+                              {visibleRoomImages.map((imageUrl, index) => (
+                                <button
+                                  type="button"
+                                  key={`${imageUrl}-${index}`}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    openLightbox(imageUrl, `Räumlichkeit ${index + 1} von ${caregiver.daycareName || caregiver.name}`);
+                                  }}
+                                  className="h-36 w-full overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 transition hover:shadow-md"
+                                >
+                                  <img
+                                    src={imageUrl}
+                                    alt={`Räumlichkeit ${index + 1}`}
+                                    className="h-full w-full object-cover"
+                                  />
+                                </button>
+                              ))}
+                            </div>
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            <Link
-                              to={buildCaregiverProfileUrl(caregiver, { citySlug: routeCitySlug })}
-                              onClick={(event) => event.stopPropagation()}
-                              className="rounded-full border border-brand-600 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:bg-brand-600 hover:text-white"
-                            >
-                              Kindertagespflege kennenlernen
-                            </Link>
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleOpenMessenger(caregiver);
-                              }}
-                              className="rounded-full bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700"
-                            >
-                              Nachricht schreiben
-                            </button>
+                        ) : null}
+                        {caregiver.shortDescription ? (
+                          <div className="flex flex-col gap-1">
+                            <h4 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Kurzbeschreibung</h4>
+                            <p className="text-sm text-slate-600">{caregiver.shortDescription}</p>
                           </div>
-                        </div>
+                        ) : null}
                       </div>
-                    ) : null} */}
+                    ) : null}
                   </article>
                 );
               })}
@@ -796,163 +798,6 @@ function DashboardPage() {
               ) : null}
             </div>
           </div>
-          {/*  Google Maps API hier später vernünftig einrichten, kostet Geld
-          <div className="rounded-3xl bg-white/80 p-6 shadow">
-            <h2 className="text-xl font-semibold text-brand-700">Live-Karte</h2>
-            <p className="mb-4 text-xs text-slate-500">
-              Die Karte zeigt dir eine Vorschau der Tagespflegepersonen in deiner Nähe. Für eine genaue Positionierung kannst du
-              später API-Schlüssel für deinen Lieblingskartenanbieter hinterlegen.
-            </p>
-            <MapView caregivers={caregiversForMap} />
-          </div> */}
-        </div>
-
-        <aside className="flex flex-col gap-4 rounded-3xl bg-white/80 p-6 shadow">
-          {selectedCaregiver ? (
-            <div className="flex flex-col gap-4">
-              <header className="flex flex-col gap-1">
-                <h2 className="text-2xl font-semibold text-brand-700">{selectedCaregiver.daycareName || selectedCaregiver.name}</h2>
-                <p className="text-sm text-slate-600">
-                  {[
-                    selectedCaregiver.address,
-                    [selectedCaregiver.postalCode, selectedCaregiver.city].filter(Boolean).join(' '),
-                  ]
-                    .filter(Boolean)
-                    .join(', ')}
-                </p>
-              </header>
-              <div className="flex flex-wrap items-center gap-4">
-                {selectedLogo ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      openLightbox(
-                        selectedLogo,
-                        `Logo von ${selectedCaregiver.daycareName || selectedCaregiver.name}`,
-                      )
-                    }
-                    className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
-                  >
-                    <img
-                      src={selectedLogo}
-                      alt={`Logo von ${selectedCaregiver.daycareName || selectedCaregiver.name}`}
-                      className="h-full w-full object-contain"
-                    />
-                  </button>
-                ) : null}
-                {selectedProfileImage ? (
-                  <button
-                    type="button"
-                    onClick={() => openLightbox(selectedProfileImage, selectedCaregiver.daycareName || selectedCaregiver.name)}
-                    className="h-16 w-16 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50 transition hover:shadow-lg"
-                  >
-                    <img
-                      src={selectedProfileImage}
-                      alt={selectedCaregiver.daycareName || selectedCaregiver.name}
-                      className="h-full w-full object-cover"
-                    />
-                  </button>
-                ) : null}
-                <div className="flex flex-1 flex-wrap gap-2 text-xs font-semibold text-brand-700">
-                  <span
-                    className={`rounded-full px-3 py-1 ${
-                      isAvailabilityHighlighted({
-                        availableSpots: selectedCaregiver.availableSpots ?? 0,
-                        availabilityTiming: selectedCaregiver.availabilityTiming,
-                        hasAvailability: selectedCaregiver.hasAvailability,
-                      })
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : 'bg-brand-50 text-slate-600'
-                    }`}
-                  >
-                    {formatAvailableSpotsLabel({
-                      availableSpots: selectedCaregiver.availableSpots ?? 0,
-                      hasAvailability: selectedCaregiver.hasAvailability,
-                      availabilityTiming: selectedCaregiver.availabilityTiming,
-                    })}
-                  </span>
-                  <span className="rounded-full bg-brand-50 px-3 py-1">
-                    {selectedCaregiver.childrenCount ?? 0} betreute Kinder
-                  </span>
-                  {selectedCaregiver.maxChildAge ? (
-                    <span className="rounded-full bg-brand-50 px-3 py-1">
-                      Aufnahme bis {selectedCaregiver.maxChildAge} Jahre
-                    </span>
-                  ) : null}
-                  {selectedSinceYear ? (
-                    <span className="rounded-full bg-brand-50 px-3 py-1">Seit {selectedSinceYear} aktiv</span>
-                  ) : null}
-                </div>
-              </div>
-              <div className="grid gap-3 text-sm text-slate-600">
-                {selectedRoomImages.length ? (
-                  <div className="flex flex-col gap-2">
-                    <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Räumlichkeiten</h3>
-                    <div className="grid grid-cols-3 gap-2">
-                      {selectedRoomImages.slice(0, 3).map((imageUrl, index) => (
-                        <img
-                          key={`${imageUrl}-${index}`}
-                          src={imageUrl}
-                          alt={`Räumlichkeit ${index + 1}`}
-                          className="h-20 w-full rounded-2xl object-cover"
-                        />
-                      ))}
-                    </div>
-                    {selectedRoomImages.length > 3 ? (
-                      <span className="text-xs text-slate-500">Weitere Bilder findest du im Profil.</span>
-                    ) : null}
-                  </div>
-                ) : null}
-                {selectedCaregiver.shortDescription ? (
-                  <div className="flex flex-col gap-1">
-                    <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Kurzbeschreibung</h3>
-                    <p>{selectedCaregiver.shortDescription}</p>
-                  </div>
-                ) : null}
-                {selectedCaregiver.bio ? (
-                  <div className="flex flex-col gap-1">
-                    <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Über dich</h3>
-                    <p className="text-sm leading-relaxed">{selectedCaregiver.bio}</p>
-                  </div>
-                ) : null}
-                {selectedCaregiver.age ? (
-                  <p>
-                    <span className="font-semibold text-brand-700">Alter:</span> {selectedCaregiver.age} Jahre
-                  </p>
-                ) : null}
-                {selectedConceptUrl ? (
-                  <a
-                    href={selectedConceptUrl}
-                    onClick={() => trackEvent('engagement_konzeption_durchlesen', { page: 'dashboard', platform: 'web', area: 'detail' })}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex w-fit items-center gap-2 rounded-full border border-brand-200 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
-                  >
-                    Konzeption als PDF herunterladen
-                  </a>
-                ) : null}
-                <Link
-                  to={buildCaregiverProfileUrl(selectedCaregiver, { citySlug: routeCitySlug })}
-                  onClick={() => trackEvent('engagement_kindertagespflege_kennenlernen', { page: 'dashboard', platform: 'web', area: 'detail' })}
-                  className="inline-flex w-fit items-center gap-2 rounded-full border border-brand-600 px-4 py-2 text-xs font-semibold text-brand-600 transition hover:bg-brand-600 hover:text-white"
-                >
-                  Kindertagespflege kennenlernen
-                </Link>
-              </div>
-              <button
-                type="button"
-                onClick={() => handleOpenMessenger(selectedCaregiver, 'detail')}
-                className="rounded-full bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-700"
-              >
-                Nachricht schreiben
-              </button>
-            </div>
-          ) : (
-            <p className="text-sm text-slate-500">
-              Wähle eine Tagespflegeperson aus der Liste, um weitere Details zu sehen und eine Unterhaltung zu starten.
-            </p>
-          )}
-        </aside>
       </div>
       <section className="rounded-3xl bg-white/85 p-8 shadow-lg backdrop-blur">
         <h2 className="text-2xl font-semibold text-brand-700">Städte und Regionen</h2>
