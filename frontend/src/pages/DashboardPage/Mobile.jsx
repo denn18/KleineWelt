@@ -513,6 +513,10 @@ function DashboardPageMobile() {
             if (experienceText) personInfoParts.push(experienceText);
 
             const personInfo = personInfoParts.join(' · ');
+            const isLargeDaycare = caregiver.isLargeDaycare === true;
+            const largeDaycareOperatorCount = Array.isArray(caregiver.largeDaycareOperators)
+              ? caregiver.largeDaycareOperators.filter((entry) => `${entry ?? ''}`.trim()).length
+              : 0;
 
             const isActive = selectedCaregiver?.id === caregiver.id;
 
@@ -522,7 +526,9 @@ function DashboardPageMobile() {
                 className={`flex flex-col gap-3 rounded-3xl border p-4 shadow-sm transition-all duration-300 active:scale-[0.99] ${
                   isActive
                     ? 'scale-[1.02] border-brand-400 bg-brand-50/80 shadow-md'
-                    : 'border-brand-100 bg-white/90'
+                    : isLargeDaycare
+                      ? 'border-sky-200 bg-sky-50/50'
+                      : 'border-brand-100 bg-white/90'
                 }`}
                 onClick={() => handleSelectCaregiver(caregiver)}
                 onKeyDown={(event) => {
@@ -623,6 +629,16 @@ function DashboardPageMobile() {
 
                       {caregiver.maxChildAge ? (
                         <span className="rounded-full bg-brand-50 px-3 py-1">bis {caregiver.maxChildAge} Jahre</span>
+                      ) : null}
+                      {isLargeDaycare ? (
+                        <span className="rounded-full bg-sky-100 px-3 py-1 font-semibold text-sky-800">
+                          Großkindertagespflege
+                        </span>
+                      ) : null}
+                      {isLargeDaycare ? (
+                        <span className="rounded-full bg-violet-100 px-3 py-1 font-semibold text-violet-800">
+                          {largeDaycareOperatorCount} Betreiber
+                        </span>
                       ) : null}
                     </div>
                   </div>
