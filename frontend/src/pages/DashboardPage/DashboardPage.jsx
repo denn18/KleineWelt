@@ -557,14 +557,20 @@ function DashboardPage() {
                   personInfoParts.push(experienceText);
                 }
                 const personInfo = personInfoParts.join(' · ');
+                const isLargeDaycare = caregiver.isLargeDaycare === true;
+                const largeDaycareOperatorCount = Array.isArray(caregiver.largeDaycareOperators)
+                  ? caregiver.largeDaycareOperators.filter((entry) => `${entry ?? ''}`.trim()).length
+                  : 0;
 
                 return (
                   <article
                     key={caregiver.id}
-                    className={`flex flex-col gap-4 rounded-2xl border px-5 py-4 transition hover:border-brand-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 cursor-pointer ${
+                    className={`flex flex-col gap-4 rounded-2xl border px-5 py-4 transition hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 cursor-pointer ${
                       selectedCaregiver?.id === caregiver.id
                         ? 'border-brand-400 bg-brand-50/80'
-                        : 'border-brand-100 bg-white'
+                        : isLargeDaycare
+                          ? 'border-sky-200 bg-sky-50/40 hover:border-sky-300'
+                          : 'border-brand-100 bg-white hover:border-brand-300'
                     }`}
                     onClick={() => setSelectedCaregiver(caregiver)}
                     onKeyDown={(event) => {
@@ -663,6 +669,16 @@ function DashboardPage() {
                             {caregiver.maxChildAge ? (
                               <span className="rounded-full bg-brand-50 px-3 py-1">
                                 bis {caregiver.maxChildAge} Jahre
+                              </span>
+                            ) : null}
+                            {isLargeDaycare ? (
+                              <span className="rounded-full bg-sky-100 px-3 py-1 font-semibold text-sky-800">
+                                Großkindertagespflege
+                              </span>
+                            ) : null}
+                            {isLargeDaycare ? (
+                              <span className="rounded-full bg-violet-100 px-3 py-1 font-semibold text-violet-800">
+                                {largeDaycareOperatorCount} Betreiber
                               </span>
                             ) : null}
                           </div>

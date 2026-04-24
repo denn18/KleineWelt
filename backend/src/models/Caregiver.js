@@ -106,6 +106,16 @@ function normalizeContractDocuments(input) {
     .filter(Boolean);
 }
 
+function normalizeLargeDaycareOperators(input) {
+  if (!Array.isArray(input)) {
+    return [];
+  }
+
+  return input
+    .map((entry) => (typeof entry === 'string' ? entry.trim() : ''))
+    .filter(Boolean);
+}
+
 export function serializeCaregiver(document) {
   if (!document) {
     return null;
@@ -202,6 +212,11 @@ export function buildCaregiverDocument(data) {
   const roomImages = normalizeImageArray(data.roomImages);
   const caregiverImages = normalizeImageArray(data.caregiverImages);
   const contractDocuments = normalizeContractDocuments(data.contractDocuments);
+  const isLargeDaycare =
+    typeof data.isLargeDaycare === 'string'
+      ? data.isLargeDaycare.toLowerCase() === 'true'
+      : Boolean(data.isLargeDaycare);
+  const largeDaycareOperators = isLargeDaycare ? normalizeLargeDaycareOperators(data.largeDaycareOperators) : [];
   const closedDays = Array.isArray(data.closedDays)
     ? data.closedDays.map((day) => day?.trim()).filter(Boolean)
     : [];
@@ -243,6 +258,8 @@ export function buildCaregiverDocument(data) {
     roomImages,
     caregiverImages,
     contractDocuments,
+    isLargeDaycare,
+    largeDaycareOperators,
     closedDays,
     username: data.username?.trim() || data.email?.trim(),
     password: data.password,
@@ -353,6 +370,18 @@ export function buildCaregiverUpdate(data) {
   }
   if (data.contractDocuments !== undefined) {
     update.contractDocuments = normalizeContractDocuments(data.contractDocuments);
+  }
+  if (data.isLargeDaycare !== undefined) {
+    update.isLargeDaycare =
+      typeof data.isLargeDaycare === 'string'
+        ? data.isLargeDaycare.toLowerCase() === 'true'
+        : Boolean(data.isLargeDaycare);
+  }
+  if (data.largeDaycareOperators !== undefined) {
+    update.largeDaycareOperators = normalizeLargeDaycareOperators(data.largeDaycareOperators);
+  }
+  if (update.isLargeDaycare === false) {
+    update.largeDaycareOperators = [];
   }
   if (data.closedDays !== undefined) {
     update.closedDays = Array.isArray(data.closedDays)
