@@ -74,8 +74,6 @@ function buildInitialState() {
     careTimes: [createScheduleEntry({ startTime: '07:30', endTime: '09:00', activity: 'Bringzeit' })],
     dailySchedule: [createScheduleEntry()],
     closedDays: [],
-    isLargeDaycare: false,
-    largeDaycareOperators: [''],
     username: '',
     password: '',
   };
@@ -171,40 +169,6 @@ function CaregiverSignupPage() {
     setFormState((current) => ({
       ...current,
       closedDays: current.closedDays.filter((entry) => entry !== day),
-    }));
-  }
-
-  function handleLargeDaycareToggle(value) {
-    setFormState((current) => ({
-      ...current,
-      isLargeDaycare: value,
-      largeDaycareOperators: value ? (current.largeDaycareOperators.length ? current.largeDaycareOperators : ['']) : [],
-    }));
-  }
-
-  function handleLargeDaycareOperatorChange(index, value) {
-    setFormState((current) => ({
-      ...current,
-      largeDaycareOperators: current.largeDaycareOperators.map((entry, entryIndex) =>
-        entryIndex === index ? value : entry
-      ),
-    }));
-  }
-
-  function handleAddLargeDaycareOperator() {
-    setFormState((current) => ({
-      ...current,
-      largeDaycareOperators: [...current.largeDaycareOperators, ''],
-    }));
-  }
-
-  function handleRemoveLargeDaycareOperator(index) {
-    setFormState((current) => ({
-      ...current,
-      largeDaycareOperators:
-        current.largeDaycareOperators.length <= 1
-          ? ['']
-          : current.largeDaycareOperators.filter((_, entryIndex) => entryIndex !== index),
     }));
   }
 
@@ -336,10 +300,6 @@ function CaregiverSignupPage() {
         mealPlan: formState.mealPlan,
         roomImages: roomGallery.map((image) => ({ dataUrl: image.dataUrl, fileName: image.fileName })),
         closedDays: formState.closedDays,
-        isLargeDaycare: formState.isLargeDaycare,
-        largeDaycareOperators: formState.isLargeDaycare
-          ? formState.largeDaycareOperators.map((entry) => entry.trim()).filter(Boolean)
-          : [],
       });
 
       setStatus({
@@ -401,29 +361,6 @@ function CaregiverSignupPage() {
       <form className="grid gap-6" onSubmit={handleSubmit}>
         <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
           <h2 className="text-lg font-semibold text-brand-700">Basisdaten deiner Kindertagespflege</h2>
-          <div className="rounded-2xl border border-brand-100 bg-brand-50/60 p-4">
-            <p className="text-sm font-semibold text-slate-700">Betreiben Sie eine Großkindertagespflege?</p>
-            <div className="mt-3 inline-flex rounded-full border border-brand-200 bg-white p-1">
-              <button
-                type="button"
-                onClick={() => handleLargeDaycareToggle(false)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  formState.isLargeDaycare ? 'text-slate-600 hover:bg-slate-100' : 'bg-brand-600 text-white shadow-sm'
-                }`}
-              >
-                Nein
-              </button>
-              <button
-                type="button"
-                onClick={() => handleLargeDaycareToggle(true)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  formState.isLargeDaycare ? 'bg-brand-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                Ja
-              </button>
-            </div>
-          </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
               <span className="flex items-center gap-1">
@@ -520,37 +457,6 @@ function CaregiverSignupPage() {
             />
           </label>
         </div>
-        {formState.isLargeDaycare ? (
-          <div className="grid gap-3 rounded-2xl border border-sky-200 bg-sky-50/70 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-semibold text-sky-800">Betreiber der Großkindertagespflege</h3>
-              <button
-                type="button"
-                onClick={handleAddLargeDaycareOperator}
-                className="rounded-full border border-sky-300 bg-white px-3 py-1 text-xs font-semibold text-sky-700 transition hover:bg-sky-100"
-              >
-                Betreiber hinzufügen
-              </button>
-            </div>
-            {formState.largeDaycareOperators.map((operatorName, index) => (
-              <div key={`large-daycare-operator-${index}`} className="flex items-center gap-2">
-                <input
-                  value={operatorName}
-                  onChange={(event) => handleLargeDaycareOperatorChange(index, event.target.value)}
-                  placeholder={`Betreiber ${index + 1}`}
-                  className="w-full rounded-xl border border-sky-200 bg-white px-4 py-2 text-sm shadow-sm focus:border-sky-400 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveLargeDaycareOperator(index)}
-                  className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100"
-                >
-                  Entfernen
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : null}
         </section>
 
         <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
