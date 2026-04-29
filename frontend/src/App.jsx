@@ -13,6 +13,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import CaregiverDetailPage from './pages/CaregiverDetailPage/index.jsx';
 import ContactPage from './pages/ContactPage/index.jsx';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage/index.jsx';
+import TermsPage from './pages/TermsPage/TermsPage.jsx';
 import ImprintPage from './pages/ImprintPage/index.jsx';
 import FAQPage from './pages/FAQPage/index.jsx';
 import Kindertagespflegegruppe from './pages/Kindertagespflegegruppe.jsx';
@@ -36,6 +37,7 @@ function App() {
         <Route path="kontakt" element={<ContactPage />} />
         <Route path="faq" element={<FAQPage />} />
         <Route path="datenschutz" element={<PrivacyPolicyPage />} />
+        <Route path="agb" element={<TermsPage />} />
         <Route path="impressum" element={<ImprintPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route

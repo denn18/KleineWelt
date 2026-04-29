@@ -32,6 +32,8 @@ function ParentSignupPageMobile() {
   const [children, setChildren] = useState([createChild()]);
   const [profileImage, setProfileImage] = useState({ preview: '', dataUrl: null, fileName: '' });
   const [status, setStatus] = useState(null);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const navigate = useNavigate();
@@ -86,6 +88,11 @@ function ParentSignupPageMobile() {
       page_path: pagePath,
     });
     trackEvent('form_submit', { form_name: 'parent_signup' });
+    if (!acceptTerms) {
+      setStatus({ type: 'error', message: 'Bitte akzeptiere die AGB, um ein Konto zu erstellen.' });
+      return;
+    }
+
     setSubmitting(true);
     setStatus(null);
 
@@ -104,6 +111,8 @@ function ParentSignupPageMobile() {
         profileImageName: profileImage.fileName,
         childrenAges: cleanedChildren.map((child) => child.age).filter(Boolean).join(', '),
         numberOfChildren: cleanedChildren.filter((child) => child.name).length,
+        acceptTerms,
+        newsletterOptIn,
       });
 
       const credentials = {
@@ -142,6 +151,8 @@ function ParentSignupPageMobile() {
       setFormState(initialState);
       setChildren([createChild()]);
       setProfileImage({ preview: '', dataUrl: null, fileName: '' });
+      setAcceptTerms(false);
+      setNewsletterOptIn(false);
     } catch (error) {
       console.error(error);
       const reason = error?.response?.data?.message || error?.message;
@@ -441,6 +452,30 @@ function ParentSignupPageMobile() {
           />
         </label>
 
+        <section className="grid gap-3 rounded-2xl border border-brand-200 bg-brand-50/40 p-4 text-sm text-slate-700">
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              checked={acceptTerms}
+              onChange={(event) => setAcceptTerms(event.target.checked)}
+              required
+              className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+            />
+            <span>
+              Ich akzeptiere die <Link to="/agb" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-700 underline">AGB</Link>.
+              <span className="text-rose-500"> *</span>
+            </span>
+          </label>
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              checked={newsletterOptIn}
+              onChange={(event) => setNewsletterOptIn(event.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+            />
+            <span>Ich möchte den Newsletter mit Tipps und Neuigkeiten erhalten (optional, jederzeit abbestellbar).</span>
+          </label>
+        </section>
         <button
           type="submit"
           className="w-full rounded-2xl bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-300"

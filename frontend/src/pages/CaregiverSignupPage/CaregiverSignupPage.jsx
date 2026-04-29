@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext.jsx';
 import IconUploadButton from '../components/IconUploadButton.jsx';
@@ -86,6 +86,8 @@ function CaregiverSignupPage() {
   const [conceptFile, setConceptFile] = useState({ dataUrl: null, fileName: '' });
   const [roomGallery, setRoomGallery] = useState([]);
   const [status, setStatus] = useState(null);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [roomGalleryOffset, setRoomGalleryOffset] = useState(0);
   const [closedDayInput, setClosedDayInput] = useState('');
@@ -273,6 +275,11 @@ function CaregiverSignupPage() {
       page_path: pagePath,
     });
     trackEvent('form_submit', { form_name: 'caregiver_signup' });
+    if (!acceptTerms) {
+      setStatus({ type: 'error', message: 'Bitte akzeptiere die AGB, um ein Konto zu erstellen.' });
+      return;
+    }
+
     setSubmitting(true);
     setStatus(null);
 
@@ -300,6 +307,8 @@ function CaregiverSignupPage() {
         mealPlan: formState.mealPlan,
         roomImages: roomGallery.map((image) => ({ dataUrl: image.dataUrl, fileName: image.fileName })),
         closedDays: formState.closedDays,
+        acceptTerms,
+        newsletterOptIn,
       });
 
       setStatus({
@@ -331,11 +340,15 @@ function CaregiverSignupPage() {
 
       setFormState(buildInitialState());
       setProfileImage({ preview: '', dataUrl: null, fileName: '' });
+      setAcceptTerms(false);
+      setNewsletterOptIn(false);
       setLogoImage({ preview: '', dataUrl: null, fileName: '' });
       setConceptFile({ dataUrl: null, fileName: '' });
       setRoomGallery([]);
       setRoomGalleryOffset(0);
       setClosedDayInput('');
+      setAcceptTerms(false);
+      setNewsletterOptIn(false);
     } catch (error) {
       console.error(error);
       const reason = error?.response?.data?.message || error?.message;
@@ -994,6 +1007,30 @@ function CaregiverSignupPage() {
               Noch keine Bilder ausgewählt. Lade Fotos deiner Räume hoch, um Eltern einen Eindruck zu vermitteln.
             </p>
           )}
+        </section>
+        <section className="grid gap-3 rounded-2xl border border-brand-200 bg-brand-50/40 p-4 text-sm text-slate-700">
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              checked={acceptTerms}
+              onChange={(event) => setAcceptTerms(event.target.checked)}
+              required
+              className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+            />
+            <span>
+              Ich akzeptiere die <Link to="/agb" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-700 underline">AGB</Link>.
+              <span className="text-rose-500"> *</span>
+            </span>
+          </label>
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              checked={newsletterOptIn}
+              onChange={(event) => setNewsletterOptIn(event.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+            />
+            <span>Ich möchte den Newsletter mit Tipps und Neuigkeiten erhalten (optional, jederzeit abbestellbar).</span>
+          </label>
         </section>
         <button
           type="submit"
