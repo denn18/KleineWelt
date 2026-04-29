@@ -1,16 +1,16 @@
 function TermsPage() {
   return (
-    <section className="mx-auto flex w-full max-w-4xl flex-col gap-6 rounded-3xl bg-white/90 p-6 shadow-lg sm:p-10">
-      <header className="space-y-2">
+    <section className="mx-auto flex w-full max-w-4xl flex-col gap-6 rounded-3xl bg-white/85 p-6 shadow-lg sm:p-10">
+      <header className="flex flex-col gap-2">
         <h1 className="text-3xl font-semibold text-brand-700">
           Allgemeine Geschäftsbedingungen (AGB) für die Nutzung der Plattform „Wimmel Welt“
         </h1>
         <p className="text-sm text-slate-600">Stand: 29. April 2026</p>
       </header>
 
-      <article className="prose prose-slate max-w-none text-sm leading-relaxed">
-        <section>
-          <h2>1. Geltungsbereich und Vertragsparteien</h2>
+      <div className="grid gap-5 text-sm leading-relaxed text-slate-700">
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-brand-700">1. Geltungsbereich und Vertragsparteien</h2>
           <p>
             <strong>1.1</strong> Diese Allgemeinen Geschäftsbedingungen (AGB) regeln die Nutzung der Online‑Plattform
             „Wimmel Welt“ (nachfolgend „Plattform“) unter der Domain www.wimmel-welt.de durch registrierte Nutzer.
@@ -39,8 +39,8 @@ function TermsPage() {
           </p>
         </section>
 
-        <section>
-          <h2>2. Vertragsgegenstand und Rolle von Wimmel Welt</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-brand-700">2. Vertragsgegenstand und Rolle von Wimmel Welt</h2>
           <p>
             <strong>2.1</strong> Wimmel Welt stellt eine digitale Vermittlungsplattform zur Verfügung, über die Eltern
             und Kindertagespflegepersonen zueinander finden und miteinander in Kontakt treten können.
@@ -58,8 +58,8 @@ function TermsPage() {
           </p>
         </section>
 
-        <section>
-          <h2>3. Registrierung und Nutzerkonto</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-brand-700">3. Registrierung und Nutzerkonto</h2>
           <p>
             <strong>3.1</strong> Die Nutzung der Plattform setzt eine vorherige Registrierung voraus. Die Registrierung
             erfolgt durch Ausfüllen des Online‑Formulars und Akzeptieren dieser AGB sowie der Datenschutzerklärung.
@@ -78,8 +78,8 @@ function TermsPage() {
           </p>
         </section>
 
-        <section>
-          <h2>4. Leistungen von Wimmel Welt und Kosten</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-brand-700">4. Leistungen von Wimmel Welt und Kosten</h2>
           <p>
             <strong>4.1</strong> Wimmel Welt stellt Eltern und Kindertagespflegepersonen derzeit eine kostenlose Nutzung
             der Plattform zur Verfügung.
@@ -96,8 +96,8 @@ function TermsPage() {
           </p>
         </section>
 
-        <section>
-          <h2>5. Sichtbarkeit von Profilen und Matching</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-brand-700">5. Sichtbarkeit von Profilen und Matching</h2>
           <p>
             <strong>5.1</strong> Elternprofile sind nicht öffentlich einsehbar. Sie werden nur für jene
             Kindertagespflegeperson sichtbar, mit der über die Plattform ein konkreter Kontakt aufgenommen wird (z. B.
@@ -113,8 +113,8 @@ function TermsPage() {
           </p>
         </section>
 
-        <section>
-          <h2>6. Pflichten der Nutzer und zulässige Inhalte</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-brand-700">6. Pflichten der Nutzer und zulässige Inhalte</h2>
           <p>
             <strong>6.1</strong> Nutzer sind verpflichtet, bei der Nutzung der Plattform alle geltenden Gesetze sowie diese
             AGB zu beachten.
@@ -139,8 +139,8 @@ function TermsPage() {
           </p>
         </section>
 
-        <section>
-          <h2>7. Kommunikationsfunktionen (Messenger/Chat)</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-brand-700">7. Kommunikationsfunktionen (Messenger/Chat)</h2>
           <p>
             <strong>7.1</strong> Die Plattform stellt einen integrierten Messenger/Chat zur Verfügung, über den Eltern und
             Kindertagespflegepersonen direkt kommunizieren können.
@@ -160,8 +160,8 @@ function TermsPage() {
           </p>
         </section>
 
-        <section>
-          <h2>8. Kündigung, Löschung und Inaktivität</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-brand-700">8. Kündigung, Löschung und Inaktivität</h2>
           <p>
             <strong>8.1</strong> Nutzer können ihr Konto jederzeit ohne Einhaltung einer Frist über die Kontoeinstellungen
             löschen oder die Löschung bei uns beantragen.
@@ -181,8 +181,8 @@ function TermsPage() {
           </p>
         </section>
 
-        <section>
-          <h2>9. Haftung von Wimmel Welt</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-brand-700">9. Haftung von Wimmel Welt</h2>
           <p>
             <strong>9.1</strong> Wimmel Welt haftet unbeschränkt für Schäden aus der Verletzung des Lebens, des Körpers
             oder der Gesundheit, die auf einer vorsätzlichen oder fahrlässigen Pflichtverletzung von Wimmel Welt
@@ -212,8 +212,8 @@ function TermsPage() {
           </p>
         </section>
 
-        <section>
-          <h2>10. E-Mail-Kommunikation und Marketing</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-brand-700">10. E-Mail-Kommunikation und Marketing</h2>
           <p>
             <strong>10.1</strong> Wir nutzen die bei der Registrierung angegebene E-Mail-Adresse, um dir wichtige
             Informationen zur Nutzung der Plattform (z. B. technische Hinweise, Änderungen der AGB oder
@@ -231,8 +231,8 @@ function TermsPage() {
           </p>
         </section>
 
-        <section>
-          <h2>11. Einräumung von Nutzungsrechten</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-brand-700">11. Einräumung von Nutzungsrechten</h2>
           <p>
             <strong>11.1</strong> Mit dem Einstellen von Inhalten (z. B. Texte, Profilinformationen, Fotos, Dokumente)
             räumt der Nutzer Wimmel Welt ein nicht ausschließliches, örtlich unbeschränktes, unentgeltliches Recht
@@ -246,8 +246,8 @@ function TermsPage() {
           </p>
         </section>
 
-        <section>
-          <h2>12. Änderungen dieser AGB</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-brand-700">12. Änderungen dieser AGB</h2>
           <p>
             <strong>12.1</strong> Wimmel Welt behält sich vor, diese AGB mit Wirkung für die Zukunft zu ändern, soweit
             hierfür ein sachlicher Grund besteht (z. B. Anpassung an Gesetzesänderungen, Erweiterung der
@@ -268,8 +268,8 @@ function TermsPage() {
           </p>
         </section>
 
-        <section>
-          <h2>13. Rechtswahl und Gerichtsstand</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-brand-700">13. Rechtswahl und Gerichtsstand</h2>
           <p>
             <strong>13.1</strong> Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des UN-Kaufrechts,
             soweit dem keine zwingenden Verbraucherschutzvorschriften entgegenstehen.
@@ -285,8 +285,8 @@ function TermsPage() {
           </p>
         </section>
 
-        <section>
-          <h2>14. Schlussbestimmungen</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-brand-700">14. Schlussbestimmungen</h2>
           <p>
             <strong>14.1</strong> Sollte eine Bestimmung dieser AGB ganz oder teilweise unwirksam sein oder werden, bleibt
             die Wirksamkeit der übrigen Bestimmungen unberührt. An die Stelle der unwirksamen Regelung tritt die
@@ -297,7 +297,7 @@ function TermsPage() {
             auch eine E-Mail, sofern nicht ausdrücklich eine strengere Form verlangt wird.
           </p>
         </section>
-      </article>
+      </div>
     </section>
   );
 }
