@@ -85,6 +85,8 @@ export default function Mobile() {
   const [roomGalleryOffset, setRoomGalleryOffset] = useState(0);
 
   const [status, setStatus] = useState(null);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [closedDayInput, setClosedDayInput] = useState('');
 
@@ -229,6 +231,11 @@ export default function Mobile() {
       page_path: pagePath,
     });
     trackEvent('form_submit', { form_name: 'caregiver_signup' });
+    if (!acceptTerms) {
+      setStatus({ type: 'error', message: 'Bitte akzeptiere die AGB, um ein Konto zu erstellen.' });
+      return;
+    }
+
     setSubmitting(true);
     setStatus(null);
 
@@ -262,6 +269,8 @@ export default function Mobile() {
 
         roomImages: roomGallery.map((img) => ({ dataUrl: img.dataUrl, fileName: img.fileName })),
         closedDays: formState.closedDays,
+        acceptTerms,
+        newsletterOptIn,
       });
 
       setStatus({ type: 'success', message: 'Vielen Dank! Dein Profil ist angelegt und wird Familien angezeigt.' });
@@ -284,11 +293,15 @@ export default function Mobile() {
 
       setFormState(buildInitialState());
       setProfileImage({ preview: '', dataUrl: null, fileName: '' });
+      setAcceptTerms(false);
+      setNewsletterOptIn(false);
       setLogoImage({ preview: '', dataUrl: null, fileName: '' });
       setConceptFile({ dataUrl: null, fileName: '' });
       setRoomGallery([]);
       setRoomGalleryOffset(0);
       setClosedDayInput('');
+      setAcceptTerms(false);
+      setNewsletterOptIn(false);
     } catch (error) {
       console.error(error);
       const reason = error?.response?.data?.message || error?.message;
@@ -741,6 +754,30 @@ export default function Mobile() {
           placeholder="Beschreibe, welche Mahlzeiten du anbietest."
         />
 
+        <section className="grid gap-3 rounded-2xl border border-brand-200 bg-brand-50/40 p-4 text-sm text-slate-700">
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              checked={acceptTerms}
+              onChange={(event) => setAcceptTerms(event.target.checked)}
+              required
+              className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+            />
+            <span>
+              Ich akzeptiere die <Link to="/agb" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-700 underline">AGB</Link>.
+              <span className="text-rose-500"> *</span>
+            </span>
+          </label>
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              checked={newsletterOptIn}
+              onChange={(event) => setNewsletterOptIn(event.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+            />
+            <span>Ich möchte den Newsletter mit Tipps und Neuigkeiten erhalten (optional, jederzeit abbestellbar).</span>
+          </label>
+        </section>
         <button
           type="submit"
           className="rounded-full bg-brand-600 px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-brand-300"
