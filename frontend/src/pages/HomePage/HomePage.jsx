@@ -11,6 +11,33 @@ import { slugify } from '../../utils/caregiverProfilePath.js';
 
 const darkbluefont = '#353e73';
 
+const pressArticles = [
+  {
+    newspaper: 'Neue Westfälische',
+    title: '„Hilfe für Eltern in Gütersloh: Neue Plattform vermittelt freie Betreuungsplätze“',
+    description:
+      'Die Neue Westfälische berichtet über Wimmel Welt als neue digitale Unterstützung, damit Familien schneller passende Betreuungsplätze finden.',
+    url: 'https://www.nw.de/lokal/kreis_guetersloh/guetersloh/24268119_Hilfe-fuer-Eltern-in-Guetersloh-Neue-Plattform-vermittelt-jetzt-freie-Betreuungsplaetze.html',
+    domain: 'nw.de',
+  },
+  {
+    newspaper: 'Die Glocke',
+    title: '„Kreis Gütersloh: So einfach klappt’s mit dem Betreuungsplatz“',
+    description:
+      'Die Glocke hebt hervor, wie Wimmel Welt die Suche nach Kindertagespflege strukturiert, transparent und alltagsnah für Eltern macht.',
+    url: 'https://www.die-glocke.de/kreis-guetersloh/guetersloh/artikel/kreis-guetersloh-so-einfach-klappts-mit-dem-betreuungsplatz-1775999127?bo_pwl=1&cHash=35ae1ce2afa968bc74dd65d17c6cf586',
+    domain: 'die-glocke.de',
+  },
+  {
+    newspaper: 'GT-Info',
+    title: '„Neue Plattform erleichtert Eltern die Suche“',
+    description:
+      'Auch GT-Info zeigt, wie Wimmel Welt Familien in der Region mit einem modernen Zugang zur Kinderbetreuung aktiv entlastet.',
+    url: 'https://www.gt-info.de/neue-plattform-erleichtert-eltern-die-suche/',
+    domain: 'gt-info.de',
+  },
+];
+
 
 const features = [
   {
@@ -168,6 +195,70 @@ function HomePage() {
         ))}
       </section>
            <LogoCarousel />
+
+      <section className="rounded-3xl bg-brand-50/30 p-8 shadow-sm">
+        <div className="mb-6 flex flex-col gap-2">
+          <p className="text-sm font-semibold uppercase tracking-widest text-brand-500">Presse</p>
+          <h2 className="text-2xl font-semibold text-brand-700">Wimmel Welt in der Presse</h2>
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-3">
+          {pressArticles.map((article) => (
+            <article
+              key={article.url}
+              className="group flex flex-col rounded-2xl border border-brand-100 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+            >
+              <div
+                className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-sky-100 text-sky-600"
+                aria-hidden="true"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H19a1 1 0 0 1 1 1v11.5A2.5 2.5 0 0 1 17.5 19H5a1 1 0 0 1-1-1V6.5Z" />
+                  <path d="M8 8h8" />
+                  <path d="M8 11h8" />
+                  <path d="M8 14h4" />
+                </svg>
+              </div>
+
+              <p className="text-sm font-semibold text-brand-600">{article.newspaper}</p>
+              <h3 className="mt-2 text-lg font-semibold text-brand-700 transition-colors duration-300 group-hover:text-brand-600">
+                {article.title}
+              </h3>
+              <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-600">{article.description}</p>
+
+              <a
+                href={article.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-600 transition-colors duration-200 hover:text-brand-700"
+              >
+                Zum Artikel auf {article.domain}
+                <svg
+                  viewBox="0 0 20 20"
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M4 10h11" />
+                  <path d="m10 5 5 5-5 5" />
+                </svg>
+              </a>
+            </article>
+          ))}
+        </div>
+      </section>
 
            <section className="rounded-3xl bg-white/85 p-8 shadow-lg backdrop-blur">
         <h2 className="text-2xl font-semibold text-brand-700">Städte und Regionen</h2>
