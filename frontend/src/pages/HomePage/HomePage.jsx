@@ -199,17 +199,17 @@ function HomePage() {
       </section>
            <LogoCarousel />
 
-      <section className="rounded-3xl bg-brand-50/30 p-8 shadow-sm">
+      <section>
         <div className="mb-6 flex flex-col gap-2">
           <p className="text-sm font-semibold uppercase tracking-widest text-brand-500">Presse</p>
           <h2 className="text-2xl font-semibold text-brand-700">Wimmel Welt in der Presse</h2>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-3">
           {pressArticles.map((article) => (
             <article
               key={article.url}
-              className="group flex flex-col rounded-2xl border border-brand-100 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+              className="group flex flex-col gap-3 rounded-2xl bg-white/80 p-6 shadow transition duration-300 md:hover:-translate-y-1 md:hover:shadow-lg"
             >
               <div className="mb-4 inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-brand-100">
                 <img src={article.logo} alt={`${article.newspaper} Logo`} className="h-full w-full object-contain p-1" loading="lazy" />
