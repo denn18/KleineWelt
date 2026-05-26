@@ -19,6 +19,7 @@ const pressArticles = [
       'Die Neue Westfälische berichtet über Wimmel Welt als neue digitale Unterstützung, damit Familien schneller passende Betreuungsplätze finden.',
     url: 'https://www.nw.de/lokal/kreis_guetersloh/guetersloh/24268119_Hilfe-fuer-Eltern-in-Guetersloh-Neue-Plattform-vermittelt-jetzt-freie-Betreuungsplaetze.html',
     domain: 'nw.de',
+    logo: '/nw.png',
   },
   {
     newspaper: 'Die Glocke',
@@ -27,6 +28,7 @@ const pressArticles = [
       'Die Glocke hebt hervor, wie Wimmel Welt die Suche nach Kindertagespflege strukturiert, transparent und alltagsnah für Eltern macht.',
     url: 'https://www.die-glocke.de/kreis-guetersloh/guetersloh/artikel/kreis-guetersloh-so-einfach-klappts-mit-dem-betreuungsplatz-1775999127?bo_pwl=1&cHash=35ae1ce2afa968bc74dd65d17c6cf586',
     domain: 'die-glocke.de',
+    logo: '/glocke.png',
   },
   {
     newspaper: 'GT-Info',
@@ -35,6 +37,7 @@ const pressArticles = [
       'Auch GT-Info zeigt, wie Wimmel Welt Familien in der Region mit einem modernen Zugang zur Kinderbetreuung aktiv entlastet.',
     url: 'https://www.gt-info.de/neue-plattform-erleichtert-eltern-die-suche/',
     domain: 'gt-info.de',
+    logo: '/gt-info.png',
   },
 ];
 
@@ -208,24 +211,8 @@ function HomePage() {
               key={article.url}
               className="group flex flex-col rounded-2xl border border-brand-100 bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
             >
-              <div
-                className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-full bg-sky-100 text-sky-600"
-                aria-hidden="true"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H19a1 1 0 0 1 1 1v11.5A2.5 2.5 0 0 1 17.5 19H5a1 1 0 0 1-1-1V6.5Z" />
-                  <path d="M8 8h8" />
-                  <path d="M8 11h8" />
-                  <path d="M8 14h4" />
-                </svg>
+              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-brand-100">
+                <img src={article.logo} alt={`${article.newspaper} Logo`} className="h-full w-full object-contain p-1" loading="lazy" />
               </div>
 
               <p className="text-sm font-semibold text-brand-600">{article.newspaper}</p>
