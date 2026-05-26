@@ -214,7 +214,6 @@ export default function HomePageMobile() {
 
       <section>
         <div className="mb-4 flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-brand-500">Presse</p>
           <h2 className="text-xl font-semibold text-brand-700">Wimmel Welt in der Presse</h2>
         </div>
 

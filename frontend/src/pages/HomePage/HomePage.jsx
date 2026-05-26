@@ -201,7 +201,6 @@ function HomePage() {
 
       <section>
         <div className="mb-6 flex flex-col gap-2">
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-500">Presse</p>
           <h2 className="text-2xl font-semibold text-brand-700">Wimmel Welt in der Presse</h2>
         </div>
 
