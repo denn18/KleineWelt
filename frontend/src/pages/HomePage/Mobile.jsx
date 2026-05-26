@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import heroImage from '../../assets/hero-family.svg';
 import heroImage3 from '../assets/hero-family3.svg';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { trackEvent } from '../utils/analytics.js';
@@ -25,7 +24,35 @@ const features = [
   },
 ];
 
-const darkbluefont = '#353e73';
+const pressArticles = [
+  {
+    newspaper: 'Neue Westfälische',
+    title: '„Hilfe für Eltern in Gütersloh: Neue Plattform vermittelt freie Betreuungsplätze“',
+    description:
+      'Die Neue Westfälische berichtet über Wimmel Welt als neue digitale Unterstützung, damit Familien schneller passende Betreuungsplätze finden.',
+    url: 'https://www.nw.de/lokal/kreis_guetersloh/guetersloh/24268119_Hilfe-fuer-Eltern-in-Guetersloh-Neue-Plattform-vermittelt-jetzt-freie-Betreuungsplaetze.html',
+    domain: 'nw.de',
+    logo: '/nw.png',
+  },
+  {
+    newspaper: 'Die Glocke',
+    title: '„Kreis Gütersloh: So einfach klappt’s mit dem Betreuungsplatz“',
+    description:
+      'Die Glocke hebt hervor, wie Wimmel Welt die Suche nach Kindertagespflege strukturiert, transparent und alltagsnah für Eltern macht.',
+    url: 'https://www.die-glocke.de/kreis-guetersloh/guetersloh/artikel/kreis-guetersloh-so-einfach-klappts-mit-dem-betreuungsplatz-1775999127?bo_pwl=1&cHash=35ae1ce2afa968bc74dd65d17c6cf586',
+    domain: 'die-glocke.de',
+    logo: '/glocke.png',
+  },
+  {
+    newspaper: 'GT-Info',
+    title: '„Neue Plattform erleichtert Eltern die Suche“',
+    description:
+      'Auch GT-Info zeigt, wie Wimmel Welt Familien in der Region mit einem modernen Zugang zur Kinderbetreuung aktiv entlastet.',
+    url: 'https://www.gt-info.de/neue-plattform-erleichtert-eltern-die-suche/',
+    domain: 'gt-info.de',
+    logo: '/gt-info.png',
+  },
+];
 
 export default function HomePageMobile() {
   const navigate = useNavigate();
@@ -183,6 +210,54 @@ export default function HomePageMobile() {
             </p>
           </article>
         ))}
+      </section>
+
+      <section>
+        <div className="mb-4 flex flex-col gap-2">
+          <p className="text-xs font-semibold uppercase tracking-widest text-brand-500">Presse</p>
+          <h2 className="text-xl font-semibold text-brand-700">Wimmel Welt in der Presse</h2>
+        </div>
+
+        <div className="grid gap-4">
+          {pressArticles.map((article) => (
+            <article key={article.url} className="group flex flex-col gap-2 rounded-2xl bg-white/80 p-5 shadow">
+              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-brand-100">
+                <img
+                  src={article.logo}
+                  alt={`${article.newspaper} Logo`}
+                  className="h-full w-full object-contain p-1"
+                  loading="lazy"
+                />
+              </div>
+
+              <p className="text-sm font-semibold text-brand-600">{article.newspaper}</p>
+              <h3 className="text-base font-semibold text-brand-700">{article.title}</h3>
+              <p className="flex-1 text-sm leading-relaxed text-slate-600">{article.description}</p>
+
+              <a
+                href={article.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-brand-600 transition-colors duration-200 hover:text-brand-700"
+              >
+                Zum Artikel auf {article.domain}
+                <svg
+                  viewBox="0 0 20 20"
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M4 10h11" />
+                  <path d="m10 5 5 5-5 5" />
+                </svg>
+              </a>
+            </article>
+          ))}
+        </div>
       </section>
 
 
