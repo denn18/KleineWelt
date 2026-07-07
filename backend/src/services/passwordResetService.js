@@ -49,7 +49,9 @@ function escapeRegExp(value) {
 }
 
 function buildFrontendBaseUrl() {
-  return `${process.env.FRONTEND_URL || 'http://localhost:3000'}`.trim().replace(/\/+$/, '');
+  const configuredUrl = `${process.env.FRONTEND_URL || ''}`.trim();
+  const fallbackUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://wimmel-welt.de';
+  return (configuredUrl || fallbackUrl).replace(/\/+$/, '');
 }
 
 function buildResetLink(rawToken) {
