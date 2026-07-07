@@ -161,9 +161,12 @@ async function findUserByEmail(email) {
 }
 
 async function findResetCandidate(rawToken) {
-  const collections = [getParentsCollection(), getCaregiversCollection()];
+  const collections = [
+    { role: 'parent', collection: getParentsCollection() },
+    { role: 'caregiver', collection: getCaregiversCollection() },
+  ];
 
-  for (const collection of collections) {
+  for (const { role, collection } of collections) {
     const cursor = collection.find({ 'passwordReset.tokenHash': { $exists: true } });
     const users = typeof cursor?.toArray === 'function' ? await cursor.toArray() : [];
 
@@ -175,7 +178,7 @@ async function findResetCandidate(rawToken) {
 
       const matches = await bcrypt.compare(rawToken, reset.tokenHash);
       if (matches) {
-        return { user, collection };
+        return { user, collection, role };
       }
     }
   }
@@ -257,6 +260,12 @@ export async function resetPassword(rawToken, password) {
       },
     }
   );
+
+  console.info('Password reset completed', {
+    userId: candidate.user._id?.toString?.() ?? candidate.user._id,
+    role: candidate.role,
+    email: candidate.user.email,
+  });
 
   return { message: RESET_PASSWORD_SUCCESS_MESSAGE };
 }
