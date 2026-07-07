@@ -12,6 +12,11 @@ export async function loginController(req, res) {
   try {
     const user = await authenticateUser(identifier, password);
     const token = createAuthToken({ id: user.id, role: user.role, email: user.email });
+    console.info('Successful login', {
+      userId: user.id,
+      role: user.role,
+      email: user.email,
+    });
     res.json({ ...user, token });
   } catch (error) {
     console.error('Failed to authenticate user', error);
