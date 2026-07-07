@@ -15,7 +15,6 @@ function LoginPageMobile() {
   const location = useLocation();
 
   const timeoutRef = useRef(null);
-  const darkbluefont = '#353e73';
 
   useEffect(() => {
     return () => {
@@ -189,6 +188,9 @@ function LoginPageMobile() {
           </Link>
         </div>
       </div>
+      <Link to="/passwort-vergessen" className="text-center text-sm font-semibold text-brand-700 hover:text-brand-800">
+        Passwort vergessen?
+      </Link>
 
       {/* Small footer like app (optional, harmless) */}
       <div className="flex flex-col items-center gap-2 pb-2 text-xs text-slate-500">

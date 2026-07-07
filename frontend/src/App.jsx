@@ -20,6 +20,8 @@ import Kindertagespflegegruppe from './pages/Kindertagespflegegruppe.jsx';
 import BetreuungsgruppeErstellenPage from './pages/BetreuungsgruppeErstellen/index.jsx';
 import BetreuungsgruppeChatPage from './pages/BetreuungsgruppeChat/index.jsx';
 import ContactsPage from './pages/ContactsPage/index.jsx';
+import ForgotPasswordPage from './pages/ForgotPasswordPage/index.jsx';
+import ResetPasswordPage from './pages/ResetPasswordPage/index.jsx';
 
 function App() {
   return (
@@ -40,6 +42,8 @@ function App() {
         <Route path="agb" element={<TermsPage />} />
         <Route path="impressum" element={<ImprintPage />} />
         <Route path="login" element={<LoginPage />} />
+        <Route path="passwort-vergessen" element={<ForgotPasswordPage />} />
+        <Route path="passwort-zuruecksetzen" element={<ResetPasswordPage />} />
         <Route
           path="profil"
           element={
