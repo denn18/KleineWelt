@@ -104,8 +104,9 @@ test('requestPasswordReset stores a hashed token with a 30 minute expiry and sen
 });
 
 
-test('requestPasswordReset uses localhost:3000 as the local reset link fallback', async (t) => {
+test('requestPasswordReset uses the production reset link fallback outside development', async (t) => {
   const originalFrontendUrl = process.env.FRONTEND_URL;
+  const originalNodeEnv = process.env.NODE_ENV;
   t.after(() => {
     __resetPasswordResetServiceDependenciesForTesting();
     if (originalFrontendUrl === undefined) {
@@ -113,16 +114,22 @@ test('requestPasswordReset uses localhost:3000 as the local reset link fallback'
     } else {
       process.env.FRONTEND_URL = originalFrontendUrl;
     }
+    if (originalNodeEnv === undefined) {
+      delete process.env.NODE_ENV;
+    } else {
+      process.env.NODE_ENV = originalNodeEnv;
+    }
   });
   delete process.env.FRONTEND_URL;
+  process.env.NODE_ENV = 'production';
   const parent = { _id: createId('parent-local'), email: 'local@example.com', username: 'local', password: 'old-secret' };
   const { emailSender } = setup({ parents: [parent] });
 
   await requestPasswordReset('local@example.com');
 
   const email = emailSender.mock.calls[0].arguments[0];
-  assert.match(email.text, /http:\/\/localhost:3000\/passwort-zuruecksetzen\?token=/);
-  assert.doesNotMatch(email.text, /localhost:5173/);
+  assert.match(email.text, /https:\/\/wimmel-welt\.de\/passwort-zuruecksetzen\?token=/);
+  assert.doesNotMatch(email.text, /localhost/);
   assert.match(email.html, /Passwort zurücksetzen/);
   assert.match(email.html, /background:linear-gradient\(160deg,#1a4a8a 0%,#2d6cb4 30%,#e88ca5 70%,#f5c542 100%\)/);
 });
