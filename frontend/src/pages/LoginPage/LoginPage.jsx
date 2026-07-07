@@ -131,6 +131,9 @@ function LoginPage() {
           </svg>
         </Link>
       </div>
+      <Link to="/passwort-vergessen" className="text-center text-sm font-semibold text-brand-700 hover:text-brand-800">
+        Passwort vergessen?
+      </Link>
     </section>
   );
 }
