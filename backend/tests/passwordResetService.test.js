@@ -75,7 +75,15 @@ test('requestPasswordReset responds neutrally when email does not exist', async 
 });
 
 test('requestPasswordReset stores a hashed token with a 30 minute expiry and sends email', async (t) => {
-  t.after(__resetPasswordResetServiceDependenciesForTesting);
+  const originalFrontendUrl = process.env.FRONTEND_URL;
+  t.after(() => {
+    __resetPasswordResetServiceDependenciesForTesting();
+    if (originalFrontendUrl === undefined) {
+      delete process.env.FRONTEND_URL;
+    } else {
+      process.env.FRONTEND_URL = originalFrontendUrl;
+    }
+  });
   process.env.FRONTEND_URL = 'https://wimmel-welt.de';
   const parent = { _id: createId('parent-1'), email: 'parent@example.com', username: 'parent', password: 'old-secret' };
   const { emailSender } = setup({ parents: [parent] });
@@ -93,6 +101,30 @@ test('requestPasswordReset stores a hashed token with a 30 minute expiry and sen
   assert.equal(emailSender.mock.callCount(), 1);
   assert.equal(emailSender.mock.calls[0].arguments[0].subject, 'Passwort für Wimmel Welt zurücksetzen');
   assert.match(emailSender.mock.calls[0].arguments[0].text, /https:\/\/wimmel-welt\.de\/passwort-zuruecksetzen\?token=/);
+});
+
+
+test('requestPasswordReset uses localhost:3000 as the local reset link fallback', async (t) => {
+  const originalFrontendUrl = process.env.FRONTEND_URL;
+  t.after(() => {
+    __resetPasswordResetServiceDependenciesForTesting();
+    if (originalFrontendUrl === undefined) {
+      delete process.env.FRONTEND_URL;
+    } else {
+      process.env.FRONTEND_URL = originalFrontendUrl;
+    }
+  });
+  delete process.env.FRONTEND_URL;
+  const parent = { _id: createId('parent-local'), email: 'local@example.com', username: 'local', password: 'old-secret' };
+  const { emailSender } = setup({ parents: [parent] });
+
+  await requestPasswordReset('local@example.com');
+
+  const email = emailSender.mock.calls[0].arguments[0];
+  assert.match(email.text, /http:\/\/localhost:3000\/passwort-zuruecksetzen\?token=/);
+  assert.doesNotMatch(email.text, /localhost:5173/);
+  assert.match(email.html, /Passwort zurücksetzen/);
+  assert.match(email.html, /background:linear-gradient\(160deg,#1a4a8a 0%,#2d6cb4 30%,#e88ca5 70%,#f5c542 100%\)/);
 });
 
 test('resetPassword rejects invalid and expired tokens', async (t) => {
