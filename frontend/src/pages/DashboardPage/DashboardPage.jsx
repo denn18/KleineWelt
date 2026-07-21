@@ -547,7 +547,7 @@ function DashboardPage() {
                 return (
                   <article
                     key={caregiver.id}
-                    className={`flex flex-col gap-4 rounded-2xl border px-5 py-5 transition-all duration-300 hover:border-brand-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 cursor-pointer ${
+                    className={`flex flex-col gap-2 rounded-2xl border px-5 py-3 transition-all duration-300 hover:border-brand-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 cursor-pointer ${
                       selectedCaregiver?.id === caregiver.id
                         ? 'border-2 border-brand-500 bg-white shadow-lg'
                         : 'border-brand-100 bg-white'
@@ -564,7 +564,7 @@ function DashboardPage() {
                   >
                     <div className="flex flex-col gap-3">
                     <div className="flex items-start gap-4">
-                      <div className="flex w-28 flex-col items-center gap-3">
+                      <div className="flex w-28 flex-col items-center gap-1">
                         <button
                           type="button"
                           onClick={(event) => {
@@ -572,7 +572,7 @@ function DashboardPage() {
                             openLightbox(logoUrl, `Logo von ${caregiver.daycareName || caregiver.name}`);
                           }}
                           disabled={!logoUrl}
-                          className={`flex h-28 w-28 items-center justify-center overflow-hidden rounded-2xl border ${
+                          className={`flex h-14 w-28 items-center justify-center overflow-hidden rounded-2xl border ${
                             logoUrl
                               ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
                               : 'border-dashed border-brand-200 bg-brand-50'
@@ -595,7 +595,7 @@ function DashboardPage() {
                             openLightbox(profileImageUrl, caregiver.daycareName || caregiver.name);
                           }}
                           disabled={!profileImageUrl}
-                          className={`h-28 w-28 overflow-hidden rounded-2xl border ${
+                          className={`h-14 w-28 overflow-hidden rounded-2xl border ${
                             profileImageUrl
                               ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
                               : 'border-dashed border-brand-200 bg-brand-50'
@@ -615,7 +615,7 @@ function DashboardPage() {
                           )}
                         </button>
                       </div>
-                      <div className="flex flex-1 flex-col gap-2">
+                      <div className="flex flex-1 flex-col gap-1.5">
                         <h3 className="text-2xl font-semibold text-brand-700">
                           {caregiver.daycareName || caregiver.name}
                           </h3>
@@ -653,7 +653,7 @@ function DashboardPage() {
                             ) : null}
                           </div>
                         </div>
-                        <div className="relative flex h-[14.75rem] w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
+                        <div className="relative flex h-[7.25rem] w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
                           {currentRoomImage ? (
                             <img
                               src={currentRoomImage}
@@ -693,7 +693,7 @@ function DashboardPage() {
                       </div>
                     </div>
                     
-                    <div className="flex justify-end pt-1">
+                    <div className="flex justify-end pt-0">
                       <button
                         type="button"
                         onClick={(event) => {
