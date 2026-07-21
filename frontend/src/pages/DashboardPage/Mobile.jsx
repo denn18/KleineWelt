@@ -40,18 +40,6 @@ function calculateYearsSince(value) {
 }
 
 
-const citySeoExtras = {
-  bielefeld:
-    'In Bielefeld suchen viele Familien nach flexibler und verlässlicher Kinderbetreuung in der Nähe. Eine Tagesmutter oder ein Tagesvater kann hier eine passende Alternative zur klassischen Kita sein, vor allem wenn Eltern eine persönliche Betreuung in kleiner Gruppe bevorzugen. Wer eine Tagesmutter finden oder gezielt Kindertagespflege finden möchte, achtet oft auf Betreuungszeiten, freie Plätze, Erfahrung und das pädagogische Konzept. Genau dabei hilft diese Übersicht für Bielefeld.',
-  guetersloh:
-    'In Gütersloh ist die Nachfrage nach persönlicher und familiennaher Betreuung besonders hoch. Viele Eltern möchten eine Tagesmutter in der Nähe finden, die flexible Zeiten, kleine Gruppen und eine ruhige Betreuungsumgebung bietet. Wenn du in Gütersloh Kinderbetreuung suchen oder eine passende Kindertagespflege finden möchtest, sind transparente Profile, freie Plätze und direkte Kontaktmöglichkeiten besonders wichtig. Diese Seite unterstützt dich bei der Tagesmutter Suche in Gütersloh.',
-  herzberg:
-    'In Herzberg wünschen sich viele Familien eine übersichtliche Möglichkeit, passende Kinderbetreuung zu finden. Eine Tagesmutter kann hier eine gute Lösung sein, wenn Eltern eine individuelle Betreuung und ein vertrautes Umfeld für ihr Kind suchen. Wer nach Kindertagespflege in der Nähe sucht, möchte schnell erkennen, welche Betreuungspersonen verfügbar sind, wie das Betreuungskonzept aussieht und ob die Betreuung zum eigenen Alltag passt. Genau dafür ist diese Übersicht für Herzberg gedacht.',
-  'schloss-holte-stukenbrock':
-    'In Schloß Holte-Stukenbrock spielt eine verlässliche und wohnortnahe Betreuung für viele Familien eine wichtige Rolle. Eltern, die eine Tagesmutter in meiner Nähe oder eine flexible Kinderbetreuung in der Nähe suchen, achten besonders auf freie Plätze, Betreuungszeiten und Erfahrung. Eine gute Kindertagespflege kann den Familienalltag deutlich entlasten und Kindern eine persönliche Betreuung in kleiner Runde bieten. Diese Seite hilft dir dabei, passende Angebote in Schloß Holte-Stukenbrock schneller zu vergleichen.',
-  'spenge-wallenbruck':
-    'In Spenge Wallenbrück ist eine persönliche Betreuung oft besonders gefragt, weil Familien kurze Wege und direkte Ansprechpartner schätzen. Wer eine Tagesmutter finden oder Kinderbetreuung suchen möchte, sucht nicht nur freie Plätze, sondern auch Vertrauen, Erfahrung und ein passendes Konzept für die Kindertagespflege. Eine Tagesmutter oder ein Tagesvater kann hier eine familiennahe Lösung sein, wenn Eltern eine flexible und individuelle Betreuung wünschen. Diese Übersicht erleichtert dir die Suche nach passender Kindertagespflege in Spenge Wallenbrück.',
-};
 
 function formatCityFromSlug(slug) {
   return `${slug ?? ''}`
@@ -67,7 +55,6 @@ function DashboardPageMobile() {
   const [caregivers, setCaregivers] = useState([]);
   const [resolvedCityName, setResolvedCityName] = useState('');
   const [suggestions, setSuggestions] = useState([]);
-  const [cities, setCities] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [lightboxImage, setLightboxImage] = useState(null);
@@ -167,39 +154,6 @@ function DashboardPageMobile() {
     };
   }, [searchTerm]);
 
-  useEffect(() => {
-    let ignore = false;
-
-    axios
-      .get('/api/caregivers')
-      .then((response) => {
-        if (ignore) return;
-
-        const cityMap = new Map();
-        response.data.forEach((caregiver) => {
-          const normalizedCity = `${caregiver.city ?? ''}`.trim();
-          if (!normalizedCity) return;
-
-          const citySlug = slugify(normalizedCity);
-          if (!citySlug || cityMap.has(citySlug)) return;
-          cityMap.set(citySlug, normalizedCity);
-        });
-
-        const sortedCities = [...cityMap.entries()]
-          .map(([slug, name]) => ({ slug, name }))
-          .sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
-
-        setCities(sortedCities);
-      })
-      .catch((error) => {
-        console.error('Städte und Regionen konnten nicht geladen werden (Mobile)', error);
-        if (!ignore) setCities([]);
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, []);
 
   // Close suggestions on outside click/tap
   useEffect(() => {
@@ -394,11 +348,7 @@ function DashboardPageMobile() {
                   const label = [suggestion.postalCode, suggestion.city].filter(Boolean).join(' ');
                   return (
                     <li key={`${suggestion.postalCode}-${suggestion.city}-${index}`}>
-                      <button
-                        type="button"
-                        onClick={() => handleSuggestionSelect(suggestion)}
-                        className="flex w-full flex-col gap-0.5 px-4 py-3 text-left hover:bg-brand-50"
-                      >
+                      <button type="button" onClick={() => handleSuggestionSelect(suggestion)} className="flex w-full flex-col gap-0.5 px-4 py-3 text-left hover:bg-brand-50">
                         <span className="font-semibold text-brand-700">{label || suggestion.daycareName}</span>
                         {suggestion.daycareName ? <span className="text-xs text-slate-500">Empfohlen: {suggestion.daycareName}</span> : null}
                       </button>
