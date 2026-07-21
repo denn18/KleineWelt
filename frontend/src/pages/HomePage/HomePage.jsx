@@ -41,13 +41,6 @@ const pressArticles = [
   },
 ];
 
-const fundingPartner = {
-  name: 'Gründungsstipendium.NRW',
-  description:
-    'Die Wimmel Welt wird durch das Gründungsstipendium.NRW gefördert, ein Förderprogramm des Landes Nordrhein-Westfalen zur Unterstützung innovativer Gründungsvorhaben.',
-  logo: '/Stipendium.png',
-};
-
 
 const features = [
   {
@@ -251,28 +244,6 @@ function HomePage() {
             </article>
           ))}
         </div>
-      </section>
-
-      <section>
-        <div className="mb-6 flex flex-col gap-2">
-          <h2 className="text-2xl font-semibold text-brand-700">Gefördert von:</h2>
-        </div>
-
-        <article className="flex flex-col gap-6 rounded-2xl bg-white/80 p-6 shadow transition duration-300 md:flex-row md:items-center md:hover:-translate-y-1 md:hover:shadow-lg">
-          <div className="flex min-h-24 items-center justify-center rounded-2xl bg-white px-6 py-5 ring-1 ring-brand-100 md:w-80">
-            <img
-              src={fundingPartner.logo}
-              alt={`${fundingPartner.name} Logo`}
-              className="max-h-20 w-full object-contain"
-              loading="lazy"
-            />
-          </div>
-
-          <div className="flex flex-1 flex-col gap-3">
-            <p className="text-sm font-semibold text-brand-600">{fundingPartner.name}</p>
-            <p className="text-sm leading-relaxed text-slate-600">{fundingPartner.description}</p>
-          </div>
-        </article>
       </section>
 
            <section className="rounded-3xl bg-white/85 p-8 shadow-lg backdrop-blur">
