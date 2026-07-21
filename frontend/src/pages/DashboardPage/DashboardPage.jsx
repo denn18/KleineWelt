@@ -547,9 +547,9 @@ function DashboardPage() {
                 return (
                   <article
                     key={caregiver.id}
-                    className={`flex flex-col gap-4 rounded-2xl border px-5 py-5 transition hover:border-brand-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 cursor-pointer ${
+                    className={`flex flex-col gap-4 rounded-2xl border px-6 py-6 transition-all duration-300 hover:border-brand-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 cursor-pointer ${
                       selectedCaregiver?.id === caregiver.id
-                        ? 'border-brand-400 bg-brand-50/80'
+                        ? 'border-4 border-brand-500 bg-white shadow-lg'
                         : 'border-brand-100 bg-white'
                     }`}
                     onClick={() => setSelectedCaregiver(caregiver)}
@@ -564,7 +564,7 @@ function DashboardPage() {
                   >
                     <div className="flex flex-col gap-3">
                     <div className="flex items-start gap-4">
-                      <div className="flex w-16 flex-col items-center gap-2">
+                      <div className="flex w-28 flex-col items-center gap-3">
                         <button
                           type="button"
                           onClick={(event) => {
@@ -572,7 +572,7 @@ function DashboardPage() {
                             openLightbox(logoUrl, `Logo von ${caregiver.daycareName || caregiver.name}`);
                           }}
                           disabled={!logoUrl}
-                          className={`flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border ${
+                          className={`flex h-28 w-28 items-center justify-center overflow-hidden rounded-2xl border ${
                             logoUrl
                               ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
                               : 'border-dashed border-brand-200 bg-brand-50'
@@ -595,7 +595,7 @@ function DashboardPage() {
                             openLightbox(profileImageUrl, caregiver.daycareName || caregiver.name);
                           }}
                           disabled={!profileImageUrl}
-                          className={`h-16 w-16 overflow-hidden rounded-2xl border ${
+                          className={`h-28 w-28 overflow-hidden rounded-2xl border ${
                             profileImageUrl
                               ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
                               : 'border-dashed border-brand-200 bg-brand-50'
@@ -616,13 +616,13 @@ function DashboardPage() {
                         </button>
                       </div>
                       <div className="flex flex-1 flex-col gap-2">
-                        <h3 className="text-base font-semibold text-brand-700">
+                        <h3 className="text-2xl font-semibold text-brand-700">
                           {caregiver.daycareName || caregiver.name}
                           </h3>
                           {personInfo ? (
-                            <p className="text-sm text-slate-600">{personInfo}</p>
+                            <p className="text-base text-slate-600">{personInfo}</p>
                           ) : null}
-                          <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+                          <div className="flex flex-wrap gap-2 text-sm font-semibold text-slate-600">
                             <span className="rounded-full bg-brand-50 px-3 py-1">
                               {locationLabel || 'Ort folgt'}
                             </span>
@@ -653,7 +653,7 @@ function DashboardPage() {
                             ) : null}
                           </div>
                         </div>
-                        <div className="relative flex h-20 w-28 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
+                        <div className="relative flex h-[14.75rem] w-72 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
                           {currentRoomImage ? (
                             <img
                               src={currentRoomImage}
@@ -693,7 +693,7 @@ function DashboardPage() {
                       </div>
                     </div>
                     
-                    <div className="flex justify-end border-t border-brand-100 pt-4">
+                    <div className="flex justify-end pt-1">
                       <button
                         type="button"
                         onClick={(event) => {
@@ -707,8 +707,9 @@ function DashboardPage() {
                       </button>
                     </div>
 
-                    {isExpanded ? (
-                      <div className="grid gap-5 border-t border-brand-100 pt-5 text-sm text-slate-600 lg:grid-cols-[1.2fr,0.8fr]">
+                    <div className={`grid transition-all duration-500 ease-out ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                      <div className="min-h-0 overflow-hidden">
+                        <div className="grid gap-5 pt-5 text-sm text-slate-600 lg:grid-cols-[1.2fr,0.8fr]">
                         <div className="flex flex-col gap-4">
                           {caregiver.shortDescription ? (
                             <div className="flex flex-col gap-1">
@@ -729,6 +730,36 @@ function DashboardPage() {
                           ) : null}
                         </div>
                         <div className="flex flex-col gap-3">
+                          <div className="grid grid-cols-3 gap-2">
+                            {Array.from({ length: 3 }).map((_, imageOffset) => {
+                              const imageUrl = roomImages.length ? roomImages[(currentRoomIndex + imageOffset) % roomImages.length] : '';
+                              return (
+                                <button
+                                  key={`${caregiver.id}-room-${imageOffset}`}
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    if (imageUrl) openLightbox(imageUrl, `Räumlichkeit ${imageOffset + 1} von ${caregiver.daycareName || caregiver.name}`);
+                                  }}
+                                  disabled={!imageUrl}
+                                  className="h-28 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50"
+                                >
+                                  {imageUrl ? (
+                                    <img src={imageUrl} alt={`Räumlichkeit ${imageOffset + 1} von ${caregiver.daycareName || caregiver.name}`} className="h-full w-full object-cover" />
+                                  ) : (
+                                    <span className="flex h-full items-center justify-center text-[10px] font-semibold text-slate-400">Noch keine Räume</span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {roomImages.length > 1 ? (
+                            <div className="flex justify-end gap-2">
+                              <button type="button" onClick={(event) => { event.stopPropagation(); handleCycleRoomImage(caregiver.id, -1, 'list'); }} className="rounded-full bg-brand-50 px-4 py-2 text-xs font-semibold text-brand-600 shadow-sm hover:bg-brand-100">← Zurück</button>
+                              <button type="button" onClick={(event) => { event.stopPropagation(); handleCycleRoomImage(caregiver.id, 1, 'list'); }} className="rounded-full bg-brand-50 px-4 py-2 text-xs font-semibold text-brand-600 shadow-sm hover:bg-brand-100">Weiter →</button>
+                            </div>
+                          ) : null}
+                          <div className="mt-auto flex flex-wrap justify-end gap-3">
                           {conceptUrl ? (
                             <a
                               href={conceptUrl}
@@ -763,13 +794,18 @@ function DashboardPage() {
                               event.stopPropagation();
                               handleOpenMessenger(caregiver, 'card');
                             }}
-                            className="rounded-full bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700"
+                            className="relative rounded-full bg-brand-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-brand-700 animate-attention"
                           >
                             Nachricht schreiben
+                            <span className="animate-sparkle" style={{ '--sx': '-12px', '--sy': '-20px', top: '-8px', left: '20%' }}>✨</span>
+                            <span className="animate-sparkle" style={{ '--sx': '0px', '--sy': '-30px', top: '-10px', left: '50%', animationDelay: '0.2s' }}>⭐</span>
+                            <span className="animate-sparkle" style={{ '--sx': '12px', '--sy': '-22px', top: '-8px', left: '78%', animationDelay: '0.4s' }}>🎈</span>
                           </button>
+                          </div>
+                        </div>
                         </div>
                       </div>
-                    ) : null}
+                    </div>
                   </article>
                 );
               })}
