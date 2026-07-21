@@ -522,7 +522,7 @@ function DashboardPageMobile() {
                 key={caregiver.id}
                 className={`flex flex-col gap-3 rounded-3xl border p-4 shadow-sm transition-all duration-300 active:scale-[0.99] ${
                   isActive
-                    ? 'border-4 border-brand-500 bg-white shadow-md'
+                    ? 'border-2 border-brand-500 bg-white shadow-md'
                     : 'border-brand-100 bg-white/90'
                 }`}
                 onClick={() => handleSelectCaregiver(caregiver)}

@@ -547,9 +547,9 @@ function DashboardPage() {
                 return (
                   <article
                     key={caregiver.id}
-                    className={`flex flex-col gap-4 rounded-2xl border px-6 py-6 transition-all duration-300 hover:border-brand-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 cursor-pointer ${
+                    className={`flex flex-col gap-4 rounded-2xl border px-5 py-5 transition-all duration-300 hover:border-brand-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 cursor-pointer ${
                       selectedCaregiver?.id === caregiver.id
-                        ? 'border-4 border-brand-500 bg-white shadow-lg'
+                        ? 'border-2 border-brand-500 bg-white shadow-lg'
                         : 'border-brand-100 bg-white'
                     }`}
                     onClick={() => setSelectedCaregiver(caregiver)}
@@ -653,7 +653,7 @@ function DashboardPage() {
                             ) : null}
                           </div>
                         </div>
-                        <div className="relative flex h-[14.75rem] w-72 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
+                        <div className="relative flex h-[14.75rem] w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
                           {currentRoomImage ? (
                             <img
                               src={currentRoomImage}
