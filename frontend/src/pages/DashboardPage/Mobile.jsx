@@ -403,7 +403,7 @@ function DashboardPageMobile() {
       {/* Header */}
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-extrabold text-brand-700">{pageTitle}</h1>
-        <p className="text-sm text-slate-600">{seoIntro}</p>
+        {/* SEO-Einleitung vorerst ausgeblendet: <p className="text-sm text-slate-600">{seoIntro}</p> */}
       </header>
 
       {/* Search */}
@@ -515,6 +515,7 @@ function DashboardPageMobile() {
             const personInfo = personInfoParts.join(' · ');
 
             const isActive = selectedCaregiver?.id === caregiver.id;
+            const conceptUrl = caregiver.conceptUrl ? assetUrl(caregiver.conceptUrl) : '';
 
             return (
               <article
@@ -674,7 +675,19 @@ function DashboardPageMobile() {
                   ) : null}
                 </div>
 
-                {isActive && (caregiver.shortDescription || caregiver.bio) ? (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleSelectCaregiver(isActive ? null : caregiver);
+                  }}
+                  className="w-full rounded-full bg-brand-600 px-4 py-3 text-center text-sm font-semibold text-white shadow transition hover:bg-brand-700"
+                  aria-expanded={isActive}
+                >
+                  Mehr Informationen
+                </button>
+
+                {isActive ? (
                   <div className="grid gap-3 rounded-2xl border border-brand-100 bg-white/75 p-3">
                     {caregiver.shortDescription ? (
                       <div className="flex flex-col gap-1">
@@ -688,11 +701,35 @@ function DashboardPageMobile() {
                         <p className="text-sm leading-relaxed text-slate-600">{caregiver.bio}</p>
                       </div>
                     ) : null}
+                    {experienceText ? (
+                      <p className="text-sm text-slate-600">
+                        <span className="font-semibold text-brand-700">Erfahrung:</span> {experienceText}
+                      </p>
+                    ) : null}
                   </div>
                 ) : null}
 
                 {/* Actions */}
-                <div className="flex flex-col gap-2">
+                {isActive ? (
+                  <div className="flex flex-col gap-2">
+                  {conceptUrl ? (
+                    <a
+                      href={conceptUrl}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        trackEvent('engagement_konzeption_durchlesen', { page: 'dashboard', platform: 'mobile', area: 'list' });
+                      }}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full rounded-full border border-brand-200 px-4 py-3 text-center text-sm font-semibold text-brand-600 transition hover:border-brand-400 hover:text-brand-700"
+                    >
+                      Konzeption als PDF herunterladen
+                    </a>
+                  ) : (
+                    <span className="w-full rounded-full border border-dashed border-brand-200 px-4 py-3 text-center text-sm font-semibold text-slate-400">
+                      Keine Konzeption hinterlegt
+                    </span>
+                  )}
                   <Link
                     to={buildCaregiverProfileUrl(caregiver, { citySlug: routeCitySlug })}
                     onClick={(event) => {
@@ -736,6 +773,7 @@ function DashboardPageMobile() {
                     ) : null}
                   </button>
                 </div>
+                ) : null}
               </article>
             );
           })}
@@ -751,8 +789,8 @@ function DashboardPageMobile() {
 
       <section className="rounded-3xl bg-white/85 p-5 shadow">
         <h2 className="text-lg font-semibold text-brand-700">Städte und Regionen</h2>
-        {footerSeoText ? <p className="mt-2 text-sm leading-7 text-slate-600">{footerSeoText}</p> : null}
-        <p className={`font-semibold text-brand-600 ${footerSeoText ? 'mt-4 text-xs' : 'mt-2 text-sm'}`}>
+        {/* SEO-Stadttext vorerst ausgeblendet: {footerSeoText ? <p className="mt-2 text-sm leading-7 text-slate-600">{footerSeoText}</p> : null} */}
+        <p className={`font-semibold text-brand-600 mt-2 text-sm`}>
           Finde weitere Tagesmütter &amp; Väter in {footerCityPrompt}
         </p>
 
