@@ -9,6 +9,20 @@ import { hashPasswordIfPresent } from '../utils/passwords.js';
 import { escapeRegex } from '../utils/regex.js';
 import { slugify } from '../utils/slug.js';
 
+const FEATURED_CAREGIVER_ID = '68f77f41ef5f420dbb69e952';
+
+function prioritizeFeaturedCaregiver(caregivers) {
+  return [...caregivers].sort((a, b) => {
+    const aIsFeatured = a?._id?.toString() === FEATURED_CAREGIVER_ID && (a.availableSpots ?? 0) > 0;
+    const bIsFeatured = b?._id?.toString() === FEATURED_CAREGIVER_ID && (b.availableSpots ?? 0) > 0;
+
+    if (aIsFeatured === bIsFeatured) {
+      return 0;
+    }
+
+    return aIsFeatured ? -1 : 1;
+  });
+}
 
 async function ensureUniqueProfilePath(basePath, excludedId = null) {
   const normalized = `${basePath ?? ''}`.trim();
@@ -78,7 +92,7 @@ export async function listCaregivers(filters = {}) {
   const cursor = caregiversCollection().find(query).sort({ createdAt: -1 });
   const documents = await cursor.toArray();
 
-  return documents.map(serializeCaregiver);
+  return prioritizeFeaturedCaregiver(documents).map(serializeCaregiver);
 }
 
 export async function resolveCityByPostalCode(postalCode) {
