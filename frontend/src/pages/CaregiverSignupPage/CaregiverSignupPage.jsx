@@ -8,6 +8,9 @@ import { AVAILABILITY_TIMING_OPTIONS } from '../utils/availability.js';
 import { WEEKDAY_SUGGESTIONS } from '../utils/weekdays.js';
 import { trackEvent } from '../utils/analytics.js';
 
+const CARE_PERMISSION_MAX_BYTES = 10 * 1024 * 1024;
+const CARE_PERMISSION_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+
 const createScheduleEntry = (defaults = {}) => ({
   startTime: '',
   endTime: '',
@@ -84,6 +87,7 @@ function CaregiverSignupPage() {
   const [profileImage, setProfileImage] = useState({ preview: '', dataUrl: null, fileName: '' });
   const [logoImage, setLogoImage] = useState({ preview: '', dataUrl: null, fileName: '' });
   const [conceptFile, setConceptFile] = useState({ dataUrl: null, fileName: '' });
+  const [carePermission, setCarePermission] = useState({ dataUrl: null, fileName: '' });
   const [roomGallery, setRoomGallery] = useState([]);
   const [status, setStatus] = useState(null);
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -192,6 +196,24 @@ function CaregiverSignupPage() {
     setLogoImage({ preview: dataUrl, dataUrl, fileName: file.name });
   }
 
+  async function handleCarePermissionChange(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > CARE_PERMISSION_MAX_BYTES) {
+      setStatus({ type: 'error', message: 'Die Datei ist zu groß. Bitte lade maximal 10 MB hoch.' });
+      event.target.value = '';
+      return;
+    }
+    if (!CARE_PERMISSION_TYPES.includes(file.type)) {
+      setStatus({ type: 'error', message: 'Dieses Dateiformat wird nicht unterstützt. Bitte verwende PDF, JPG oder PNG.' });
+      event.target.value = '';
+      return;
+    }
+    const dataUrl = await readFileAsDataUrl(file);
+    setCarePermission({ dataUrl, fileName: file.name });
+    setStatus(null);
+  }
+
   async function handleConceptChange(event) {
     const file = event.target.files?.[0];
     if (!file) {
@@ -275,6 +297,11 @@ function CaregiverSignupPage() {
       page_path: pagePath,
     });
     trackEvent('form_submit', { form_name: 'caregiver_signup' });
+    if (!carePermission.dataUrl) {
+      setStatus({ type: 'error', message: 'Bitte lade deine Pflegeerlaubnis hoch, bevor du dein Profil erstellst.' });
+      return;
+    }
+
     if (!acceptTerms) {
       setStatus({ type: 'error', message: 'Bitte akzeptiere die AGB, um ein Konto zu erstellen.' });
       return;
@@ -300,6 +327,9 @@ function CaregiverSignupPage() {
         logoImageName: logoImage.fileName,
         conceptFile: conceptFile.dataUrl,
         conceptFileName: conceptFile.fileName,
+        carePermissionDocument: carePermission.dataUrl,
+        carePermissionFileName: carePermission.fileName,
+        carePermissionOriginalName: carePermission.fileName,
         caregiverSince: formState.caregiverSince,
         birthDate: formState.birthDate,
         careTimes: formState.careTimes,
@@ -313,7 +343,7 @@ function CaregiverSignupPage() {
 
       setStatus({
         type: 'success',
-        message: 'Vielen Dank! Dein Profil ist angelegt und wird Familien angezeigt.',
+        message: 'Vielen Dank! Deine Pflegeerlaubnis wird nun geprüft.',
       });
       trackEvent('register_success', { page_path: pagePath });
       trackEvent('form_success', { form_name: 'caregiver_signup' });
@@ -325,10 +355,7 @@ function CaregiverSignupPage() {
           message: 'Profil erstellt! Du wirst gleich zu deinem Dashboard weitergeleitet.',
         });
         setTimeout(() => {
-          navigate('/profil', {
-            replace: true,
-            state: { fromRegistration: true, role: response.data?.role || 'caregiver' },
-          });
+          navigate('/pflegeerlaubnis-wird-geprueft', { replace: true });
         }, 1200);
       } catch (authError) {
         console.warn('Automatisches Login nach Registrierung nicht möglich', authError);
@@ -344,6 +371,7 @@ function CaregiverSignupPage() {
       setNewsletterOptIn(false);
       setLogoImage({ preview: '', dataUrl: null, fileName: '' });
       setConceptFile({ dataUrl: null, fileName: '' });
+      setCarePermission({ dataUrl: null, fileName: '' });
       setRoomGallery([]);
       setRoomGalleryOffset(0);
       setClosedDayInput('');
@@ -693,6 +721,19 @@ function CaregiverSignupPage() {
                     : 'Optional'}
                 </span>
               </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/60 p-4">
+            <p className="text-sm font-semibold text-brand-700">Pflegeerlaubnis hochladen <span className="text-rose-500">*</span></p>
+            <p className="mt-1 text-xs text-slate-600">Pflichtfeld – PDF, JPG oder PNG, maximal 10 MB</p>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+              <IconUploadButton label="Datei hochladen" accept="application/pdf,image/jpeg,image/png" onChange={handleCarePermissionChange} />
+              <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-brand-100 px-4 py-2 text-sm font-semibold text-brand-700 shadow-sm transition hover:bg-brand-200">
+                Foto aufnehmen
+                <input type="file" accept="image/*" capture="environment" onChange={handleCarePermissionChange} className="sr-only" />
+              </label>
+              <span className="text-xs text-slate-600 sm:ml-3">{carePermission.fileName ? `Ausgewählt: ${carePermission.fileName}` : 'Noch keine Pflegeerlaubnis ausgewählt.'}</span>
             </div>
           </div>
           <div className="rounded-2xl border border-dashed border-brand-200 bg-white/70 p-4">

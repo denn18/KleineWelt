@@ -13,6 +13,7 @@ import documentsRouter from './routes/documents.js';
 import filesRouter from './routes/files.js';
 import pushSubscriptionsRouter from './routes/pushSubscriptions.js';
 import careGroupsRouter from './routes/careGroups.js';
+import adminCaregiversRouter from './routes/adminCaregivers.js';
 
 // ✅ NEU: DB Zugriff für /readiness
 import { getDatabase } from './config/database.js';
@@ -76,6 +77,7 @@ app.use('/api/documents', documentsRouter);
 app.use('/api/files', filesRouter);
 app.use('/api/push-subscriptions', pushSubscriptionsRouter);
 app.use('/api/care-groups', careGroupsRouter);
+app.use('/api/admin', adminCaregiversRouter);
 app.use('/uploads', express.static(uploadsDir));
 
 app.use(express.static(frontendDistPath));

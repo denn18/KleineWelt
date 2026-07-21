@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { requireAdmin } from '../middleware/requireAdmin.js';
+import { getAdminCaregiver, getCarePermission, listCaregiverVerifications, patchCaregiverVerification } from '../controllers/adminCaregiversController.js';
+const router = Router();
+router.use(requireAdmin);
+router.get('/caregivers/verifications', listCaregiverVerifications);
+router.get('/caregivers/:id/care-permission', getCarePermission);
+router.get('/caregivers/:id', getAdminCaregiver);
+router.patch('/caregivers/:id/verification', patchCaregiverVerification);
+export default router;
