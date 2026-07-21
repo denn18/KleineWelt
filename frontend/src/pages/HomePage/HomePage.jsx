@@ -178,8 +178,8 @@ function HomePage() {
             </button>
           </div>
           <p className="text-sm leading-relaxed text-slate-500">
-            Wimmel Welt macht Kindertagespflege, Kindervermittlung und die Suche nach freien Betreuungsplätzen so einfach wie
-            möglich – für Familien und Tagespflegepersonen gleichermaßen.
+            Wimmel Welt macht Kindertagespflege, Kindertagespflegevermittlung und die Suche nach freien Betreuungsplätzen so einfach wie
+            möglich – für Familien und Kindertagespflegepersonen gleichermaßen.
           </p>
         </div>
         <div className="flex items-center justify-center">
