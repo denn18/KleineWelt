@@ -59,6 +59,7 @@ const fundingPartner = {
   description:
     'Die Wimmel Welt wird durch das Gründungsstipendium.NRW gefördert, ein Förderprogramm des Landes Nordrhein-Westfalen zur Unterstützung innovativer Gründungsvorhaben.',
   logo: '/Stipendium.png',
+  url: 'https://www.gruendungsstipendium.nrw/',
 };
 
 export default function HomePageMobile() {
@@ -266,23 +267,35 @@ export default function HomePageMobile() {
         </div>
       </section>
 
-      <section>
+      <section aria-labelledby="funding-heading-mobile">
         <div className="mb-4 flex flex-col gap-2">
-          <h2 className="text-xl font-semibold text-brand-700">Gefördert von:</h2>
+          <h2 id="funding-heading-mobile" className="text-xl font-semibold text-brand-700">Gefördert von:</h2>
         </div>
 
         <article className="flex flex-col gap-4 rounded-2xl bg-white/80 p-5 shadow">
-          <div className="flex min-h-20 items-center justify-center rounded-2xl bg-white px-5 py-4 ring-1 ring-brand-100">
+          <a
+            href={fundingPartner.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex min-h-20 items-center justify-center rounded-2xl bg-white px-5 py-4 ring-1 ring-brand-100 transition duration-200 hover:ring-brand-300"
+          >
             <img
               src={fundingPartner.logo}
               alt={`${fundingPartner.name} Logo`}
               className="max-h-16 w-full object-contain"
               loading="lazy"
             />
-          </div>
+          </a>
 
           <div className="flex flex-col gap-2">
-            <p className="text-sm font-semibold text-brand-600">{fundingPartner.name}</p>
+            <a
+              href={fundingPartner.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-semibold text-brand-600 transition-colors duration-200 hover:text-brand-700"
+            >
+              {fundingPartner.name}
+            </a>
             <p className="text-sm leading-relaxed text-slate-600">{fundingPartner.description}</p>
           </div>
         </article>
