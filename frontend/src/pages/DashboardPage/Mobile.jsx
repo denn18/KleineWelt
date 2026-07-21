@@ -522,7 +522,7 @@ function DashboardPageMobile() {
                 key={caregiver.id}
                 className={`flex flex-col gap-3 rounded-3xl border p-4 shadow-sm transition-all duration-300 active:scale-[0.99] ${
                   isActive
-                    ? 'scale-[1.02] border-brand-400 bg-brand-50/80 shadow-md'
+                    ? 'border-2 border-brand-500 bg-white shadow-md'
                     : 'border-brand-100 bg-white/90'
                 }`}
                 onClick={() => handleSelectCaregiver(caregiver)}
@@ -545,7 +545,7 @@ function DashboardPageMobile() {
                         openLightbox(logoUrl, `Logo von ${caregiver.daycareName || caregiver.name}`);
                       }}
                       disabled={!logoUrl}
-                      className={`flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border ${
+                      className={`flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border ${
                         logoUrl
                           ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
                           : 'border-dashed border-brand-200 bg-brand-50'
@@ -569,7 +569,7 @@ function DashboardPageMobile() {
                         openLightbox(profileImageUrl, caregiver.daycareName || caregiver.name);
                       }}
                       disabled={!profileImageUrl}
-                      className={`h-14 w-14 overflow-hidden rounded-2xl border ${
+                      className={`h-24 w-24 overflow-hidden rounded-2xl border ${
                         profileImageUrl
                           ? 'border-brand-100 bg-brand-50 transition hover:shadow-lg'
                           : 'border-dashed border-brand-200 bg-brand-50'
@@ -591,13 +591,13 @@ function DashboardPageMobile() {
                   </div>
 
                   <div className="flex min-w-0 flex-1 flex-col gap-2">
-                    <h3 className="truncate text-base font-extrabold text-brand-700">
+                    <h3 className="truncate text-xl font-extrabold text-brand-700">
                       {caregiver.daycareName || caregiver.name}
                     </h3>
 
-                    {personInfo ? <p className="text-sm text-slate-600">{personInfo}</p> : null}
+                    {personInfo ? <p className="text-base text-slate-600">{personInfo}</p> : null}
 
-                    <div className="flex flex-wrap gap-2 text-xs text-slate-600">
+                    <div className="flex flex-wrap gap-2 text-sm font-semibold text-slate-600">
                       <span className="rounded-full bg-brand-50 px-3 py-1">{locationLabel || 'Ort folgt'}</span>
 
                       <span
@@ -630,7 +630,7 @@ function DashboardPageMobile() {
                 </div>
 
                 {/* Room preview */}
-                <div className="relative h-32 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
+                <div className="relative h-52 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
                   {currentRoomImage ? (
                     <img
                       src={currentRoomImage}
@@ -687,8 +687,9 @@ function DashboardPageMobile() {
                   Mehr Informationen
                 </button>
 
-                {isActive ? (
-                  <div className="grid gap-3 rounded-2xl border border-brand-100 bg-white/75 p-3">
+                <div className={`grid transition-all duration-500 ease-out ${isActive ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                  <div className="min-h-0 overflow-hidden">
+                    <div className="grid gap-3 rounded-2xl bg-white/75 p-3">
                     {caregiver.shortDescription ? (
                       <div className="flex flex-col gap-1">
                         <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Kurzbeschreibung</h3>
@@ -707,11 +708,28 @@ function DashboardPageMobile() {
                       </p>
                     ) : null}
                   </div>
-                ) : null}
+                  </div>
+                </div>
 
                 {/* Actions */}
                 {isActive ? (
                   <div className="flex flex-col gap-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      {Array.from({ length: 3 }).map((_, imageOffset) => {
+                        const imageUrl = roomImages.length ? roomImages[(currentRoomIndex + imageOffset) % roomImages.length] : '';
+                        return (
+                          <button key={`${caregiver.id}-expanded-room-${imageOffset}`} type="button" onClick={(event) => { event.stopPropagation(); if (imageUrl) openLightbox(imageUrl, `Räumlichkeit ${imageOffset + 1} von ${caregiver.daycareName || caregiver.name}`); }} disabled={!imageUrl} className="h-24 overflow-hidden rounded-2xl border border-brand-100 bg-brand-50">
+                            {imageUrl ? <img src={imageUrl} alt={`Räumlichkeit ${imageOffset + 1} von ${caregiver.daycareName || caregiver.name}`} className="h-full w-full object-cover" /> : <span className="flex h-full items-center justify-center text-[10px] font-semibold text-slate-400">Keine Räume</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {roomImages.length > 1 ? (
+                      <div className="flex justify-end gap-2">
+                        <button type="button" onClick={(event) => { event.stopPropagation(); handleCycleRoomImage(caregiver.id, -1, 'list'); }} className="rounded-full bg-brand-50 px-4 py-2 text-xs font-semibold text-brand-600 shadow-sm hover:bg-brand-100">← Zurück</button>
+                        <button type="button" onClick={(event) => { event.stopPropagation(); handleCycleRoomImage(caregiver.id, 1, 'list'); }} className="rounded-full bg-brand-50 px-4 py-2 text-xs font-semibold text-brand-600 shadow-sm hover:bg-brand-100">Weiter →</button>
+                      </div>
+                    ) : null}
                   {conceptUrl ? (
                     <a
                       href={conceptUrl}
