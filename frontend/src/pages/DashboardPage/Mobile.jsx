@@ -65,7 +65,6 @@ function DashboardPageMobile() {
   const [filters, setFilters] = useState({ postalCode: '', city: '', citySlug: '', search: '' });
   const [caregivers, setCaregivers] = useState([]);
   const [resolvedCityName, setResolvedCityName] = useState('');
-  const [selectedCaregiver, setSelectedCaregiver] = useState(null);
 
   const [roomImageIndexes, setRoomImageIndexes] = useState({});
   const [suggestions, setSuggestions] = useState([]);
@@ -124,16 +123,6 @@ function DashboardPageMobile() {
         if (cityName) {
           setSearchTerm(cityName);
         }
-      }
-
-      if (routeFilteredCaregivers.length) {
-        setSelectedCaregiver((current) =>
-          current && routeFilteredCaregivers.some((entry) => entry.id === current.id)
-            ? current
-            : routeFilteredCaregivers[0],
-        );
-      } else {
-        setSelectedCaregiver(null);
       }
 
       setRoomImageIndexes((current) => {
@@ -394,10 +383,6 @@ function DashboardPageMobile() {
     setSuggestionsOpen(false);
   }
 
-  function handleSelectCaregiver(caregiver) {
-    setSelectedCaregiver(caregiver);
-  }
-
   return (
     <section className="mx-auto flex w-full max-w-[640px] flex-col gap-5 px-4 pb-10 pt-4">
       {/* Header */}
@@ -474,7 +459,7 @@ function DashboardPageMobile() {
         <div className="flex items-end justify-between">
           <div className="flex flex-col gap-1">
             <h2 className="text-lg font-extrabold text-brand-700">Gefundene Kindertagespflegepersonen</h2>
-            <p className="text-xs text-slate-500">Tippe auf eine Karte, um Details zu öffnen.</p>
+            <p className="text-xs text-slate-500">Wähle eine Aktion, um das Profil zu öffnen oder Kontakt aufzunehmen.</p>
           </div>
           <span className="text-xs font-semibold text-brand-600">{caregivers.length} Profile</span>
         </div>
@@ -514,25 +499,10 @@ function DashboardPageMobile() {
 
             const personInfo = personInfoParts.join(' · ');
 
-            const isActive = selectedCaregiver?.id === caregiver.id;
-
             return (
               <article
                 key={caregiver.id}
-                className={`flex flex-col gap-3 rounded-3xl border p-4 shadow-sm transition-all duration-300 active:scale-[0.99] ${
-                  isActive
-                    ? 'scale-[1.02] border-brand-400 bg-brand-50/80 shadow-md'
-                    : 'border-brand-100 bg-white/90'
-                }`}
-                onClick={() => handleSelectCaregiver(caregiver)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    handleSelectCaregiver(caregiver);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
+                className="flex flex-col gap-3 rounded-3xl border border-brand-100 bg-white/90 p-4 shadow-sm"
               >
                 {/* Top row: images + title */}
                 <div className="flex items-start gap-3">
@@ -674,23 +644,6 @@ function DashboardPageMobile() {
                   ) : null}
                 </div>
 
-                {isActive && (caregiver.shortDescription || caregiver.bio) ? (
-                  <div className="grid gap-3 rounded-2xl border border-brand-100 bg-white/75 p-3">
-                    {caregiver.shortDescription ? (
-                      <div className="flex flex-col gap-1">
-                        <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Kurzbeschreibung</h3>
-                        <p className="text-sm text-slate-600">{caregiver.shortDescription}</p>
-                      </div>
-                    ) : null}
-                    {caregiver.bio ? (
-                      <div className="flex flex-col gap-1">
-                        <h3 className="text-xs font-semibold uppercase tracking-widest text-brand-500">Über dich</h3>
-                        <p className="text-sm leading-relaxed text-slate-600">{caregiver.bio}</p>
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
-
                 {/* Actions */}
                 <div className="flex flex-col gap-2">
                   <Link
@@ -710,30 +663,9 @@ function DashboardPageMobile() {
                       event.stopPropagation();
                       handleOpenMessenger(caregiver, 'list');
                     }}
-                    className={`relative w-full rounded-full bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-brand-700 ${
-                      isActive ? 'animate-attention' : ''
-                    }`}
+                    className="relative w-full rounded-full bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-brand-700"
                   >
                     Nachricht schreiben
-                    {isActive ? (
-                      <>
-                        <span className="animate-sparkle" style={{ '--sx': '-12px', '--sy': '-20px', top: '-8px', left: '20%' }}>
-                          ✨
-                        </span>
-                        <span
-                          className="animate-sparkle"
-                          style={{ '--sx': '0px', '--sy': '-30px', top: '-10px', left: '50%', animationDelay: '0.2s' }}
-                        >
-                          ⭐
-                        </span>
-                        <span
-                          className="animate-sparkle"
-                          style={{ '--sx': '12px', '--sy': '-22px', top: '-8px', left: '78%', animationDelay: '0.4s' }}
-                        >
-                          🎈
-                        </span>
-                      </>
-                    ) : null}
                   </button>
                 </div>
               </article>
