@@ -397,9 +397,25 @@ export async function patchCaregiver(req, res) {
     let carePermissionDocumentUrl = existing.carePermissionDocumentUrl ? normalizeFileReference(existing.carePermissionDocumentUrl) : null;
     let carePermissionOriginalName = existing.carePermissionOriginalName || carePermissionDocumentUrl?.fileName || null;
     let carePermissionUploadedAt = existing.carePermissionUploadedAt || carePermissionDocumentUrl?.uploadedAt || null;
-    const hasNewCarePermission = typeof (req.body.carePermissionDocument || req.body.carePermissionFile) === 'string';
+    const removeCarePermission =
+      req.body.carePermissionDocument === null ||
+      req.body.carePermissionDocument === 'null' ||
+      req.body.carePermissionFile === null ||
+      req.body.carePermissionFile === 'null';
+    const hasNewCarePermission =
+      !removeCarePermission && typeof (req.body.carePermissionDocument || req.body.carePermissionFile) === 'string';
     const verificationUpdate = {};
-    if (hasNewCarePermission) {
+    if (removeCarePermission) {
+      await removeStoredFile(existing.carePermissionDocumentUrl);
+      carePermissionDocumentUrl = null;
+      carePermissionOriginalName = null;
+      carePermissionUploadedAt = null;
+      verificationUpdate.verificationStatus = 'missing';
+      verificationUpdate.isPublished = false;
+      verificationUpdate.verificationRejectionReason = null;
+      verificationUpdate.verifiedAt = null;
+      verificationUpdate.verifiedBy = null;
+    } else if (hasNewCarePermission) {
       await removeStoredFile(existing.carePermissionDocumentUrl);
       carePermissionDocumentUrl = await storeCarePermissionFromBody(req.body);
       carePermissionOriginalName = carePermissionDocumentUrl.fileName;
