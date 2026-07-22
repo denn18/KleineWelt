@@ -2004,15 +2004,6 @@ function ProfilePage() {
         />
       ) : null}
 
-      {user.role === 'caregiver' && profile ? (
-        <div className="rounded-2xl border border-brand-100 bg-brand-50 p-4 text-sm text-brand-800">
-          <strong>Pflegeerlaubnis: </strong>
-          {profile.verificationStatus === 'approved' ? 'Pflegeerlaubnis wurde bestätigt' :
-            profile.verificationStatus === 'pending' ? 'Pflegeerlaubnis wird geprüft' :
-            profile.verificationStatus === 'rejected' ? `Abgelehnt${profile.verificationRejectionReason ? `: ${profile.verificationRejectionReason}` : '. Bitte lade eine neue Pflegeerlaubnis hoch.'}` :
-            'Pflegeerlaubnis fehlt'}
-        </div>
-      ) : null}
       {loading ? (
         <p className="text-sm text-slate-500">Profil wird geladen…</p>
       ) : null}
