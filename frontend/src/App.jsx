@@ -22,7 +22,7 @@ import BetreuungsgruppeChatPage from './pages/BetreuungsgruppeChat/index.jsx';
 import ContactsPage from './pages/ContactsPage/index.jsx';
 import ForgotPasswordPage from './pages/ForgotPasswordPage/index.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage/index.jsx';
-import VerificationPendingPage from './pages/VerificationPendingPage.jsx';
+import VerificationPendingPage from './pages/Verificationpending/index.js';
 import AdminPage from './pages/AdminPage.jsx';
 
 function App() {
