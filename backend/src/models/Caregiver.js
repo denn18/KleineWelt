@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { getDatabase } from '../config/database.js';
 import { normalizeFileReference } from '../utils/fileStorage.js';
+import { normalizeVerificationStatus } from '../utils/caregiverVerification.js';
 import { buildCaregiverSlugParts } from '../utils/slug.js';
 
 const COLLECTION_NAME = 'caregivers';
@@ -141,6 +142,9 @@ export function serializeCaregiver(document) {
   rest.profileImageUrl = normalizeFileReference(rest.profileImageUrl);
   rest.logoImageUrl = normalizeFileReference(rest.logoImageUrl);
   rest.conceptUrl = normalizeFileReference(rest.conceptUrl);
+  rest.carePermissionDocumentUrl = normalizeFileReference(rest.carePermissionDocumentUrl);
+  rest.verificationStatus = normalizeVerificationStatus(rest.verificationStatus);
+  rest.isPublished = rest.isPublished !== false;
   rest.roomImages = Array.isArray(rest.roomImages)
     ? rest.roomImages.map((entry) => normalizeFileReference(entry)).filter(Boolean)
     : [];
@@ -249,6 +253,16 @@ export function buildCaregiverDocument(data) {
     profileImageUrl: data.profileImageUrl || null,
     logoImageUrl: data.logoImageUrl || null,
     conceptUrl: data.conceptUrl || null,
+    carePermissionDocumentUrl: data.carePermissionDocumentUrl || null,
+    carePermissionOriginalName: data.carePermissionOriginalName || data.carePermissionDocumentUrl?.fileName || null,
+    carePermissionUploadedAt: data.carePermissionUploadedAt || data.carePermissionDocumentUrl?.uploadedAt || null,
+    verificationStatus: data.verificationStatus || (data.carePermissionDocumentUrl ? 'pending' : 'missing'),
+    isPublished: data.isPublished ?? !data.carePermissionDocumentUrl,
+    publishedAt: data.publishedAt || (!data.carePermissionDocumentUrl ? now : null),
+    verifiedAt: data.verifiedAt || null,
+    verifiedBy: data.verifiedBy || null,
+    verificationRejectionReason: data.verificationRejectionReason || null,
+    verificationNotes: data.verificationNotes || null,
     emailNotificationsEnabled: data.emailNotificationsEnabled !== false,
     role: 'caregiver',
     createdAt: now,
@@ -374,6 +388,18 @@ export function buildCaregiverUpdate(data) {
   if (data.conceptUrl !== undefined) {
     update.conceptUrl = data.conceptUrl;
   }
+  if (data.carePermissionDocumentUrl !== undefined) {
+    update.carePermissionDocumentUrl = data.carePermissionDocumentUrl;
+  }
+  if (data.carePermissionOriginalName !== undefined) update.carePermissionOriginalName = data.carePermissionOriginalName;
+  if (data.carePermissionUploadedAt !== undefined) update.carePermissionUploadedAt = data.carePermissionUploadedAt;
+  if (data.verificationStatus !== undefined) update.verificationStatus = normalizeVerificationStatus(data.verificationStatus);
+  if (data.isPublished !== undefined) update.isPublished = Boolean(data.isPublished);
+  if (data.publishedAt !== undefined) update.publishedAt = data.publishedAt;
+  if (data.verifiedAt !== undefined) update.verifiedAt = data.verifiedAt;
+  if (data.verifiedBy !== undefined) update.verifiedBy = data.verifiedBy;
+  if (data.verificationRejectionReason !== undefined) update.verificationRejectionReason = data.verificationRejectionReason || null;
+  if (data.verificationNotes !== undefined) update.verificationNotes = data.verificationNotes || null;
   if (data.emailNotificationsEnabled !== undefined) {
     update.emailNotificationsEnabled =
       typeof data.emailNotificationsEnabled === 'string'

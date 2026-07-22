@@ -14,6 +14,18 @@ import {
   removeStoredFile,
   storeBase64File,
 } from '../utils/fileStorage.js';
+import { assertValidCarePermissionFile, sanitizeCarePermission } from '../utils/caregiverVerification.js';
+
+async function storeCarePermissionFromBody(body) {
+  const stored = await maybeStoreBase64({
+    value: body.carePermissionDocument || body.carePermissionFile,
+    originalName: body.carePermissionOriginalName || body.carePermissionFileName,
+    folder: 'caregivers/care-permissions',
+    fallbackExtension: 'pdf',
+  });
+  assertValidCarePermissionFile(stored);
+  return stored;
+}
 
 async function maybeStoreBase64({ value, originalName, folder, fallbackExtension }) {
   if (!value || value === 'null') {
@@ -193,6 +205,8 @@ export async function postCaregiver(req, res) {
       fallbackExtension: 'pdf',
     });
 
+    const carePermissionDocumentUrl = await storeCarePermissionFromBody(req.body);
+
     const rawRoomImages = Array.isArray(req.body.roomImages) ? req.body.roomImages : [];
     const storedRoomImages = await buildFileListFromPayload(rawRoomImages, {
       folder: 'caregivers/room-gallery',
@@ -218,12 +232,17 @@ export async function postCaregiver(req, res) {
       caregiverImages: storedCaregiverImages,
       contractDocuments: storedContractDocuments,
       logoImageUrl,
+      carePermissionDocumentUrl,
+      carePermissionOriginalName: carePermissionDocumentUrl.fileName,
+      carePermissionUploadedAt: carePermissionDocumentUrl.uploadedAt,
+      verificationStatus: 'pending',
+      isPublished: false,
     });
     res.status(201).json(caregiver);
   } catch (error) {
     console.error('Failed to create caregiver', error);
     const status = error.status || 500;
-    res.status(status).json({ message: 'Konnte Profil nicht speichern.' });
+    res.status(status).json({ message: error.message || 'Konnte Profil nicht speichern.' });
   }
 }
 
@@ -237,7 +256,7 @@ export async function getCaregiverByProfilePath(req, res) {
 
     const { caregiver, canonicalProfilePath, requestedProfilePath, isLegacyPath } = result;
     res.json({
-      ...caregiver,
+      ...sanitizeCarePermission(caregiver),
       canonicalProfilePath,
       requestedProfilePath,
       isLegacyPath,
@@ -255,7 +274,7 @@ export async function getCaregiverById(req, res) {
       return res.status(404).json({ message: 'Tagespflegeperson wurde nicht gefunden.' });
     }
 
-    res.json(caregiver);
+    res.json(sanitizeCarePermission(caregiver));
   } catch (error) {
     console.error('Failed to load caregiver', error);
     res.status(500).json({ message: 'Konnte Profil nicht laden.' });
@@ -375,6 +394,23 @@ export async function patchCaregiver(req, res) {
       contractDocuments = normalizedDocuments;
     }
 
+    let carePermissionDocumentUrl = existing.carePermissionDocumentUrl ? normalizeFileReference(existing.carePermissionDocumentUrl) : null;
+    let carePermissionOriginalName = existing.carePermissionOriginalName || carePermissionDocumentUrl?.fileName || null;
+    let carePermissionUploadedAt = existing.carePermissionUploadedAt || carePermissionDocumentUrl?.uploadedAt || null;
+    const hasNewCarePermission = typeof (req.body.carePermissionDocument || req.body.carePermissionFile) === 'string';
+    const verificationUpdate = {};
+    if (hasNewCarePermission) {
+      await removeStoredFile(existing.carePermissionDocumentUrl);
+      carePermissionDocumentUrl = await storeCarePermissionFromBody(req.body);
+      carePermissionOriginalName = carePermissionDocumentUrl.fileName;
+      carePermissionUploadedAt = carePermissionDocumentUrl.uploadedAt;
+      verificationUpdate.verificationStatus = 'pending';
+      if (existing.verificationStatus !== 'missing' || existing.isPublished === false) {
+        verificationUpdate.isPublished = false;
+      }
+      verificationUpdate.verificationRejectionReason = null;
+    }
+
     const caregiver = await updateCaregiver(caregiverId, {
       ...req.body,
       profileImageUrl,
@@ -383,12 +419,16 @@ export async function patchCaregiver(req, res) {
       caregiverImages,
       contractDocuments,
       logoImageUrl,
+      carePermissionDocumentUrl,
+      carePermissionOriginalName,
+      carePermissionUploadedAt,
+      ...verificationUpdate,
     });
 
     res.json(caregiver);
   } catch (error) {
     console.error('Failed to update caregiver', error);
-    res.status(500).json({ message: 'Konnte Profil nicht aktualisieren.' });
+    res.status(error.status || 500).json({ message: error.message || 'Konnte Profil nicht aktualisieren.' });
   }
 }
 

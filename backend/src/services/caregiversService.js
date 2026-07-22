@@ -8,6 +8,12 @@ import {
 import { hashPasswordIfPresent } from '../utils/passwords.js';
 import { escapeRegex } from '../utils/regex.js';
 import { slugify } from '../utils/slug.js';
+import { isCaregiverPubliclyVisible, sanitizeCarePermission } from '../utils/caregiverVerification.js';
+
+let caregiverCollectionOverride = null;
+function getCaregiversCollection() { return caregiverCollectionOverride ?? caregiversCollection(); }
+export function __setCaregiversCollectionForTesting(collection) { caregiverCollectionOverride = collection; }
+export function __resetCaregiversCollectionForTesting() { caregiverCollectionOverride = null; }
 
 const FEATURED_CAREGIVER_ID = '68f77f41ef5f420dbb69e952';
 
@@ -37,7 +43,7 @@ async function ensureUniqueProfilePath(basePath, excludedId = null) {
       query._id = { $ne: excludedId };
     }
 
-    const existing = await caregiversCollection().findOne(query, { projection: { _id: 1 } });
+    const existing = await getCaregiversCollection().findOne(query, { projection: { _id: 1 } });
     if (!existing) {
       return candidate;
     }
@@ -89,10 +95,12 @@ export async function listCaregivers(filters = {}) {
 
   const query = conditions.length > 0 ? { $and: conditions } : {};
 
-  const cursor = caregiversCollection().find(query).sort({ createdAt: -1 });
+  const cursor = getCaregiversCollection().find(query).sort({ createdAt: -1 });
   const documents = await cursor.toArray();
 
-  return prioritizeFeaturedCaregiver(documents).map(serializeCaregiver);
+  return prioritizeFeaturedCaregiver(documents)
+    .filter(isCaregiverPubliclyVisible)
+    .map((doc) => sanitizeCarePermission(serializeCaregiver(doc)));
 }
 
 export async function resolveCityByPostalCode(postalCode) {
@@ -101,7 +109,7 @@ export async function resolveCityByPostalCode(postalCode) {
     return null;
   }
 
-  const cityFrequency = await caregiversCollection()
+  const cityFrequency = await getCaregiversCollection()
     .aggregate([
       {
         $match: {
@@ -154,7 +162,7 @@ export async function listCaregiverLocations(searchTerm = '') {
 
   const query = conditions.length ? { $and: conditions } : {};
 
-  const documents = await caregiversCollection()
+  const documents = await getCaregiversCollection()
     .find(query, { projection: { postalCode: 1, city: 1, daycareName: 1, location: 1 } })
     .sort({ createdAt: -1 })
     .limit(50)
@@ -183,7 +191,8 @@ export async function createCaregiver(data) {
     'address',
     'postalCode',
     'username',
-    'password'
+    'password',
+    'carePermissionDocumentUrl'
     // 'profileImageUrl' = null,
     // 'conceptUrl' = null
   ];
@@ -195,7 +204,7 @@ export async function createCaregiver(data) {
     throw error;
   }
 
-  const existing = await caregiversCollection().findOne({
+  const existing = await getCaregiversCollection().findOne({
     $or: [{ email: data.email }, { username: data.username }],
   });
 
@@ -209,7 +218,7 @@ export async function createCaregiver(data) {
   const uniqueProfilePath = await ensureUniqueProfilePath(document.profilePath);
   document.profilePath = uniqueProfilePath;
 
-  const result = await caregiversCollection().insertOne(document);
+  const result = await getCaregiversCollection().insertOne(document);
 
   return serializeCaregiver({ _id: result.insertedId, ...document });
 }
@@ -220,14 +229,14 @@ export async function findCaregiverById(id) {
     return null;
   }
 
-  const document = await caregiversCollection().findOne({ _id: objectId });
+  const document = await getCaregiversCollection().findOne({ _id: objectId });
   return serializeCaregiver(document);
 }
 
 
 export async function findCaregiverByProfilePath(citySlug, daycareSlug) {
   const profilePath = `${citySlug}/${daycareSlug}`;
-  const document = await caregiversCollection().findOne({
+  const document = await getCaregiversCollection().findOne({
     $or: [{ profilePath }, { legacyProfilePaths: profilePath }],
   });
 
@@ -249,7 +258,7 @@ export async function updateCaregiver(id, data) {
     return null;
   }
 
-  const existing = await caregiversCollection().findOne({ _id: objectId });
+  const existing = await getCaregiversCollection().findOne({ _id: objectId });
   if (!existing) {
     return null;
   }
@@ -265,6 +274,6 @@ export async function updateCaregiver(id, data) {
     update.legacyProfilePaths = buildLegacyPaths(existing, uniqueProfilePath);
   }
 
-  await caregiversCollection().updateOne({ _id: objectId }, { $set: update });
+  await getCaregiversCollection().updateOne({ _id: objectId }, { $set: update });
   return findCaregiverById(id);
 }
