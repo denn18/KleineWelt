@@ -763,6 +763,10 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
     event.target.value = '';
   }
 
+  function handleRemoveCarePermission() {
+    setCarePermissionState({ fileName: '', fileData: null, action: 'remove' });
+  }
+
   function handleAddContractDocument() {
     setContractDocuments((cur) => [...cur, { id: generateTempId(), name: '', file: null, fileData: null, fileName: '' }]);
   }
@@ -878,13 +882,16 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
       : Array.from({ length: 3 }, (_, index) => roomGallery[(roomGalleryOffset + index) % roomGallery.length]);
 
   const showRoomNavigation = roomGallery.length > 3;
-  const hasCarePermissionFeedback = carePermissionState.action === 'replace' || ['approved', 'pending'].includes(profile.verificationStatus);
+  const hasUploadedCarePermission =
+    carePermissionState.action !== 'remove' &&
+    (carePermissionState.action === 'replace' || ['approved', 'pending'].includes(profile.verificationStatus));
+  const hasCarePermissionFeedback = hasUploadedCarePermission;
   const carePermissionFeedbackClasses = hasCarePermissionFeedback
     ? 'border-emerald-200 bg-emerald-50/60 text-emerald-800'
     : 'border-rose-200 bg-rose-50/60 text-rose-800';
   const carePermissionFeedbackText = hasCarePermissionFeedback
     ? (carePermissionState.action === 'replace' ? 'Pflegeerlaubnis ausgewählt – nach dem Speichern wird sie zur Prüfung eingereicht.' : 'Pflegeerlaubnis wurde hochgeladen.')
-    : 'Pflegeerlaubnis fehlt';
+    : (carePermissionState.action === 'remove' ? 'Pflegeerlaubnis zum Entfernen vorgemerkt.' : 'Pflegeerlaubnis fehlt');
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -951,6 +958,8 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
     if (carePermissionState.action === 'replace') {
       payload.carePermissionDocument = carePermissionState.fileData;
       payload.carePermissionOriginalName = carePermissionState.fileName;
+    } else if (carePermissionState.action === 'remove') {
+      payload.carePermissionDocument = null;
     }
 
     try {
@@ -958,7 +967,11 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
       setStatusMessage({ type: 'success', text: 'Profil erfolgreich aktualisiert.' });
       setFormState((cur) => ({ ...cur, newPassword: '' }));
       setConceptState({ fileName: '', fileData: null, action: 'keep' });
-      setCarePermissionState((current) => ({ ...current, action: 'keep' }));
+      setCarePermissionState({
+        fileName: carePermissionState.action === 'remove' ? '' : carePermissionState.fileName,
+        fileData: null,
+        action: 'keep',
+      });
     } catch (error) {
       const message = error?.response?.data?.message || 'Aktualisierung fehlgeschlagen.';
       setStatusMessage({ type: 'error', text: message });
@@ -976,6 +989,15 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
             Foto aufnehmen
             <input type="file" accept="image/*" capture="environment" onChange={handleCarePermissionChange} className="sr-only" />
           </label>
+          {hasUploadedCarePermission && (
+            <button
+              type="button"
+              onClick={handleRemoveCarePermission}
+              className="inline-flex items-center justify-center rounded-full bg-rose-100 px-4 py-2 text-sm font-semibold text-rose-700 shadow-sm transition hover:bg-rose-200"
+            >
+              Pflegeerlaubnis entfernen
+            </button>
+          )}
           <span className="text-xs text-slate-600 sm:ml-3">{carePermissionState.fileName ? `Ausgewählt: ${carePermissionState.fileName}` : 'Noch keine Pflegeerlaubnis ausgewählt.'}</span>
         </div>
       </div>
