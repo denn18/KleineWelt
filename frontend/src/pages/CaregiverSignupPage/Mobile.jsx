@@ -81,6 +81,7 @@ export default function Mobile() {
   const [profileImage, setProfileImage] = useState({ preview: '', dataUrl: null, fileName: '' });
   const [logoImage, setLogoImage] = useState({ preview: '', dataUrl: null, fileName: '' });
   const [conceptFile, setConceptFile] = useState({ dataUrl: null, fileName: '' });
+  const [carePermission, setCarePermission] = useState({ dataUrl: null, fileName: '' });
   const [roomGallery, setRoomGallery] = useState([]);
   const [roomGalleryOffset, setRoomGalleryOffset] = useState(0);
 
@@ -103,6 +104,12 @@ export default function Mobile() {
       : Array.from({ length: 3 }, (_, index) => roomGallery[(roomGalleryOffset + index) % roomGallery.length]);
 
   const showRoomNavigation = roomGallery.length > 3;
+  const carePermissionTileClasses = carePermission.dataUrl
+    ? 'border-emerald-200 bg-emerald-50/60'
+    : 'border-rose-200 bg-rose-50/60';
+  const carePermissionStatusText = carePermission.dataUrl
+    ? 'Pflegeerlaubnis ausgewählt – nach dem Absenden wird sie zur Prüfung eingereicht.'
+    : 'Noch keine Pflegeerlaubnis ausgewählt.';
 
   function updateField(field, value) {
     setFormState((current) => ({ ...current, [field]: value }));
@@ -174,6 +181,15 @@ export default function Mobile() {
     setConceptFile({ dataUrl, fileName: file.name });
   }
 
+  async function handleCarePermissionChange(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const dataUrl = await readFileAsDataUrl(file);
+    setCarePermission({ dataUrl, fileName: file.name });
+    setStatus(null);
+    event.target.value = '';
+  }
+
   async function handleRoomImagesChange(event) {
     const files = Array.from(event.target.files ?? []);
     if (!files.length) return;
@@ -235,6 +251,10 @@ export default function Mobile() {
       setStatus({ type: 'error', message: 'Bitte akzeptiere die AGB, um ein Konto zu erstellen.' });
       return;
     }
+    if (!carePermission.dataUrl) {
+      setStatus({ type: 'error', message: 'Bitte lade deine Pflegeerlaubnis hoch, bevor du dein Profil erstellst.' });
+      return;
+    }
 
     setSubmitting(true);
     setStatus(null);
@@ -259,6 +279,9 @@ export default function Mobile() {
 
         conceptFile: conceptFile.dataUrl,
         conceptFileName: conceptFile.fileName,
+        carePermissionDocument: carePermission.dataUrl,
+        carePermissionFileName: carePermission.fileName,
+        carePermissionOriginalName: carePermission.fileName,
 
         caregiverSince: formState.caregiverSince,
         birthDate: formState.birthDate,
@@ -297,6 +320,7 @@ export default function Mobile() {
       setNewsletterOptIn(false);
       setLogoImage({ preview: '', dataUrl: null, fileName: '' });
       setConceptFile({ dataUrl: null, fileName: '' });
+      setCarePermission({ dataUrl: null, fileName: '' });
       setRoomGallery([]);
       setRoomGalleryOffset(0);
       setClosedDayInput('');
@@ -512,6 +536,19 @@ export default function Mobile() {
                 ? `Ausgewählt: ${conceptFile.fileName}`
                 : 'Optional, hilft Familien bei der Entscheidungsfindung.'}
             </span>
+          </div>
+
+          <div className={`grid gap-2 rounded-2xl border-2 border-dashed p-4 ${carePermissionTileClasses}`}>
+            <p className="text-sm font-semibold text-brand-700">Pflegeerlaubnis hochladen <span className="text-rose-500">*</span></p>
+            <p className="text-xs text-slate-600">Pflichtfeld – PDF, JPG oder PNG, maximal 10 MB</p>
+            <div className="flex flex-col gap-2">
+              <IconUploadButton label="Datei hochladen" accept="application/pdf,image/jpeg,image/png" onChange={handleCarePermissionChange} />
+              <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-brand-100 px-4 py-2 text-sm font-semibold text-brand-700 shadow-sm transition hover:bg-brand-200">
+                Foto aufnehmen
+                <input type="file" accept="image/*" capture="environment" onChange={handleCarePermissionChange} className="sr-only" />
+              </label>
+            </div>
+            <span className="text-xs text-slate-600">{carePermission.fileName ? `Ausgewählt: ${carePermission.fileName}` : carePermissionStatusText}</span>
           </div>
         </section>
 
