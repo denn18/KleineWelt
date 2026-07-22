@@ -529,6 +529,11 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
     fileData: null,
     action: 'keep',
   });
+  const [carePermissionState, setCarePermissionState] = useState({
+    fileName: profile.carePermissionOriginalName || '',
+    fileData: null,
+    action: 'keep',
+  });
   const [contractDocuments, setContractDocuments] = useState(() =>
     (profile.contractDocuments ?? []).map((document) => buildContractDocumentItem(document)).filter(Boolean)
   );
@@ -581,6 +586,11 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
       action: 'keep',
     });
     setConceptState({ fileName: '', fileData: null, action: 'keep' });
+    setCarePermissionState({
+      fileName: profile.carePermissionOriginalName || '',
+      fileData: null,
+      action: 'keep',
+    });
     setContractDocuments(
       (profile.contractDocuments ?? []).map((document) => buildContractDocumentItem(document)).filter(Boolean)
     );
@@ -698,6 +708,16 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
     }
     const dataUrl = await readFileAsDataUrl(file);
     setConceptState({ fileName: file.name, fileData: dataUrl, action: 'replace' });
+  }
+
+  async function handleCarePermissionChange(event) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    const dataUrl = await readFileAsDataUrl(file);
+    setCarePermissionState({ fileName: file.name, fileData: dataUrl, action: 'replace' });
+    event.target.value = '';
   }
 
   function handleRemoveConcept() {
@@ -843,6 +863,15 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
       : Array.from({ length: 3 }, (_, index) => roomGallery[(roomGalleryOffset + index) % roomGallery.length]);
   const showRoomNavigation = roomGallery.length > 3;
 
+
+  const hasCarePermissionFeedback = carePermissionState.action === 'replace' || ['approved', 'pending'].includes(profile.verificationStatus);
+  const carePermissionFeedbackClasses = hasCarePermissionFeedback
+    ? 'border-emerald-200 bg-emerald-50/60 text-emerald-800'
+    : 'border-rose-200 bg-rose-50/60 text-rose-800';
+  const carePermissionFeedbackText = hasCarePermissionFeedback
+    ? (carePermissionState.action === 'replace' ? 'Pflegeerlaubnis ausgewählt – nach dem Speichern wird sie zur Prüfung eingereicht.' : 'Pflegeerlaubnis wurde hochgeladen.')
+    : 'Pflegeerlaubnis fehlt';
+
   async function handleSubmit(event) {
     event.preventDefault();
     setStatusMessage(null);
@@ -911,11 +940,17 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
       payload.conceptFile = null;
     }
 
+    if (carePermissionState.action === 'replace') {
+      payload.carePermissionDocument = carePermissionState.fileData;
+      payload.carePermissionOriginalName = carePermissionState.fileName;
+    }
+
     try {
       await onSave(payload);
       setStatusMessage({ type: 'success', text: 'Profil erfolgreich aktualisiert.' });
       setFormState((current) => ({ ...current, newPassword: '' }));
       setConceptState({ fileName: '', fileData: null, action: 'keep' });
+      setCarePermissionState((current) => ({ ...current, action: 'keep' }));
     } catch (error) {
       const message = error.response?.data?.message || 'Aktualisierung fehlgeschlagen.';
       setStatusMessage({ type: 'error', text: message });
@@ -924,6 +959,18 @@ function CaregiverProfileEditor({ profile, onSave, saving, onDeleteProfile, dele
 
   return (
     <form className="grid gap-6" onSubmit={handleSubmit}>
+      <div className={`rounded-2xl border-2 border-dashed p-4 text-sm ${carePermissionFeedbackClasses}`}>
+        <p><strong>Pflegeerlaubnis: </strong>{carePermissionFeedbackText}</p>
+        <p className="mt-1 text-xs text-slate-600">PDF, JPG oder PNG, maximal 10 MB</p>
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <IconUploadButton label="Pflegeerlaubnis hochladen" accept="application/pdf,image/jpeg,image/png" onChange={handleCarePermissionChange} />
+          <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-brand-100 px-4 py-2 text-sm font-semibold text-brand-700 shadow-sm transition hover:bg-brand-200">
+            Foto aufnehmen
+            <input type="file" accept="image/*" capture="environment" onChange={handleCarePermissionChange} className="sr-only" />
+          </label>
+          <span className="text-xs text-slate-600 sm:ml-3">{carePermissionState.fileName ? `Ausgewählt: ${carePermissionState.fileName}` : 'Noch keine Pflegeerlaubnis ausgewählt.'}</span>
+        </div>
+      </div>
       <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
         <h2 className="text-lg font-semibold text-brand-700">Basisdaten deiner Kindertagespflege</h2>
         <div className="grid gap-4 sm:grid-cols-3">

@@ -100,6 +100,12 @@ function CaregiverSignupPage() {
   const { login } = useAuth();
   const computedAge = calculateAgeFromDateString(formState.birthDate);
   const experienceYears = calculateYearsSince(formState.caregiverSince);
+  const carePermissionTileClasses = carePermission.dataUrl
+    ? 'border-emerald-200 bg-emerald-50/60'
+    : 'border-rose-200 bg-rose-50/60';
+  const carePermissionStatusText = carePermission.dataUrl
+    ? 'Pflegeerlaubnis ausgewählt – nach dem Absenden wird sie zur Prüfung eingereicht.'
+    : 'Noch keine Pflegeerlaubnis ausgewählt.';
   const visibleRoomImages =
     roomGallery.length <= 3
       ? roomGallery
@@ -724,7 +730,7 @@ function CaregiverSignupPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/60 p-4">
+          <div className={`rounded-2xl border-2 border-dashed p-4 ${carePermissionTileClasses}`}>
             <p className="text-sm font-semibold text-brand-700">Pflegeerlaubnis hochladen <span className="text-rose-500">*</span></p>
             <p className="mt-1 text-xs text-slate-600">Pflichtfeld – PDF, JPG oder PNG, maximal 10 MB</p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -733,7 +739,7 @@ function CaregiverSignupPage() {
                 Foto aufnehmen
                 <input type="file" accept="image/*" capture="environment" onChange={handleCarePermissionChange} className="sr-only" />
               </label>
-              <span className="text-xs text-slate-600 sm:ml-3">{carePermission.fileName ? `Ausgewählt: ${carePermission.fileName}` : 'Noch keine Pflegeerlaubnis ausgewählt.'}</span>
+              <span className="text-xs text-slate-600 sm:ml-3">{carePermission.fileName ? `Ausgewählt: ${carePermission.fileName}` : carePermissionStatusText}</span>
             </div>
           </div>
           <div className="rounded-2xl border border-dashed border-brand-200 bg-white/70 p-4">
