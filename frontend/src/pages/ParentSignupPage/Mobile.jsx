@@ -200,12 +200,11 @@ function ParentSignupPageMobile() {
 
   // 2) FORM (mobile-friendly Layout, aber Logik 1:1 aus Web)
   return (
-    <section className="mx-auto flex w-full max-w-md flex-col gap-5 px-4 pb-12 pt-6">
-      <header className="flex flex-col gap-2">
-        <p className="text-xs font-extrabold uppercase tracking-widest text-brand-600">Profil für Eltern</p>
-        <h1 className="text-2xl font-extrabold text-slate-900">Teile uns mit, wie wir dich erreichen können.</h1>
-        <p className="text-sm text-slate-600">
-          Teile uns mit, wie wir dich erreichen können und welche Betreuung dein Kind benötigt.
+    <section className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 pb-12 pt-6">
+      <header className="text-center">
+        <h1 className="text-2xl font-semibold text-brand-700">Profil für Eltern</h1>
+        <p className="mt-2 text-sm text-slate-600">
+          Erzähl uns, welche Betreuung dein Kind benötigt und wie wir dich erreichen können.
         </p>
       </header>
 
@@ -217,9 +216,9 @@ function ParentSignupPageMobile() {
         </p>
       </div>
 
-      <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+      <form className="grid gap-5" onSubmit={handleSubmit}>
         {/* Kontaktdaten */}
-        <div className="rounded-3xl border border-brand-100 bg-white/90 p-5 shadow">
+        <div className="rounded-2xl border border-brand-100 bg-white/90 p-4 shadow">
           <div className="flex flex-col gap-1">
             <h2 className="text-lg font-extrabold text-brand-700">Kontaktdaten</h2>
             <p className="text-xs text-slate-500">Pflichtfelder sind mit * gekennzeichnet.</p>
@@ -331,7 +330,7 @@ function ParentSignupPageMobile() {
         </div>
 
         {/* Kinder */}
-        <section className="rounded-3xl border border-brand-100 bg-white/90 p-5 shadow">
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-4 shadow">
           <header className="flex items-start justify-between gap-4">
             <div className="flex flex-col gap-1">
               <h2 className="text-lg font-extrabold text-brand-700">Kinder & Alltag</h2>
@@ -417,7 +416,7 @@ function ParentSignupPageMobile() {
         </section>
 
         {/* Foto */}
-        <section className="rounded-3xl border border-brand-100 bg-white/90 p-5 shadow">
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-4 shadow">
           <h2 className="text-lg font-extrabold text-brand-700">Foto von dir (optional)</h2>
 
           <div className="mt-3 flex items-center gap-4">
@@ -441,16 +440,18 @@ function ParentSignupPageMobile() {
         </section>
 
         {/* Notizen */}
-        <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
-          Wünsche & Notizen
-          <textarea
-            value={formState.notes}
-            onChange={(event) => updateField('notes', event.target.value)}
-            rows={4}
-            className="rounded-2xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
-            placeholder="Gibt es Besonderheiten oder Wünsche, die wir berücksichtigen sollten, zb. Allergene etc?"
-          />
-        </label>
+        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/90 p-4 shadow">
+          <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
+            Wünsche & Notizen
+            <textarea
+              value={formState.notes}
+              onChange={(event) => updateField('notes', event.target.value)}
+              rows={4}
+              className="rounded-2xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+              placeholder="Gibt es Besonderheiten oder Wünsche, die wir berücksichtigen sollten, zb. Allergene etc?"
+            />
+          </label>
+        </section>
 
         <section className="grid gap-3 rounded-2xl border border-brand-200 bg-brand-50/40 p-4 text-sm text-slate-700">
           <label className="flex items-start gap-3">
