@@ -151,7 +151,7 @@ function ParentSignupPage() {
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-3xl flex-col gap-8 rounded-3xl bg-white/85 p-10 shadow-lg">
+    <section className="mx-auto flex w-full max-w-4xl flex-col gap-8 rounded-3xl bg-white/90 p-12 shadow-xl">
       <header className="text-center">
         <h1 className="text-3xl font-semibold text-brand-700">Profil für Eltern</h1>
         <p className="mt-2 text-sm text-slate-600">
