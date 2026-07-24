@@ -24,88 +24,92 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage/index.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage/index.jsx';
 import VerificationPendingPage from './pages/Verificationpending/index.js';
 import AdminPage from './pages/AdminPage.jsx';
+import ScrollToTop from './components/ScrollToTop.jsx';
 
 function App() {
   return (
-    <Routes>
-      <Route element={<MainLayout />}>
-        <Route index element={<HomePage />} />
-        <Route path="anmelden" element={<RoleSelectionPage />} />
-        <Route path="anmelden/tagespflegeperson" element={<CaregiverSignupPage />} />
-        <Route path="anmelden/eltern" element={<ParentSignupPage />} />
-        <Route path="familienzentrum" element={<Navigate to="/kindertagespflege" replace />} />
-        <Route path="kindertagespflege" element={<DashboardPage />} />
-        <Route path="kindertagespflege/:citySlug" element={<DashboardPage />} />
-        <Route path="kindertagespflege/:citySlug/:daycareSlug" element={<CaregiverDetailPage />} />
-        <Route path="kindertagespflege/:id" element={<CaregiverDetailPage />} />
-        <Route path="kontakt" element={<ContactPage />} />
-        <Route path="faq" element={<FAQPage />} />
-        <Route path="datenschutz" element={<PrivacyPolicyPage />} />
-        <Route path="agb" element={<TermsPage />} />
-        <Route path="impressum" element={<ImprintPage />} />
-        <Route path="login" element={<LoginPage />} />
-        <Route path="pflegeerlaubnis-wird-geprueft" element={<VerificationPendingPage />} />
-        <Route path="admin" element={<AdminPage />} />
-        <Route path="passwort-vergessen" element={<ForgotPasswordPage />} />
-        <Route path="passwort-zuruecksetzen" element={<ResetPasswordPage />} />
-        <Route
-          path="profil"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="nachrichten"
-          element={
-            <ProtectedRoute>
-              <MessagesOverviewPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="betreuungsgruppe"
-          element={
-            <ProtectedRoute>
-              <Kindertagespflegegruppe />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="betreuungsgruppe/erstellen"
-          element={
-            <ProtectedRoute>
-              <BetreuungsgruppeErstellenPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="betreuungsgruppe/chat"
-          element={
-            <ProtectedRoute>
-              <BetreuungsgruppeChatPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="nachrichten/:targetId"
-          element={
-            <ProtectedRoute>
-              <MessengerPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="kontakte"
-          element={
-            <ProtectedRoute>
-              <ContactsPage />
-            </ProtectedRoute>
-          }
-        />
-      </Route>
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="anmelden" element={<RoleSelectionPage />} />
+          <Route path="anmelden/tagespflegeperson" element={<CaregiverSignupPage />} />
+          <Route path="anmelden/eltern" element={<ParentSignupPage />} />
+          <Route path="familienzentrum" element={<Navigate to="/kindertagespflege" replace />} />
+          <Route path="kindertagespflege" element={<DashboardPage />} />
+          <Route path="kindertagespflege/:citySlug" element={<DashboardPage />} />
+          <Route path="kindertagespflege/:citySlug/:daycareSlug" element={<CaregiverDetailPage />} />
+          <Route path="kindertagespflege/:id" element={<CaregiverDetailPage />} />
+          <Route path="kontakt" element={<ContactPage />} />
+          <Route path="faq" element={<FAQPage />} />
+          <Route path="datenschutz" element={<PrivacyPolicyPage />} />
+          <Route path="agb" element={<TermsPage />} />
+          <Route path="impressum" element={<ImprintPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="pflegeerlaubnis-wird-geprueft" element={<VerificationPendingPage />} />
+          <Route path="admin" element={<AdminPage />} />
+          <Route path="passwort-vergessen" element={<ForgotPasswordPage />} />
+          <Route path="passwort-zuruecksetzen" element={<ResetPasswordPage />} />
+          <Route
+            path="profil"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="nachrichten"
+            element={
+              <ProtectedRoute>
+                <MessagesOverviewPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="betreuungsgruppe"
+            element={
+              <ProtectedRoute>
+                <Kindertagespflegegruppe />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="betreuungsgruppe/erstellen"
+            element={
+              <ProtectedRoute>
+                <BetreuungsgruppeErstellenPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="betreuungsgruppe/chat"
+            element={
+              <ProtectedRoute>
+                <BetreuungsgruppeChatPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="nachrichten/:targetId"
+            element={
+              <ProtectedRoute>
+                <MessengerPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="kontakte"
+            element={
+              <ProtectedRoute>
+                <ContactsPage />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+      </Routes>
+    </>
   );
 }
 
