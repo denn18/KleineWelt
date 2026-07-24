@@ -431,7 +431,7 @@ function ParentProfileEditor({ profile, onSave, saving, onDeleteProfile, deletin
             onChange={(event) => updateField('notes', event.target.value)}
             rows={4}
             className="rounded-xl border border-brand-200 px-4 py-3 text-sm shadow-sm focus:border-brand-400 focus:outline-none"
-            placeholder="Was sollten Tagespflegepersonen über euch wissen?"
+            placeholder="Was sollten Kindertagespflegepersonen über euch wissen?"
           />
         </label>
       </section>
