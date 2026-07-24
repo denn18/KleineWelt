@@ -368,7 +368,7 @@ export default function Mobile() {
 
   // 2) Dann Formular (mobil-friendly Layout, gleiche Logik wie Web-App)
   return (
-    <section className="mx-auto flex w-full max-w-md flex-col gap-6 rounded-3xl bg-white/90 p-6 shadow-lg">
+    <section className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 pb-12 pt-6">
       <header className="text-center">
         <h1 className="text-2xl font-semibold text-brand-700">Profil für Kindertagespflegepersonen</h1>
         <p className="mt-2 text-sm text-slate-600">
@@ -378,7 +378,7 @@ export default function Mobile() {
 
       <form className="grid gap-5" onSubmit={handleSubmit}>
         {/* Basisdaten */}
-        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/80 p-4">
+        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/90 p-4 shadow">
           <h2 className="text-base font-semibold text-brand-700">Basisdaten</h2>
 
           <Input label="Vorname" required value={formState.firstName} onChange={(v) => updateField('firstName', v)} />
@@ -422,7 +422,7 @@ export default function Mobile() {
         </section>
 
         {/* Zugangsdaten */}
-        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/80 p-4">
+        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/90 p-4 shadow">
           <h2 className="text-base font-semibold text-brand-700">Zugangsdaten</h2>
           <Input label="Benutzername" required value={formState.username} onChange={(v) => updateField('username', v)} />
           <Input
@@ -435,7 +435,7 @@ export default function Mobile() {
         </section>
 
         {/* Kontakt & Standort */}
-        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/80 p-4">
+        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/90 p-4 shadow">
           <h2 className="text-base font-semibold text-brand-700">Kontakt & Standort</h2>
 
           <Input
@@ -455,7 +455,7 @@ export default function Mobile() {
         </section>
 
         {/* Kapazitäten */}
-        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/80 p-4">
+        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/90 p-4 shadow">
           <h2 className="text-base font-semibold text-brand-700">Betreuungskapazitäten</h2>
 
           <Input
@@ -511,7 +511,7 @@ export default function Mobile() {
         </section>
 
         {/* Uploads */}
-        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/80 p-4">
+        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/90 p-4 shadow">
           <h2 className="text-base font-semibold text-brand-700">Profilbild, Logo & Konzeption</h2>
 
           <div className="grid gap-2 rounded-2xl border border-brand-100 bg-white p-4">
@@ -553,7 +553,7 @@ export default function Mobile() {
         </section>
 
         {/* Räume */}
-        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/80 p-4">
+        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/90 p-4 shadow">
           <div className="flex flex-col gap-2">
             <h2 className="text-base font-semibold text-brand-700">Räumlichkeiten</h2>
             <p className="text-xs text-slate-500">Maximal drei Bilder werden gleichzeitig dargestellt.</p>
@@ -607,7 +607,7 @@ export default function Mobile() {
         </section>
 
         {/* Closed Days */}
-        <section className="grid gap-3 rounded-2xl border border-brand-100 bg-white/80 p-4">
+        <section className="grid gap-3 rounded-2xl border border-brand-100 bg-white/90 p-4 shadow">
           <h2 className="text-base font-semibold text-brand-700">Betreuungsfreie Tage</h2>
 
           <div className="grid gap-2">
@@ -664,7 +664,7 @@ export default function Mobile() {
         </section>
 
         {/* Zeiten */}
-        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/80 p-4">
+        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/90 p-4 shadow">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-semibold text-brand-700">Betreuungszeiten</h2>
@@ -718,7 +718,7 @@ export default function Mobile() {
           </div>
         </section>
 
-        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/80 p-4">
+        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/90 p-4 shadow">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-base font-semibold text-brand-700">Tagesablauf</h2>
