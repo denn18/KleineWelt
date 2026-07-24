@@ -406,7 +406,7 @@ function CaregiverSignupPage() {
         </p>
       </header>
       <form className="grid gap-6" onSubmit={handleSubmit}>
-        <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
+        <section className="grid gap-4">
           <h2 className="text-lg font-semibold text-brand-700">Basisdaten deiner Kindertagespflege</h2>
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
@@ -506,7 +506,7 @@ function CaregiverSignupPage() {
         </div>
         </section>
 
-        <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
+        <section className="grid gap-4">
           <h2 className="text-lg font-semibold text-brand-700">Betreuungskapazitäten</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
@@ -571,7 +571,7 @@ function CaregiverSignupPage() {
             </label>
           </div>
         </section>
-        <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
+        <section className="grid gap-4">
           <h2 className="text-lg font-semibold text-brand-700">Zugangsdaten</h2>
           <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
@@ -605,7 +605,7 @@ function CaregiverSignupPage() {
           </label>
           </div>
         </section>
-        <section className="grid gap-4 rounded-3xl bg-white/80 p-6 shadow">
+        <section className="grid gap-4">
           <h2 className="text-lg font-semibold text-brand-700">Kontakt & Standort</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="flex flex-col gap-2 text-sm font-medium text-slate-700">
@@ -684,7 +684,7 @@ function CaregiverSignupPage() {
           </div>
         </section>
 
-        <section className="grid gap-6 rounded-3xl bg-white/80 p-6 shadow">
+        <section className="grid gap-6">
           <div className="flex flex-col gap-1">
             <h2 className="text-lg font-semibold text-brand-700">Profilbild, Logo & Unterlagen</h2>
             <p className="text-xs text-slate-500">
@@ -757,7 +757,7 @@ function CaregiverSignupPage() {
             </div>
           </div>
         </section>
-        <section className="grid gap-3 rounded-2xl border border-brand-100 bg-white/80 p-6">
+        <section className="grid gap-3">
           <div>
             <h2 className="text-lg font-semibold text-brand-700">Betreuungsfreie Tage</h2>
             <p className="text-xs text-slate-500">Lege fest, an welchen Tagen regulär keine Betreuung stattfindet.</p>
@@ -821,7 +821,7 @@ function CaregiverSignupPage() {
         </section>
         
         
-        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/80 p-6">
+        <section className="grid gap-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-brand-700">Betreuungszeiten</h2>
@@ -883,7 +883,7 @@ function CaregiverSignupPage() {
             ))}
           </div>
         </section>
-        <section className="grid gap-4 rounded-2xl border border-brand-100 bg-white/80 p-6">
+        <section className="grid gap-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-brand-700">Tagesablauf</h2>
@@ -971,7 +971,7 @@ function CaregiverSignupPage() {
             placeholder="Beschreibe, welche Mahlzeiten du anbietest."
           />
         </label>
-        <section className="grid gap-5 rounded-2xl border border-brand-100 bg-white/80 p-6">
+        <section className="grid gap-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-brand-700">Räumlichkeiten</h2>
@@ -1055,7 +1055,7 @@ function CaregiverSignupPage() {
             </p>
           )}
         </section>
-        <section className="grid gap-3 rounded-2xl border border-brand-200 bg-brand-50/40 p-4 text-sm text-slate-700">
+        <section className="grid gap-3 text-sm text-slate-700">
           <label className="flex items-start gap-3">
             <input
               type="checkbox"
