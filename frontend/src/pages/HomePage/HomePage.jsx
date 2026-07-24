@@ -1,15 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import heroImage from '../assets/hero-family.svg';
-import heroImage2 from '../assets/hero-family2.png';
 import heroImage3 from '../assets/hero-family3.svg';
 import { useAuth } from '../context/AuthContext.jsx';
 import { trackEvent } from '../utils/analytics.js';
 import LogoCarousel from '../../components/LogoCarousel.jsx';
 import { slugify } from '../../utils/caregiverProfilePath.js';
 
-const darkbluefont = '#353e73';
 
 const pressArticles = [
   {
@@ -41,13 +38,22 @@ const pressArticles = [
   },
 ];
 
-const fundingPartner = {
-  name: 'Gründungsstipendium.NRW',
-  description:
-    'Die Wimmel Welt wird durch das Gründungsstipendium.NRW gefördert, ein Förderprogramm des Landes Nordrhein-Westfalen zur Unterstützung innovativer Gründungsvorhaben.',
-  logo: '/Stipendium.png',
-  url: 'https://www.gruendungsstipendium.nrw/',
-};
+const fundingPartners = [
+  {
+    name: 'Gründungsstipendium.NRW',
+    description:
+      'Die Wimmel Welt wird durch das Gründungsstipendium.NRW gefördert, ein Förderprogramm des Landes Nordrhein-Westfalen zur Unterstützung innovativer Gründungsvorhaben.',
+    logo: '/Stipendium.png',
+    url: 'https://www.gruendungsstipendium.nrw/',
+  },
+  {
+    name: 'pro Wirtschaft GT',
+    description:
+      'Die pro Wirtschaft GT ist die Wirtschaftsförderung des Kreises Gütersloh und begleitet Unternehmen sowie Gründer:innen mit Beratung und Vernetzung.',
+    logo: '/prowi-logo-hauptversion-mehrfarbig.jpg',
+    url: 'https://www.prowi-gt.de/',
+  },
+];
 
 
 const features = [
@@ -74,13 +80,6 @@ function HomePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [cities, setCities] = useState([]);
-  const [animateCta, setAnimateCta] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setAnimateCta(false), 2100);
-    return () => clearTimeout(timer);
-  }, []);
-
   useEffect(() => {
     let ignore = false;
 
@@ -256,36 +255,43 @@ function HomePage() {
 
       <section aria-labelledby="funding-heading">
         <div className="mb-6 flex flex-col gap-2">
-          <h2 id="funding-heading" className="text-2xl font-semibold text-brand-700">Gefördert von:</h2>
+          <h2 id="funding-heading" className="text-2xl font-semibold text-brand-700">Förderer &amp; Unterstützer:</h2>
         </div>
 
-        <article className="flex flex-col gap-6 rounded-2xl bg-white/80 p-6 shadow transition duration-300 md:flex-row md:items-center md:hover:-translate-y-1 md:hover:shadow-lg">
-          <a
-            href={fundingPartner.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex min-h-24 items-center justify-center rounded-2xl bg-white px-6 py-5 ring-1 ring-brand-100 transition duration-200 hover:ring-brand-300 md:w-80"
-          >
-            <img
-              src={fundingPartner.logo}
-              alt={`${fundingPartner.name} Logo`}
-              className="max-h-20 w-full object-contain"
-              loading="lazy"
-            />
-          </a>
-
-          <div className="flex flex-1 flex-col gap-3">
-            <a
-              href={fundingPartner.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm font-semibold text-brand-600 transition-colors duration-200 hover:text-brand-700"
+        <div className="grid gap-6 md:grid-cols-2">
+          {fundingPartners.map((partner) => (
+            <article
+              key={partner.name}
+              className="flex flex-col gap-6 rounded-2xl bg-white/80 p-6 shadow transition duration-300 md:hover:-translate-y-1 md:hover:shadow-lg"
             >
-              {fundingPartner.name}
-            </a>
-            <p className="text-sm leading-relaxed text-slate-600">{fundingPartner.description}</p>
-          </div>
-        </article>
+              <a
+                href={partner.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-24 items-center justify-center rounded-2xl bg-white px-6 py-5 ring-1 ring-brand-100 transition duration-200 hover:ring-brand-300"
+              >
+                <img
+                  src={partner.logo}
+                  alt={`${partner.name} Logo`}
+                  className="max-h-20 w-full object-contain"
+                  loading="lazy"
+                />
+              </a>
+
+              <div className="flex flex-1 flex-col gap-3">
+                <a
+                  href={partner.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-semibold text-brand-600 transition-colors duration-200 hover:text-brand-700"
+                >
+                  {partner.name}
+                </a>
+                <p className="text-sm leading-relaxed text-slate-600">{partner.description}</p>
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
            <section className="rounded-3xl bg-white/85 p-8 shadow-lg backdrop-blur">
