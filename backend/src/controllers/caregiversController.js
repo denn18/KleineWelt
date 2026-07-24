@@ -7,6 +7,7 @@ import {
   resolveCityByPostalCode,
   updateCaregiver,
 } from '../services/caregiversService.js';
+import { notifyCaregiverSignupPendingApproval } from '../services/notificationService.js';
 import { deleteAccountData } from '../services/accountDeletionService.js';
 import {
   fileReferencesEqual,
@@ -238,6 +239,9 @@ export async function postCaregiver(req, res) {
       verificationStatus: 'pending',
       isPublished: false,
     });
+
+    await notifyCaregiverSignupPendingApproval(caregiver);
+
     res.status(201).json(caregiver);
   } catch (error) {
     console.error('Failed to create caregiver', error);

@@ -261,3 +261,33 @@ test('notifyRecipientOfMessage sends email when no push subscription exists (off
   assert.equal(sendEmailMock.mock.callCount(), 1);
   assert.equal(sendPushMock.mock.callCount(), 1);
 });
+
+test('notifyCaregiverSignupPendingApproval emails admin for caregiver review', async (t) => {
+  t.after(__resetNotificationServiceDependenciesForTesting);
+
+  const sendEmailMock = t.mock.fn(async () => true);
+  __setNotificationServiceDependenciesForTesting({
+    sendEmail: sendEmailMock,
+  });
+
+  const { notifyCaregiverSignupPendingApproval } = await import('../src/services/notificationService.js');
+  const result = await notifyCaregiverSignupPendingApproval({
+    firstName: 'Lena',
+    lastName: 'Muster',
+    daycareName: 'Kleine Füchse',
+    postalCode: '50667',
+    city: 'Köln',
+    email: 'lena@example.com',
+  });
+
+  assert.equal(result, true);
+  assert.equal(sendEmailMock.mock.callCount(), 1);
+
+  const [message] = sendEmailMock.mock.calls[0].arguments;
+  assert.equal(message.to, 'dennieentwicklung@gmail.com');
+  assert.equal(message.subject, 'Neue Kindertagespflegeperson wartet auf Freigabe');
+  assert.match(message.text, /Neue Kindertagespflegeperson hat sich angemeldet/);
+  assert.match(message.text, /Überprüfe jetzt die Pflegeerlaubnis/);
+  assert.match(message.text, /Lena Muster/);
+  assert.match(message.html, /Kleine Füchse/);
+});
