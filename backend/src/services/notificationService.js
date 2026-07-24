@@ -29,6 +29,15 @@ function resolveRecipientEmail(user) {
   return null;
 }
 
+function escapeHtml(value) {
+  return `${value ?? ''}`
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function buildMessageEmail({ recipientName, senderName }) {
   const intro = `Du hast eine neue Nachricht von ${senderName} erhalten. Logge dich ein, um die Nachricht zu lesen und zu antworten.`;
 
@@ -107,6 +116,52 @@ function buildMessageEmail({ recipientName, senderName }) {
   ].join('');
 
   return { text, html };
+}
+
+function buildCaregiverSignupReviewEmail(caregiver = {}) {
+  const name = buildDisplayName(caregiver);
+  const location = [caregiver.postalCode, caregiver.city].filter(Boolean).join(' ').trim();
+  const plainDetails = [
+    name ? `Name: ${name}` : null,
+    caregiver.daycareName ? `Kindertagespflege: ${caregiver.daycareName}` : null,
+    location ? `Ort: ${location}` : null,
+    caregiver.email ? `E-Mail: ${caregiver.email}` : null,
+  ].filter(Boolean);
+
+  const text = [
+    'Neue Kindertagespflegeperson hat sich angemeldet.',
+    '',
+    'Überprüfe jetzt die Pflegeerlaubnis und gib ihren Account frei.',
+    '',
+    ...plainDetails,
+  ].join('\n');
+
+  const htmlDetails = plainDetails.length > 0
+    ? `<ul>${plainDetails.map((detail) => `<li>${escapeHtml(detail)}</li>`).join('')}</ul>`
+    : '';
+
+  const html = [
+    '<p>Neue Kindertagespflegeperson hat sich angemeldet.</p>',
+    '<p>Überprüfe jetzt die Pflegeerlaubnis und gib ihren Account frei.</p>',
+    htmlDetails,
+  ].join('');
+
+  return { text, html };
+}
+
+export async function notifyCaregiverSignupPendingApproval(caregiver) {
+  try {
+    const { text, html } = buildCaregiverSignupReviewEmail(caregiver);
+    return await dependencies.sendEmail({
+      to: 'dennieentwicklung@gmail.com',
+      subject: 'Neue Kindertagespflegeperson wartet auf Freigabe',
+      text,
+      html,
+    });
+  } catch (error) {
+    console.error('Benachrichtigung über neue Kindertagespflege-Anmeldung fehlgeschlagen:', error);
+    return false;
+  }
 }
 
 export async function notifyRecipientOfMessage({ recipientId, senderId, conversationId }) {
