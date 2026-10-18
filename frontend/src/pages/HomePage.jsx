@@ -1,15 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import heroImage from '../assets/hero-family.svg';
-import heroImage2 from '../assets/hero-family2.png';
-import heroImage3 from '../assets/hero-family3.svg';
+import heroImage3 from './assets/hero-family3.svg';
 import { useAuth } from '../context/AuthContext.jsx';
 import { trackEvent } from '../utils/analytics.js';
-import LogoCarousel from '../../components/LogoCarousel.jsx';
-import { slugify } from '../../utils/caregiverProfilePath.js';
-
-const darkbluefont = '#353e73';
+import LogoCarousel from '../components/LogoCarousel.jsx';
+import { slugify } from '../utils/caregiverProfilePath.js';
 
 const pressArticles = [
   {
@@ -49,15 +45,17 @@ const fundingPartner = {
   url: 'https://www.gruendungsstipendium.nrw/',
 };
 
-
 const features = [
   {
     title: 'Persönliche Kindertagespflege',
+    mobileDescription: 'Finde liebevolle Kindertagespflegepersonen in deiner Nähe, die genau zu den Bedürfnissen deiner Familie passen.',
     description:
       'Finde liebevolle Tagesmütter und Tagesväter in deiner Nähe, die genau zu den Bedürfnissen deiner Familie passen.',
   },
   {
     title: 'Transparente Kinderbetreuung',
+    mobileTitle: 'Transparente Kindertagespflege',
+    mobileDescription: 'Vergleiche pädagogische Konzepte, freie Kindertagespflegeplätze und Altersgrenzen auf einen Blick.',
     description:
       'Vergleiche pädagogische Konzepte, freie Betreuungsplätze und Altersgrenzen auf einen Blick.',
   },
@@ -69,17 +67,15 @@ const features = [
 ];
 
 
+// Keep the original mobile/desktop analytics labels without switching page components.
+function getPlatform() {
+  return window.matchMedia('(min-width: 768px)').matches ? 'web' : 'mobile';
+}
 
 function HomePage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [cities, setCities] = useState([]);
-  const [animateCta, setAnimateCta] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setAnimateCta(false), 2100);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     let ignore = false;
@@ -129,29 +125,29 @@ function HomePage() {
       logout();
     } else {
       console.info('Navigation zur Login-Seite von Home CTA');
-      trackEvent('engagement_login_page', { page: 'home', platform: 'web', location: 'hero' });
+      trackEvent('engagement_login_page', { page: 'home', platform: getPlatform(), location: 'hero' });
       navigate('/login');
     }
   }
 
   return (
-    <div className="flex flex-col gap-24">
-      <section className="grid gap-12 rounded-3xl bg-white/70 p-10 shadow-lg backdrop-blur sm:grid-cols-2">
-        <div className="flex flex-col gap-6">
-          <p className="text-sm font-semibold uppercase tracking-widest text-brand-500">Willkommen bei Wimmel Welt</p>
-          <h1 className="text-4xl font-bold text-[#353e73] sm:text-5xl">
+    <div className="flex flex-col gap-10 md:gap-24">
+      <section className="grid grid-cols-1 rounded-3xl bg-white/70 p-5 shadow-lg backdrop-blur md:grid-cols-2 md:gap-12 md:p-10">
+        <div className="contents md:flex md:flex-col md:gap-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-brand-500 md:text-sm">Willkommen bei Wimmel Welt</p>
+          <h1 className="mt-2 text-3xl font-bold text-[#353e73] md:mt-0 md:text-5xl">
             Gemeinsam schaffen wir einen sicheren Ort zum Wachsen.
           </h1>
-          <p className="text-lg text-slate-600">
+          <p className="mt-4 text-base leading-relaxed text-slate-600 md:mt-0 md:text-lg md:leading-7">
             Unsere Plattform verbindet Familien mit engagierten Kindertagespflegepersonen. Entdecke Betreuungsmöglichkeiten,
             koordiniere Anfragen und bleibe mit deinem Netzwerk in Kontakt – alles an einem Ort.
           </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="mt-5 flex flex-col gap-3 md:mt-0 md:flex-row">
             <Link
               to="/kindertagespflege"
               onClick={() => {
                 trackEvent('cta_click', { label: 'Kindertagespflege finden', location: 'hero' });
-                trackEvent('engagement_kindertagespflege_finden', { page: 'home', platform: 'web', location: 'hero' });
+                trackEvent('engagement_kindertagespflege_finden', { page: 'home', platform: getPlatform(), location: 'hero' });
               }}
               className="relative rounded-full bg-brand-600 px-6 py-3 text-center text-sm font-semibold text-white shadow-md transition duration-200 hover:-translate-y-0.5 hover:bg-brand-700 hover:shadow-lg animate-attention"
             >
@@ -185,54 +181,68 @@ function HomePage() {
               {user ? 'Abmelden' : 'Anmelden'}
             </button>
           </div>
-          <p className="text-sm leading-relaxed text-slate-500">
-            Wimmel Welt macht Kindertagespflege, Kindertagespflegevermittlung und die Suche nach freien Betreuungsplätzen so einfach wie
-            möglich – für Familien und Kindertagespflegepersonen gleichermaßen.
+          <p className="mt-4 text-sm leading-relaxed text-slate-500 md:mt-0">
+            <span className="md:hidden">
+              Wimmel Welt macht Kindertagespflege, Kindervermittlung und die Suche nach freien Betreuungsplätzen so einfach wie
+              möglich – für Familien und Tagespflegepersonen gleichermaßen.
+            </span>
+            <span className="hidden md:inline">
+              Wimmel Welt macht Kindertagespflege, Kindertagespflegevermittlung und die Suche nach freien Betreuungsplätzen so einfach wie
+              möglich – für Familien und Kindertagespflegepersonen gleichermaßen.
+            </span>
           </p>
         </div>
-        <div className="flex items-center justify-center">
-          <img src={heroImage3} alt="Familie" className="max-h-130 w-full object-contain" />
+        <div className="row-start-3 mt-4 overflow-hidden rounded-2xl md:row-auto md:mt-0 md:flex md:items-center md:justify-center md:overflow-visible md:rounded-none">
+          <img src={heroImage3} alt="Familie" className="h-56 w-full object-contain md:h-auto md:max-h-130" />
         </div>
       </section>
-       <section className="grid gap-8 sm:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-3 md:gap-8">
         {features.map((feature) => (
           <article
             key={feature.title}
-            className="flex flex-col gap-3 rounded-2xl bg-white/80 p-6 shadow transition duration-300 md:hover:-translate-y-1 md:hover:shadow-lg"
+            className="flex flex-col gap-2 rounded-2xl bg-white/80 p-5 shadow md:gap-3 md:p-6 md:transition md:duration-300 md:hover:-translate-y-1 md:hover:shadow-lg"
           >
-            <h2 className="text-xl font-semibold text-brand-700">{feature.title}</h2>
-            <p className="text-sm leading-relaxed text-slate-600">{feature.description}</p>
+            <h2 className="text-lg font-semibold text-brand-700 md:text-xl">
+              <span className="md:hidden">{feature.mobileTitle || feature.title}</span>
+              <span className="hidden md:inline">{feature.title}</span>
+            </h2>
+            <p className="text-sm leading-relaxed text-slate-600">
+              <span className="md:hidden">{feature.mobileDescription || feature.description}</span>
+              <span className="hidden md:inline">{feature.description}</span>
+            </p>
           </article>
         ))}
       </section>
-           <LogoCarousel />
+      <div className="hidden md:contents">
+        <LogoCarousel />
+      </div>
 
       <section>
-        <div className="mb-6 flex flex-col gap-2">
-          <h2 className="text-2xl font-semibold text-brand-700">Wimmel Welt in der Presse</h2>
+        <div className="mb-4 flex flex-col gap-2 md:mb-6">
+          <h2 className="text-xl font-semibold text-brand-700 md:text-2xl">Wimmel Welt in der Presse</h2>
         </div>
 
-        <div className="grid gap-8 sm:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3 md:gap-8">
           {pressArticles.map((article) => (
             <article
               key={article.url}
-              className="group flex flex-col gap-3 rounded-2xl bg-white/80 p-6 shadow transition duration-300 md:hover:-translate-y-1 md:hover:shadow-lg"
+              className="group flex flex-col gap-2 rounded-2xl bg-white/80 p-5 shadow md:gap-3 md:p-6 md:transition md:duration-300 md:hover:-translate-y-1 md:hover:shadow-lg"
             >
-              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-brand-100">
+              <div className="mb-3 inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white ring-1 ring-brand-100 md:mb-4 md:h-11 md:w-11">
                 <img src={article.logo} alt={`${article.newspaper} Logo`} className="h-full w-full object-contain p-1" loading="lazy" />
               </div>
 
               <p className="text-sm font-semibold text-brand-600">{article.newspaper}</p>
-              <h3 className="mt-2 text-lg font-semibold text-brand-700 transition-colors duration-300 group-hover:text-brand-600">
+              <h3 className="text-base font-semibold text-brand-700 md:mt-2 md:text-lg md:transition-colors md:duration-300 md:group-hover:text-brand-600">
                 {article.title}
               </h3>
-              <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-600">{article.description}</p>
+              <p className="flex-1 text-sm leading-relaxed text-slate-600 md:mt-3">{article.description}</p>
 
               <a
                 href={article.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-600 transition-colors duration-200 hover:text-brand-700"
+                className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-brand-600 transition-colors duration-200 hover:text-brand-700 md:mt-5"
               >
                 Zum Artikel auf {article.domain}
                 <svg
@@ -255,26 +265,26 @@ function HomePage() {
       </section>
 
       <section aria-labelledby="funding-heading">
-        <div className="mb-6 flex flex-col gap-2">
-          <h2 id="funding-heading" className="text-2xl font-semibold text-brand-700">Gefördert von:</h2>
+        <div className="mb-4 flex flex-col gap-2 md:mb-6">
+          <h2 id="funding-heading" className="text-xl font-semibold text-brand-700 md:text-2xl">Gefördert von:</h2>
         </div>
 
-        <article className="flex flex-col gap-6 rounded-2xl bg-white/80 p-6 shadow transition duration-300 md:flex-row md:items-center md:hover:-translate-y-1 md:hover:shadow-lg">
+        <article className="flex flex-col gap-4 rounded-2xl bg-white/80 p-5 shadow md:flex-row md:items-center md:gap-6 md:p-6 md:transition md:duration-300 md:hover:-translate-y-1 md:hover:shadow-lg">
           <a
             href={fundingPartner.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex min-h-24 items-center justify-center rounded-2xl bg-white px-6 py-5 ring-1 ring-brand-100 transition duration-200 hover:ring-brand-300 md:w-80"
+            className="flex min-h-20 items-center justify-center rounded-2xl bg-white px-5 py-4 ring-1 ring-brand-100 transition duration-200 hover:ring-brand-300 md:min-h-24 md:w-80 md:px-6 md:py-5"
           >
             <img
               src={fundingPartner.logo}
               alt={`${fundingPartner.name} Logo`}
-              className="max-h-20 w-full object-contain"
+              className="max-h-16 w-full object-contain md:max-h-20"
               loading="lazy"
             />
           </a>
 
-          <div className="flex flex-1 flex-col gap-3">
+          <div className="flex flex-col gap-2 md:flex-1 md:gap-3">
             <a
               href={fundingPartner.url}
               target="_blank"
@@ -288,14 +298,14 @@ function HomePage() {
         </article>
       </section>
 
-           <section className="rounded-3xl bg-white/85 p-8 shadow-lg backdrop-blur">
-        <h2 className="text-2xl font-semibold text-brand-700">Städte und Regionen</h2>
+          <section className="rounded-3xl bg-white/85 p-5 shadow-lg backdrop-blur md:p-8">
+        <h2 className="text-xl font-semibold text-brand-700 md:text-2xl">Städte und Regionen</h2>
         <p className="mt-2 text-sm text-slate-600">
           Entdecke Kindertagespflegepersonen aus deiner Nähe und springe direkt zur passenden Stadtseite.
         </p>
 
         {hasCities ? (
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-wrap gap-2 md:mt-6 md:gap-3">
             {cities.map((city) => (
               <Link
                 key={city.slug}
@@ -303,18 +313,18 @@ function HomePage() {
                 onClick={() => {
                   trackEvent('engagement_city_button_click', {
                     page: 'home',
-                    platform: 'web',
+                    platform: getPlatform(),
                     city: city.slug,
                   });
                 }}
-                className="rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 transition duration-200 hover:-translate-y-0.5 hover:border-brand-400 hover:bg-brand-100"
+                className="rounded-full border border-brand-200 bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-700 md:px-4 md:text-sm md:transition md:duration-200 md:hover:-translate-y-0.5 md:hover:border-brand-400 md:hover:bg-brand-100"
               >
                 {city.name}
               </Link>
             ))}
           </div>
         ) : (
-          <p className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+          <p className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 md:mt-6">
             Aktuell werden die Städte geladen.
           </p>
         )}
