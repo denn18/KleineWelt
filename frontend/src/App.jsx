@@ -4,7 +4,7 @@ import HomePage from './pages/HomePage.jsx';
 import RoleSelectionPage from './pages/RoleSelectionPage/index.jsx';
 import CaregiverSignupPage from './pages/CaregiverSignupPage/index.jsx';
 import ParentSignupPage from './pages/ParentSignupPage/index.jsx';
-import DashboardPage from './pages/DashboardPage/index.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
 import LoginPage from './pages/LoginPage/index.jsx';
 import ProfilePage from './pages/ProfilePage/index.jsx';
 import MessagesOverviewPage from './pages/MessagesOverviewPage/index.jsx';
