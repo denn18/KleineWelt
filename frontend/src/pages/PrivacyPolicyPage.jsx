@@ -1,20 +1,20 @@
 function PrivacyPolicyPage() {
   return (
-    <section className="mx-auto flex w-full max-w-4xl flex-col gap-6 rounded-3xl bg-white/85 p-10 shadow-lg">
+    <section className="mx-auto mt-6 flex w-full max-w-md flex-col gap-4 rounded-3xl bg-white/85 p-5 shadow-lg md:mt-0 md:max-w-4xl md:gap-6 md:p-10">
       <header className="flex flex-col gap-2">
-        <p className="text-sm font-semibold uppercase tracking-wide text-brand-500">Datenschutz</p>
-        <h1 className="text-3xl font-semibold text-brand-700">Datenschutzerklärung für die Plattform „Wimmel Welt“</h1>
+        <p className="text-xs font-semibold uppercase tracking-wide text-brand-500 md:text-sm">Datenschutz</p>
+        <h1 className="text-2xl font-semibold text-brand-700 md:text-3xl">Datenschutzerklärung für die Plattform „Wimmel Welt“</h1>
         <p className="text-sm text-slate-600">Stand: 28. April 2026</p>
         <p className="text-sm text-slate-600">
           Der Schutz deiner personenbezogenen Daten hat für uns einen hohen Stellenwert. Mit diesen Hinweisen informieren wir dich
-          insbesondere gemäß Art. 13 Datenschutz-Grundverordnung (DSGVO) darüber, welche Daten wir auf der Plattform „Wimmel Welt"
+          insbesondere gemäß Art. 13 Datenschutz-Grundverordnung (DSGVO) darüber, welche Daten wir auf der Plattform „Wimmel Welt&quot;
           verarbeiten, zu welchen Zwecken dies geschieht und welche Rechte du hast.
         </p>
       </header>
 
-      <div className="grid gap-6 text-sm leading-relaxed text-slate-700">
-        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-brand-700">1. Verantwortlicher</h2>
+      <div className="grid gap-4 text-sm leading-relaxed text-slate-700 md:gap-6">
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-4 shadow-sm md:p-5">
+          <h2 className="text-base font-semibold text-brand-700 md:text-lg">1. Verantwortlicher</h2>
           <p className="mt-2">Verantwortlicher im Sinne der DSGVO</p>
           <p className="mt-2">
             Wimmel Welt
@@ -33,8 +33,8 @@ function PrivacyPolicyPage() {
           </p>
         </section>
 
-        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-brand-700">2. Art der Daten, Zwecke und Rechtsgrundlagen</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-4 shadow-sm md:p-5">
+          <h2 className="text-base font-semibold text-brand-700 md:text-lg">2. Art der Daten, Zwecke und Rechtsgrundlagen</h2>
 
           <h3 className="mt-4 font-semibold text-brand-600">2.1 Nutzung der Plattform durch Eltern</h3>
           <p className="mt-2 font-semibold">Verarbeitete Datenarten</p>
@@ -198,8 +198,8 @@ function PrivacyPolicyPage() {
           <p className="mt-2">Es erfolgt keine Auswertung von IP-Adressen zu Marketing- oder Trackingzwecken.</p>
         </section>
 
-        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-brand-700">3. Empfänger, Hosting und externe Dienstleister</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-4 shadow-sm md:p-5">
+          <h2 className="text-base font-semibold text-brand-700 md:text-lg">3. Empfänger, Hosting und externe Dienstleister</h2>
           <h3 className="mt-4 font-semibold text-brand-600">3.1 Interne Empfänger</h3>
           <p className="mt-2">
             Innerhalb von Wimmel Welt haben nur diejenigen Personen Zugriff auf personenbezogene Daten, die diese zur Erfüllung der
@@ -250,8 +250,8 @@ function PrivacyPolicyPage() {
           </p>
         </section>
 
-        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-brand-700">4. Cookies, Token und lokale Speicherung</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-4 shadow-sm md:p-5">
+          <h2 className="text-base font-semibold text-brand-700 md:text-lg">4. Cookies, Token und lokale Speicherung</h2>
           <p className="mt-2">Wir setzen derzeit keine Tracking- oder Marketing-Cookies ein.</p>
           <p className="mt-2">
             Zur Authentifizierung und Sitzungsverwaltung verwenden wir einen technischen Sitzungs-Token (z. B. in Form eines JSON Web
@@ -264,8 +264,8 @@ function PrivacyPolicyPage() {
           </p>
         </section>
 
-        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-brand-700">5. Speicherdauer und Löschung</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-4 shadow-sm md:p-5">
+          <h2 className="text-base font-semibold text-brand-700 md:text-lg">5. Speicherdauer und Löschung</h2>
           <p className="mt-2">
             Wir speichern personenbezogene Daten grundsätzlich nur so lange, wie dies für die jeweiligen Zwecke erforderlich ist oder
             wir gesetzlich dazu verpflichtet sind.
@@ -296,8 +296,8 @@ function PrivacyPolicyPage() {
           </p>
         </section>
 
-        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-brand-700">6. Pflicht zur Bereitstellung von Daten</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-4 shadow-sm md:p-5">
+          <h2 className="text-base font-semibold text-brand-700 md:text-lg">6. Pflicht zur Bereitstellung von Daten</h2>
           <p className="mt-2">
             Die Bereitstellung der in den Registrierungsformularen als erforderlich gekennzeichneten Daten ist für die Nutzung der
             Plattform und die Vermittlung von Betreuungsverhältnissen notwendig. Ohne diese Angaben kann kein Nutzerkonto angelegt und
@@ -310,13 +310,13 @@ function PrivacyPolicyPage() {
           </p>
         </section>
 
-        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-brand-700">7. Rechte der betroffenen Personen</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-4 shadow-sm md:p-5">
+          <h2 className="text-base font-semibold text-brand-700 md:text-lg">7. Rechte der betroffenen Personen</h2>
           <p className="mt-2">Dir stehen im Hinblick auf die Verarbeitung deiner personenbezogenen Daten folgende Rechte zu:</p>
           <ul className="mt-2 list-disc space-y-2 pl-5">
             <li>Auskunft über die bei uns gespeicherten Daten (Art. 15 DSGVO).</li>
             <li>Berichtigung unrichtiger oder unvollständiger Daten (Art. 16 DSGVO).</li>
-            <li>Löschung („Recht auf Vergessenwerden") gemäß Art. 17 DSGVO, soweit keine gesetzlichen Aufbewahrungspflichten entgegenstehen.</li>
+            <li>Löschung („Recht auf Vergessenwerden&quot;) gemäß Art. 17 DSGVO, soweit keine gesetzlichen Aufbewahrungspflichten entgegenstehen.</li>
             <li>Einschränkung der Verarbeitung nach Art. 18 DSGVO.</li>
             <li>
               Datenübertragbarkeit nach Art. 20 DSGVO, sofern die Verarbeitung auf Einwilligung oder Vertrag beruht und mithilfe
@@ -337,8 +337,8 @@ function PrivacyPolicyPage() {
           </p>
         </section>
 
-        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-brand-700">8. Datensicherheit</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-4 shadow-sm md:p-5">
+          <h2 className="text-base font-semibold text-brand-700 md:text-lg">8. Datensicherheit</h2>
           <p className="mt-2">
             Wir treffen angemessene technische und organisatorische Maßnahmen, um ein dem Risiko angemessenes Schutzniveau für
             personenbezogene Daten zu gewährleisten (Art. 32 DSGVO).
@@ -352,16 +352,16 @@ function PrivacyPolicyPage() {
           </ul>
         </section>
 
-        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-brand-700">9. Keine automatisierte Entscheidungsfindung / Profiling</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-4 shadow-sm md:p-5">
+          <h2 className="text-base font-semibold text-brand-700 md:text-lg">9. Keine automatisierte Entscheidungsfindung / Profiling</h2>
           <p className="mt-2">
             Es findet keine automatisierte Entscheidungsfindung einschließlich Profiling im Sinne von Art. 22 DSGVO statt, die
             rechtliche Wirkungen gegenüber Nutzern entfaltet oder sie in ähnlicher Weise erheblich beeinträchtigt.
           </p>
         </section>
 
-        <section className="rounded-2xl border border-brand-100 bg-white/90 p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-brand-700">10. Änderungen dieser Datenschutzerklärung</h2>
+        <section className="rounded-2xl border border-brand-100 bg-white/90 p-4 shadow-sm md:p-5">
+          <h2 className="text-base font-semibold text-brand-700 md:text-lg">10. Änderungen dieser Datenschutzerklärung</h2>
           <p className="mt-2">
             Wir entwickeln die Plattform und unsere Prozesse laufend weiter. Daher kann es notwendig werden, diese
             Datenschutzerklärung zu ändern. Die jeweils aktuelle Fassung ist jederzeit auf www.wimmel-welt.de abrufbar.
