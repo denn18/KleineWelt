@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout.jsx';
 import HomePage from './pages/HomePage.jsx';
-import RoleSelectionPage from './pages/RoleSelectionPage/index.jsx';
+import RoleSelectionPage from './pages/RoleSelectionPage.jsx';
 import CaregiverSignupPage from './pages/CaregiverSignupPage/index.jsx';
 import ParentSignupPage from './pages/ParentSignupPage/index.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -20,8 +20,8 @@ import Kindertagespflegegruppe from './pages/Kindertagespflegegruppe.jsx';
 import BetreuungsgruppeErstellenPage from './pages/BetreuungsgruppeErstellen/index.jsx';
 import BetreuungsgruppeChatPage from './pages/BetreuungsgruppeChat/index.jsx';
 import ContactsPage from './pages/ContactsPage/index.jsx';
-import ForgotPasswordPage from './pages/ForgotPasswordPage/index.jsx';
-import ResetPasswordPage from './pages/ResetPasswordPage/index.jsx';
+import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
+import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 
 function App() {
   return (

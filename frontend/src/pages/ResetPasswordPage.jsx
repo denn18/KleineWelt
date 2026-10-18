@@ -48,7 +48,7 @@ function ResetPasswordPage() {
   }
 
   return (
-    <section className="mx-auto flex w-full max-w-xl flex-col gap-8 rounded-3xl bg-white/85 p-10 shadow-lg">
+    <section className="mx-auto flex w-full max-w-xl flex-col gap-8 rounded-3xl bg-white/85 p-5 shadow-lg sm:p-10">
       <header className="text-center">
         <h1 className="text-3xl font-semibold text-brand-700">Passwort zurücksetzen</h1>
         <p className="mt-2 text-sm text-slate-600">Vergib ein neues Passwort für dein Wimmel Welt Konto.</p>
@@ -61,7 +61,7 @@ function ResetPasswordPage() {
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+            className="min-w-0 w-full rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
             required
             minLength={8}
             autoComplete="new-password"
@@ -75,7 +75,7 @@ function ResetPasswordPage() {
             type="password"
             value={passwordRepeat}
             onChange={(event) => setPasswordRepeat(event.target.value)}
-            className="rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
+            className="min-w-0 w-full rounded-xl border border-brand-200 px-4 py-3 text-base shadow-sm focus:border-brand-400 focus:outline-none"
             required
             minLength={8}
             autoComplete="new-password"

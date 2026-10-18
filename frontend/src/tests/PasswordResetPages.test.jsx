@@ -3,8 +3,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import axios from 'axios';
-import ForgotPasswordPage from '../pages/ForgotPasswordPage/index.jsx';
-import ResetPasswordPage from '../pages/ResetPasswordPage/index.jsx';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage.jsx';
+import ResetPasswordPage from '../pages/ResetPasswordPage.jsx';
 
 describe('Password reset pages', () => {
   beforeEach(() => {
