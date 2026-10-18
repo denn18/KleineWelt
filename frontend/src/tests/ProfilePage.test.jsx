@@ -2,7 +2,7 @@ import { describe, it, beforeEach, expect } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
-import ProfilePage from '../pages/ProfilePage/index.jsx';
+import ProfilePage from '../pages/ProfilePage.jsx';
 import { AuthProvider } from '../context/AuthContext.jsx';
 
 function renderProfile(user) {
@@ -31,6 +31,7 @@ describe('ProfilePage parent profile editor', () => {
   };
 
   beforeEach(() => {
+    axios.defaults = { headers: { common: {} } };
     localStorage.clear();
     axios.get.mockReset();
     axios.patch.mockReset();
@@ -50,6 +51,23 @@ describe('ProfilePage parent profile editor', () => {
     expect(screen.getAllByLabelText(/name des kindes/i)).toHaveLength(2);
   });
 
+  it('saves parent details, children, notes and a new password', async () => {
+    axios.get.mockResolvedValue({ data: parentProfile });
+    axios.patch.mockResolvedValue({ data: parentProfile });
+    renderProfile({ id: 'parent-1', role: 'parent' });
+    const user = userEvent.setup();
+    await screen.findByRole('button', { name: /weiteres kind hinzufügen/i });
+    await user.type(screen.getByLabelText(/neues passwort/i), 'new-password');
+    await user.type(screen.getByLabelText(/wunschliste/i), 'Ruhige Eingewöhnung');
+    await user.click(screen.getByRole('button', { name: 'Profil speichern' }));
+    await waitFor(() => expect(axios.patch).toHaveBeenCalledWith('/api/parents/parent-1', expect.objectContaining({
+      password: 'new-password', notes: 'Ruhige Eingewöhnung', numberOfChildren: 1,
+      children: [expect.objectContaining({ name: 'Emma', notes: 'Liebt Musik' })],
+    })));
+    expect(await screen.findByText('Profil erfolgreich aktualisiert.')).toBeInTheDocument();
+    expect(axios.get).toHaveBeenCalledTimes(1);
+  });
+
   it('resets to a blank child entry when the only child is removed', async () => {
     axios.get.mockResolvedValueOnce({ data: parentProfile });
 
@@ -57,7 +75,7 @@ describe('ProfilePage parent profile editor', () => {
 
     await screen.findByRole('button', { name: /weiteres kind hinzufügen/i });
 
-    const removeButton = screen.getByRole('button', { name: /kind entfernen/i });
+    const removeButton = screen.getByRole('button', { name: /eintrag entfernen/i });
     await userEvent.click(removeButton);
 
     await waitFor(() => {

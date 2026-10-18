@@ -6,7 +6,7 @@ import CaregiverSignupPage from './pages/CaregiverSignupPage/index.jsx';
 import ParentSignupPage from './pages/ParentSignupPage/index.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import LoginPage from './pages/LoginPage/index.jsx';
-import ProfilePage from './pages/ProfilePage/index.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
 import MessagesOverviewPage from './pages/MessagesOverviewPage/index.jsx';
 import MessengerPage from './pages/MessengerPage/index.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
