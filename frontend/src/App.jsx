@@ -14,7 +14,7 @@ import CaregiverDetailPage from './pages/CaregiverDetailPage/index.jsx';
 import ContactPage from './pages/ContactPage/index.jsx';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage/index.jsx';
 import TermsPage from './pages/TermsPage/TermsPage.jsx';
-import ImprintPage from './pages/ImprintPage/index.jsx';
+import ImprintPage from './pages/ImprintPage.jsx';
 import FAQPage from './pages/FAQPage/index.jsx';
 import Kindertagespflegegruppe from './pages/Kindertagespflegegruppe.jsx';
 import BetreuungsgruppeErstellenPage from './pages/BetreuungsgruppeErstellen/index.jsx';
