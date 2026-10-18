@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout.jsx';
-import HomePage from './pages/HomePage/index.jsx';
+import HomePage from './pages/HomePage.jsx';
 import RoleSelectionPage from './pages/RoleSelectionPage/index.jsx';
 import CaregiverSignupPage from './pages/CaregiverSignupPage/index.jsx';
 import ParentSignupPage from './pages/ParentSignupPage/index.jsx';
