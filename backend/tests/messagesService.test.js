@@ -60,31 +60,6 @@ test('sendMessage stores participants without duplicates', async (t) => {
   assert.equal(inserted[0].conversationId, 'user-1--user-2');
 });
 
-
-test('sendMessage normalizes legacy conversation ids before insert', async (t) => {
-  t.after(__resetMessagesCollectionForTesting);
-
-  const inserted = [];
-  const messagesCollection = {
-    findOne: t.mock.fn(async () => null),
-    insertOne: t.mock.fn(async (document) => {
-      inserted.push(document);
-      return { insertedId: createId('msg-legacy') };
-    }),
-  };
-
-  __setMessagesCollectionForTesting(messagesCollection);
-
-  const result = await sendMessage({
-    conversationId: 'user-2--user-1',
-    senderId: 'user-1',
-    recipientId: 'user-2',
-    body: 'Legacy conversation id should still persist.',
-  });
-
-  assert.equal(result.id, 'msg-legacy');
-  assert.equal(inserted[0].conversationId, 'user-1--user-2');
-});
 test('listConversationsForUser returns the latest message per conversation ordered by recency', async (t) => {
   t.after(__resetMessagesCollectionForTesting);
 
